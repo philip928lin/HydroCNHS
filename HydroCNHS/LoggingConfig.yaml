@@ -1,0 +1,30 @@
+version: 1
+formatters:
+  brief:
+    format: '%(name)s %(message)s'
+  simple:
+    format: '[%(asctime)s] %(name)s [%(levelname)s] %(message)s'
+    datefmt: '%m/%d %I:%M:%S'
+
+handlers:                         # Set console and log file handlers.
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple             # Users can choose different output format brief or simple
+    stream: ext://sys.stdout
+  file:
+    class : logging.handlers.RotatingFileHandler
+    formatter: simple             # Users can choose different output format brief or simple
+    filename: HydroCNHS.log
+    maxBytes: 1024
+    backupCount: 3
+
+loggers:
+  HydroCNHS:                      # Logger name. Don't not modify this! 
+    level: DEBUG                  # Set exported msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+    handlers: [console, file]     # Set log output to console/ to file/ or both
+    propagate: no
+
+root:                             # Root logger. If there is not specific logger is assign, then system will default root logger.
+  level: DEBUG
+  handlers: [console]
