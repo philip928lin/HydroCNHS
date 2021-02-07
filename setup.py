@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='HydroCNHS',
-      version='0.0.1',
+      version='1.0.0',
       description='HydroCNHS is a pure python CNHS simulation model.',
       url='',
       author='Chung-Yi Lin',
