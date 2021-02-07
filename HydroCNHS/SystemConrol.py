@@ -5,6 +5,7 @@
 
 import logging
 import logging.config
+import traceback
 import yaml
 import os 
 
@@ -27,16 +28,13 @@ def loadConfig():
 def loadLoggingConfig():
     """Load logging configuration and setup logging.
     """
+    Config = loadConfig()
     with open(os.path.join(this_dir, 'LoggingConfig.yaml'), 'rt') as file:
         LoggingConfig = yaml.safe_load(file.read())
+    if Config["LogHandlers"] is not None:       # Customize log msg to console/log file/both
+        LoggingConfig["loggers"]["HydroCNHS"]["handlers"] = Config["LogHandlers"]
     logging.config.dictConfig(LoggingConfig)
 
-def addLogFile(Filename, logger, mode = 'w'):
-    fh = logging.FileHandler(Filename, mode)    # mode: 'w' Overwrite, 'a' append
-    formatter_fh = logging.Formatter('[%(asctime)s] %(name)s [%(levelname)s] %(message)s', \
-                                     datefmt = '%Y/%m/%d %I:%M:%S')
-    fh.setFormatter(formatter_fh)
-    logger.addHandler(fh)
 # def writeConfig(Config):
 #     """Write Config.yaml.
 
@@ -53,20 +51,6 @@ def addLogFile(Filename, logger, mode = 'w'):
 #         Config_default = yaml.safe_load(file.read())
 #     with open('Config.yaml', 'w') as file:
 #         yaml.dump(Config_default, file)
-
-# def initialize(WD):
-#     """Initialize HydroCNHS model.
-#     Assign the WD to the config file and initialize the logging setting.
-
-#     Args:
-#         WD (string): Working directory
-#     """
-#     Config = loadConfig()            # Get Config
-#     Config["Path"]["WD"] = WD       # Assign working directory
-#     writeConfig(Config)             # Write Config
-    
-#     # Initialize logging setting
-
     
 def loadModel(model):
     """Load model and conduct initial check for its setting consistency.
@@ -74,10 +58,28 @@ def loadModel(model):
     Args:
         model (str): Model filename. Has to be .yaml file.
     """
-    with open(model, 'rt') as file:
-        Model = yaml.safe_load(file.read()) 
+    logger = logging.getLogger("HydroCNHS")
+    with open(model, 'rt') as file: 
+        try:
+            Model = yaml.safe_load(file.read())
+            checkModel(Model)
+        except Exception as e:
+            logger.error(traceback.format_exc())   # Logs the error appropriately.
+            return None
     # Check model is consist and correct.
+    
     return Model
+
+def checkModel(model):
+    """Check the consistency of the model dictionary.
+
+    Args:
+        model (dict): Loaded from model.yaml. 
+
+    Returns:
+        bool: True if pass the check.
+    """
+    return True
 #%% Test
 r"""
 from pprint import pprint

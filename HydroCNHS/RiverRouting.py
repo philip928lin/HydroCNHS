@@ -91,15 +91,14 @@ def formUH_Lohmann(FlowLen, RoutePars):
             UH_direct[k+u] = UH_direct[k+u] + UH_IG[k] * UH_RR[u]
     UH_direct = UH_direct/sum(UH_direct)
     #--------------------------------------------------------------------------------------
-    logger.info("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
+    logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
     return UH_direct
 
 
 def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
     """Calculate a single time step routing for the entire basin.
-    This function should be called after Qt has been updated by human model, ABM.
     Args:
-        GaugedOutlets (list): List of ordered gauged outlets from upstream to downstream.
+        GaugedOutlets (list): List of gauged outlets from upstream to downstream.
         RiverRouting (dict): Sub-model dictionary from your model.yaml file.
         UH_Lohmann (dict): Contain all pre-formed UH for all connections between gauged outlets and its upstream outlets. e.g. {(subbasin, gaugedoutlet): UH_direct}
         Q (dict): Contain all updated Q (array) for each outlet. 
@@ -114,7 +113,7 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
     # River routing 
     T_RR = 96					# [day] Base time for river routing UH 
     #--------------------------------------------------------------------------------------
-    
+    Q_temp = Q.copy()
     for g in GaugedOutlets:
         logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
         Qresult = 0
@@ -123,11 +122,11 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
             for j in range(T_IG + T_RR - 1):
                 # Sum over the flow contributed from upstream outlets.
                 if (t-j+1) >= 1:
-                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q[sb][t]
+                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q_temp[sb][t]
         Qresult += Q[g][t]      # Plus the gauged outlet its own flow.
         Q[g][t] = Qresult       # update gauged outlet flow
         logger.debug("Complete updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
-    logger.info("Complete routing at time step {}.".format(t))
+    logger.debug("Complete routing at time step {}.".format(t))
     return Q
 
 #%% Test function
