@@ -5,6 +5,9 @@ formatters:
   simple:
     format: '[%(asctime)s] %(name)s [%(levelname)s] %(message)s'
     datefmt: '%m/%d %I:%M:%S'
+  simple_with_year:
+    format: '[%(asctime)s] %(name)s [%(levelname)s] %(message)s'
+    datefmt: '%Y/%m/%d %I:%M:%S'
 
 handlers:                         # Set console and log file handlers.
   console:
@@ -14,17 +17,21 @@ handlers:                         # Set console and log file handlers.
     stream: ext://sys.stdout
   file:
     class : logging.handlers.RotatingFileHandler
-    formatter: simple             # Users can choose different output format brief or simple
+    formatter: simple_with_year   # Users can choose different output format brief or simple
     filename: HydroCNHS.log
     maxBytes: 1024
     backupCount: 3
 
 loggers:
   HydroCNHS:                      # Logger name. Don't not modify this! 
-    level: DEBUG                  # Set exported msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+    level: INFO                   # Set exported msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+    handlers: [console]     # Set log output to console/ to file/ or both
+    propagate: no
+  runHydroCNHS:                   # Logger name. Don't not modify this! 
+    level: INFO                   # Set exported msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
     handlers: [console, file]     # Set log output to console/ to file/ or both
     propagate: no
-
+    
 root:                             # Root logger. If there is not specific logger is assign, then system will default root logger.
   level: DEBUG
   handlers: [console]

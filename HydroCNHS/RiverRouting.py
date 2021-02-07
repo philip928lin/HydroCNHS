@@ -18,7 +18,10 @@ logger = logging.getLogger("HydroCNHS.RR") # Get logger for logging msg.
 #  RoutePars["Velo"]   = [m/s] Wave velocity in the linearized Saint-Venant equation   
 #  RoutePars["Diff"]   = [m2/s] Diffusivity in the linearized Saint-Venant equation
 
-def Lohmann_formUH(FlowLen, RoutePars):
+# Note:
+# We fix the Base Time setting here. For future development, it is better to ture whole Lohmann routing into a class with Base Time setting as initial variables which allow to be changed accordingly.
+
+def formUH_Lohmann(FlowLen, RoutePars):
     """Derive HRU's UH at the (watershed) outlet.
     We seperately calculate in-grid UH_IG and river routing UH_RR and combine them into HRU's UH.
 
@@ -91,15 +94,51 @@ def Lohmann_formUH(FlowLen, RoutePars):
     logger.info("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
     return UH_direct
 
+
+def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
+    """Calculate a single time step routing for the entire basin.
+    This function should be called after Qt has been updated by human model, ABM.
+    Args:
+        GaugedOutlets (list): List of ordered gauged outlets from upstream to downstream.
+        RiverRouting (dict): Sub-model dictionary from your model.yaml file.
+        UH_Lohmann (dict): Contain all pre-formed UH for all connections between gauged outlets and its upstream outlets. e.g. {(subbasin, gaugedoutlet): UH_direct}
+        Q (dict): Contain all updated Q (array) for each outlet. 
+        t (int): Index of current time step (day).
+
+    Returns:
+        [dict]: Update Qt for routing.
+    """
+    #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------
+    # In-grid routing
+    T_IG = 12					# [day] Base time for in-grid UH 
+    # River routing 
+    T_RR = 96					# [day] Base time for river routing UH 
+    #--------------------------------------------------------------------------------------
+    
+    for g in GaugedOutlets:
+        logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+        Qresult = 0
+        Subbasin = list(RiverRouting[g].keys())
+        for sb in Subbasin:
+            for j in range(T_IG + T_RR - 1):
+                # Sum over the flow contributed from upstream outlets.
+                if (t-j+1) >= 1:
+                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q[sb][t]
+        Qresult += Q[g][t]      # Plus the gauged outlet its own flow.
+        Q[g][t] = Qresult       # update gauged outlet flow
+        logger.debug("Complete updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+    logger.info("Complete routing at time step {}.".format(t))
+    return Q
+
 #%% Test function
-"""
+r"""
 RoutePars = {}
 RoutePars["GShape"] = 62.6266
 RoutePars["GScale"] = 1/0.4447
 RoutePars["Velo"] = 19.1643
 RoutePars["Diff"] = 1985.4228
 FlowLen = 11631
-UH = Lohmann_formUH(FlowLen, RoutePars)
+UH = formUH_Lohmann(FlowLen, RoutePars)
 np.sum(UH)
 """
 # %%

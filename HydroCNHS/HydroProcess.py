@@ -1,13 +1,14 @@
 #%%
 # Land Surface model using GWLF model.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
+# GWLF is based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
 # 2021/02/05
 import numpy as np
+from pandas import date_range, to_datetime, to_numeric
 import logging
 logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
-"""
+r"""
 Inputs:
     Area:                                     # [ha] Sub-basin area.
     S0:     10                                # [cm] Shallow saturated soil water content.
@@ -26,8 +27,7 @@ GWLFPars:                                       # For GWLF, we have 9 parameters
     Kc:                                       # Land cover coefficient.
 """
 
-
-def GWLF(GWLFPars, Inputs, Tt, Pt, PEt, m, DataLength):
+def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     """GWLF for rainfall runoff simulation.
 
     Args:
@@ -36,8 +36,11 @@ def GWLF(GWLFPars, Inputs, Tt, Pt, PEt, m, DataLength):
         Tt (Array): [degC] Daily mean temperature.
         Pt (Array): [cm] Daily precipitation.
         PEt (Array): [cm] Daily potential evaportranspiration.
-        m (Array): Month of each data point. 
+        StartDate (str): yyyy/mm/dd. 
         DataLength (int): Total data length.
+        
+    Returns:
+        [Array]: [cms] Qt
     """
     #----- Setup initial values -----------------------------------------------------------
     Gt =  GWLFPars["Res"]*Inputs["S0"]  # [cm] Initialize saturated zone discharge to the stream.
@@ -45,7 +48,15 @@ def GWLF(GWLFPars, Inputs, Tt, Pt, PEt, m, DataLength):
     St = Inputs["S0"]                   # [cm] Initialize shallow saturated soil water content.
     Ut = Inputs["U0"]                   # [cm] Initialize unsaturated soil water content.
     AnteMois = [0, 0, 0, 0, 0]          # [cm] Define the initial Antecedent Moisture (5 days) as 0.
-    MonthlyTavg = Inputs["MonthlyTavg"] # Monthly mean temperature.
+    MonthlyTavg = np.array(Inputs["MonthlyTavg"]) # Monthly mean temperature.
+    Tt = np.array(Tt)
+    Pt = np.array(Pt)
+    PEt = np.array(PEt)
+    # Calculate month index for each data point for realizing growing season purpose.
+    StartDate = to_datetime(StartDate, format="%Y/%m/%d")                               # to Datetime
+    pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")   # gen pd dateIndex
+    m = to_numeric(pdDatedateIndex.strftime('%m'))                                      # get month
+    m = np.array(m)                                                                     # to array
     #--------------------------------------------------------------------------------------
 
     #----- Loop through all days (Python for loop ending needs +1) ------------------------
@@ -136,3 +147,69 @@ def GWLF(GWLFPars, Inputs, Tt, Pt, PEt, m, DataLength):
     # return the result array	
     logger.info("[GWLF] Complete runoff simulation.")
     return CMS
+
+# More ET method code can be found at https://github.com/phydrus/PyEt 
+def calPEt_Hamon(Tt, Lat, StartDate, dz = None):
+    """Calculate potential evapotranspiration (PEt) with Hamon (1961) equation.
+
+    Args:
+        Tt (Array): [degC] Daily mean temperature.
+        Lat (float): [degree] Latitude.
+        StartDate (str): yyyy/mm/dd.
+        dz (float): [m] Altitude temperature adjustment. Defaults to None.
+
+    Returns:
+        [Array]: [cm/day] PEt
+    """
+    Tt = np.array(Tt)
+    # Altitude temperature adjustment
+    if dz is not None:
+        tlaps = 0.6 # Assume temperature decrease 0.6 degC for every 100 m elevation.
+        Tt = Tt - tlaps*dz/100
+    # Calculate Julian days
+    DataLength = len(Tt)
+    StartDate = to_datetime(StartDate, format="%Y/%m/%d")                         # to Datetime
+    pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")  # gen pd dateIndex
+    JDay = to_numeric(pdDatedateIndex.strftime('%j'))                               # convert to Julian days
+    # Calculate solar declination [rad] from day of year (JDay) based on equations 24 in ALLen et al (1998).
+    sol_dec = 0.4093 * np.sin(2. * 3.141592654 / 365. * JDay - 1.39)   
+    Lat_rad = Lat*np.pi/180
+    # Calculate sunset hour angle from latitude and solar declination [rad] based on equations 25 in ALLen et al (1998).
+    omega = np.arccos(-np.tan(sol_dec) * np.tan(Lat_rad))
+    # Calculate maximum possible daylight length [hr]
+    dl = 24 / np.pi * omega  
+    # From Prudhomme(hess, 2013) https://hess.copernicus.org/articles/17/1365/2013/hess-17-1365-2013-supplement.pdf
+    PEt = (dl / 12) ** 2 * np.exp(Tt / 16)  # Slightly different from what we used to.
+    PEt = np.array(PEt/10)                  # Convert from mm to cm
+    PEt[np.where(Tt <= 0)] = 0              # Force PEt = 0 when temperature is below 0.
+    logger.info("[Hamon] Complete potential evapotranspiration (PEt) calculation.")
+    return PEt      # [cm/day]
+
+#%% Test function
+r"""
+Inputs = {}
+Inputs["Area"] = 5000
+Inputs["S0"] = 10
+Inputs["U0"] = 10
+Inputs["SnowS"] = 5 
+Inputs["MonthlyTavg"] = [-5.74, -4.35, 1.06, 7.73, 14.24, 19.37, 21.71, 20.60, 16.54, 10.19, 3.65, -2.75] 
+
+GWLFPars = {}
+GWLFPars["CN2"] = 33.18
+GWLFPars["IS"] = 0.0527
+GWLFPars["Res"] = 0.196
+GWLFPars["Sep"] = 0.0975
+GWLFPars["Alpha"] = 0.058
+GWLFPars["Beta"] = 0.766
+GWLFPars["Ur"] = 14.387
+GWLFPars["Df"] = 0.176
+GWLFPars["Kc"] = 1
+
+Tt = np.array([0.598333333,-3.431666667,-0.888333333,2.29,4.785,3.48,1.618333333,0.285,-0.055,1.373333333,4.43333333,3.49,5.736666667,6.253333333,11.50666667,3.038333333,0.443333333,3.64,6.84,7.631666667,12.8666667,9.028333333,11.17833333,13.99333333,7.828333333,6.051666667,8.681666667,5.953333333,4.07,7.41666667,5.8,2.835,7.77,8.365,8.22,12.02833333,16.90833333,16.50833333,10.41333333,6.968333333,11.64,17.99666667,19.80333333,21.53833333,18.13833333,10.99,8.765,8.92,10.31333333,13.015,10.87666667,8.381666667,12.62333333,15.88333333,13.96166667,4.89,8.785,16.26666667,12.81,11.50333333,16.365])
+Pt = np.array([0.598333333,-3.431666667,-0.888333333,2.29,4.785,3.48,1.618333333,0.285,-0.055,1.373333333,4.543333333,3.49,5.736666667,6.253333333,11.50666667,3.038333333,0.443333333,3.64,6.84,7.631666667,12.38666667,9.028333333,11.17833333,13.99333333,7.828333333,6.051666667,8.681666667,5.953333333,4.07,7.141666667,5.8,2.835,7.77,8.365,8.22,12.02833333,16.90833333,16.50833333,10.41333333,6.968333333,11.64,17.99666667,19.80333333,21.53833333,18.13833333,10.99,8.765,8.92,10.31333333,13.015,10.87666667,8.381666667,12.62333333,15.88333333,13.96166667,4.89,8.785,16.26666667,12.81,11.50333333,16.365])
+StartDate = "1961/04/05"
+PEt = calPEt_Hamon(Tt, Lat = 42.648, StartDate = StartDate, dz = None)
+DataLength = 61
+
+Qt = runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength)
+"""

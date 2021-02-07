@@ -1,0 +1,6 @@
+SystemControl:
+  ParallelCores: -1 
+
+Path:
+  WD: C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest
+  Model: C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest
