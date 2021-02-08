@@ -1,2 +1,4 @@
 include HydroCNHS/*.yaml
 include HydroCNHS/Examples/*.yaml
+include HydroCNHS/Examples/*.ipynb
+include HydroCNHS/Examples/*.csv
