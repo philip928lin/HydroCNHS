@@ -113,7 +113,7 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
     # River routing 
     T_RR = 96					# [day] Base time for river routing UH 
     #--------------------------------------------------------------------------------------
-    Q_temp = Q.copy()
+    Qt = {}
     for g in GaugedOutlets:
         logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
         Qresult = 0
@@ -122,12 +122,12 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
             for j in range(T_IG + T_RR - 1):
                 # Sum over the flow contributed from upstream outlets.
                 if (t-j+1) >= 1:
-                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q_temp[sb][t]
-        Qresult += Q[g][t]      # Plus the gauged outlet its own flow.
-        Q[g][t] = Qresult       # update gauged outlet flow
-        logger.debug("Complete updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q[sb][t]
+        Qresult += Q[g][t]      # Plus the gauged outlet its own runoff.
+        Qt[g] = Qresult         # Store the result for time t
+        logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
     logger.debug("Complete routing at time step {}.".format(t))
-    return Q
+    return Qt
 
 #%% Test function
 r"""

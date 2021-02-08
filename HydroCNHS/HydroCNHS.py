@@ -3,11 +3,12 @@
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # 2021/02/05
 
-from .HydroProcess import runGWLF, calPEt_Hamon
+from .LSM import runGWLF, calPEt_Hamon
 from .RiverRouting import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel, checkModel
 from joblib import Parallel, delayed    # For parallelization
 from pandas import date_range, to_datetime
+import numpy as np
 import time
 import logging
 logger = logging.getLogger("HydroCNHS") # Get logger 
@@ -37,12 +38,14 @@ class HydroCNHS(object):
                            
         self.Path = Model["Path"]
         self.WS = Model["WaterSystem"]     # WS: Water system
-        self.HP = Model["HydroProcess"]     # HP: Hydrological process
+        self.LSM = Model["LSM"]     # HP: Hydrological process
         self.RR = Model["RiverRouting"]     # RR: River routing 
         self.ABM = Model["ABM"] 
 
         # initialize output
         self.Q = {}     # [cms] Streamflow for each outlet.
+        for g in self.WS["GaugedOutlets"]:
+            self.Q[g] = np.zeros(self.WS["DataLength"])
         self.A = {}     # Collect output for AgentType Agent its outputs
     
     def loadWeatherData(self, T, P, PE, OutletsQ = None):
@@ -57,15 +60,14 @@ class HydroCNHS(object):
             PE = {}
             # Default to calculate PE with Hamon's method and no dz adjustment.
             for sb in OutletsQ:
-                PE[sb] = calPEt_Hamon(T[sb], self.HP[sb]["Input"]["Latitude"], self.WS["StartDate"], dz = None)
+                PE[sb] = calPEt_Hamon(T[sb], self.LSM[sb]["Input"]["Latitude"], self.WS["StartDate"], dz = None)
         self.Weather = {"T":T, "P":P, "PE":PE}
         logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
     
-    def checkActiveAgTypes(self, t, StartDate, CurrentDate):
+    def checkActiveAgTypes(self, StartDate, CurrentDate):
         """Check the decision point accross agent types.
 
         Args:
-            t (int): Time step index.
             StartDate (datetime): Start date.
             CurrentDate (datetime): Current date.
 
@@ -74,7 +76,7 @@ class HydroCNHS(object):
         """
         DecisionFreq = self.ABM["DecisionFreq"] # Coupling frequency setting from DecisionFreq (dict)
         ActiveAgTypes = []
-        for agType in list(DecisionFreq.keys()):
+        for agType in DecisionFreq:
             DeciFreq = DecisionFreq[agType]
             if DeciFreq.count(None) == 2:   # Type 1 format specify period. e.g. every 2 months.
                 if DeciFreq[2] is not None:     # day period
@@ -115,9 +117,10 @@ class HydroCNHS(object):
         
         Para = self.Config["Parallelization"]
         Outlets = self.WS["Outlets"]
+        self.Q_HP = {}  # Temporily store Q result from land surface simulation.
         
         # ----- Land surface simulation ---------------------------------------
-        if self.HP["Model"] == "GWLF":
+        if self.LSM["Model"] == "GWLF":
             # Remove sub-basin that don't need to be simulated. Not preserving element order in the list.
             Outlets_GWLF = list(set(Outlets) - set(AssignedQ.keys()))  
             # Load weather and calculate PEt with Hamon's method.
@@ -125,13 +128,13 @@ class HydroCNHS(object):
             # Start GWLF simulation in parallel.
             QParel = Parallel(n_jobs = Para["Cores_runGWLF"], verbose = Para["verbose"]) \
                             ( delayed(runGWLF)\
-                              (self.HP[sb]["Pars"], self.HP[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.PE[sb], self.WS["StartDate"], self.WS["DataLength"]) \
+                              (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.PE[sb], self.WS["StartDate"], self.WS["DataLength"]) \
                               for sb in Outlets_GWLF ) 
             # Add user assigned Q first.
-            self.Q = AssignedQ      
+            self.Q_HP = AssignedQ      
             # Collect QParel results
             for i, sb in enumerate(Outlets_GWLF):
-                self.Q[sb] = QParel[i]
+                self.Q_HP[sb] = QParel[i]
         # ---------------------------------------------------------------------    
     
 
@@ -139,7 +142,7 @@ class HydroCNHS(object):
         if self.RR["Model"] == "Lohmann":
             self.UH_Lohmann = {}    # Initialized the output dictionary
             # Form combination
-            UH_List = [(sb, g) for g in self.WS["GaugedOutlets"] for sb in list(self.RR["g"].keys())]
+            UH_List = [(sb, g) for g in self.WS["GaugedOutlets"] for sb in self.RR["g"]]
             # Remove assigned UH from the list. Not preserving element order in the list.
             UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
             # Start forming UH_Lohmann in parallel.
@@ -169,14 +172,20 @@ class HydroCNHS(object):
                 # Assume we have a function called runAgent(agInputs, agPars, Q)
                 # agParel = Parallel(n_jobs = Para["ABM"], verbose = Para["verbose"]) \
                 #             ( delayed(runAgent)\
-                #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q) \
-                #             for ag in list(self.ABM[agType].keys()) )     
+                #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q_HP) \
+                #             for ag in self.ABM[agType] )     
                 pass
             
-            # ----- Update gauged Qt by routing  
+            # ----- Calculate gauged Qt by routing  
+            Qt = None
             if self.RR["Model"] == "Lohmann":
-                self.Q = runTimeStep_Lohmann(self.WS["GaugedOutlets"], self.RR, self.UH_Lohmann, self.Q, t)
-        
+                Qt = runTimeStep_Lohmann(self.WS["GaugedOutlets"], self.RR, self.UH_Lohmann, self.Q_HP, t)
+            
+            # ----- Store Qt
+            for g in self.Q:
+                self.Q[g][t] = Qt[g]
+            
+            
         elapsed_time = time.monotonic() - start_time
         self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
         logger.info("Complete HydroCNHS simulation [{}].".format(self.elapsed_time))

@@ -38,7 +38,7 @@ def loadLoggingConfig():
 
 
 
-def writeConfig(ModifiedConfig):
+def updateConfig(ModifiedConfig):
     """Given the dictionary of modified setting, this funciton will over write Config.yaml.
 
     Args:
