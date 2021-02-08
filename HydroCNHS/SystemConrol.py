@@ -7,6 +7,7 @@ import logging
 import logging.config
 import traceback
 import yaml
+import ruamel.yaml      # For round trip modification (keep comments)
 import os 
 
 r"""
@@ -20,7 +21,7 @@ def loadConfig():
     Returns:
         dict: Dictionary of model config.
     """
-    print(os.path.join(this_dir, 'Config.yaml'))
+    #print(os.path.join(this_dir, 'Config.yaml'))
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
         config = yaml.safe_load(file.read())
     return config
@@ -35,22 +36,38 @@ def loadLoggingConfig():
         LoggingConfig["loggers"]["HydroCNHS"]["handlers"] = Config["LogHandlers"]
     logging.config.dictConfig(LoggingConfig)
 
-# def writeConfig(Config):
-#     """Write Config.yaml.
 
-#     Args:
-#         Config (dict): Dictionary of model config
-#     """
-#     with open('Config.yaml', 'w') as file:
-#         yaml.dump(Config, file)
 
-# def defaultConfig():
-#     """Default Config.yaml.
-#     """
-#     with open('Config_default.yaml', 'rt') as file:
-#         Config_default = yaml.safe_load(file.read())
-#     with open('Config.yaml', 'w') as file:
-#         yaml.dump(Config_default, file)
+def writeConfig(ModifiedConfig):
+    """Given the dictionary of modified setting, this funciton will over write Config.yaml.
+
+    Args:
+        Config (dict): Dictionary of modified config setting
+    """
+    yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
+    with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
+        config = yaml_round.load(file.read())
+        
+    # Relace values
+    for key in ModifiedConfig:
+        if isinstance(ModifiedConfig, dict):    # Second level
+            for key2 in ModifiedConfig[key]:
+                config[key][key2] = ModifiedConfig[key][key2]
+        else:                                   # First level
+            config[key] = ModifiedConfig[key]
+            
+    with open('Config.yaml', 'w') as file:
+        yaml_round.dump(config, file)
+
+
+def defaultConfig():
+    """Repalce Config.yaml back to default setting.
+    """
+    yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
+    with open('Config_default.yaml', 'rt') as file:
+        Config_default = yaml_round.load(file.read())
+    with open('Config.yaml', 'w') as file:
+        yaml_round.dump(Config_default, file)
     
 def loadModel(model):
     """Load model and conduct initial check for its setting consistency.

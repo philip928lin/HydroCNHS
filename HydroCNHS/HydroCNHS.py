@@ -113,7 +113,7 @@ class HydroCNHS(object):
         start_time = time.monotonic()
         self.elapsed_time = 0
         
-        Cores = self.Config["ParallelCores"]
+        Para = self.Config["Parallelization"]
         Outlets = self.WS["Outlets"]
         
         # ----- Land surface simulation ---------------------------------------
@@ -123,7 +123,7 @@ class HydroCNHS(object):
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets_GWLF)    
             # Start GWLF simulation in parallel.
-            QParel = Parallel(n_jobs = Cores["runGWLF"], verbose = Cores["verbose"]) \
+            QParel = Parallel(n_jobs = Para["Cores_runGWLF"], verbose = Para["verbose"]) \
                             ( delayed(runGWLF)\
                               (self.HP[sb]["Pars"], self.HP[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.PE[sb], self.WS["StartDate"], self.WS["DataLength"]) \
                               for sb in Outlets_GWLF ) 
@@ -143,7 +143,7 @@ class HydroCNHS(object):
             # Remove assigned UH from the list. Not preserving element order in the list.
             UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
             # Start forming UH_Lohmann in parallel.
-            UHParel = Parallel(n_jobs = Cores["formUH_Lohmann"], verbose = Cores["verbose"]) \
+            UHParel = Parallel(n_jobs = Para["Cores_formUH_Lohmann"], verbose = Para["verbose"]) \
                             ( delayed(formUH_Lohmann)\
                             (self.RR[pair[1]][pair[0]]["Inputs"]["Flowlength"], self.RR[pair[1]][pair[0]]["Pars"]) \
                             for pair in UH_List_Lohmann )     # pair = (Outlet, GaugedOutlet)
@@ -167,7 +167,7 @@ class HydroCNHS(object):
             ActiveAgTypes = self.checkActiveAgTypes(self, t, StartDate, CurrentDate)
             for agType in ActiveAgTypes:
                 # Assume we have a function called runAgent(agInputs, agPars, Q)
-                # agParel = Parallel(n_jobs = Cores["ABM"], verbose = Cores["verbose"]) \
+                # agParel = Parallel(n_jobs = Para["ABM"], verbose = Para["verbose"]) \
                 #             ( delayed(runAgent)\
                 #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q) \
                 #             for ag in list(self.ABM[agType].keys()) )     
