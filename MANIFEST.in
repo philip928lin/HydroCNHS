@@ -1,1 +1,2 @@
 include HydroCNHS/*.yaml
+include HydroCNHS/Examples/*.yaml
