@@ -9,6 +9,10 @@ from pandas import date_range, to_datetime, to_numeric
 #logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
 r"""
+Weather:
+    T:                                        # [degC] Daily mean temperature.
+    P:                                        # [cm] Daily precipitation.
+    PE:                                       # [cm] Daily potential evapotranspiration.
 Inputs:
     Area:                                     # [ha] Sub-basin area.
     S0:     10                                # [cm] Shallow saturated soil water content.
@@ -49,9 +53,10 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     Ut = Inputs["U0"]                   # [cm] Initialize unsaturated soil water content.
     AnteMois = [0, 0, 0, 0, 0]          # [cm] Define the initial Antecedent Moisture (5 days) as 0.
     MonthlyTavg = np.array(Inputs["MonthlyTavg"]) # Monthly mean temperature.
-    Tt = np.array(Tt)
-    Pt = np.array(Pt)
-    PEt = np.array(PEt)
+    Tt = np.array(Tt)                   # [degC] Daily mean temperature.
+    Pt = np.array(Pt)                   # [cm] Daily precipitation.
+    PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
+    
     # Calculate month index for each data point for realizing growing season purpose.
     StartDate = to_datetime(StartDate, format="%Y/%m/%d")                               # to Datetime
     pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")   # gen pd dateIndex
@@ -121,7 +126,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         PCt = max((Ut+ Rt + Mt - Qt - Et - GWLFPars["Ur"]), 0)
         #---------------------------------------------------------------------------------------------
         # Update unsaturated zone soil moistures (Ut)-------------------------------------------------
-        Ut = Ut + Rt + Mt - Qt - Et - PCt       # Rt+Mt-Qt-Et can be seen as infiltration
+        Ut = Ut + Rt + Mt - Qt - Et - PCt       # Rt+Mt-Qt is infiltration
         #---------------------------------------------------------------------------------------------
         # Calculate groundwater discharge (Gt) and deep seepage (Dt)----------------------------------  
         Gt = GWLFPars["Res"] * St
@@ -155,7 +160,7 @@ def calPEt_Hamon(Tt, Lat, StartDate, dz = None):
 
     Args:
         Tt (Array): [degC] Daily mean temperature.
-        Lat (float): [degree] Latitude.
+        Lat (float): [deg] Latitude.
         StartDate (str): yyyy/mm/dd.
         dz (float): [m] Altitude temperature adjustment. Defaults to None.
 
