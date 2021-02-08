@@ -78,14 +78,22 @@ LSM:
 RiverRouting:                                   
   Model: Lohmann                                # Selected routing model.
   B:                                            # Gauged outlet.
-    A:                                          # One of upstream outlets that contribute to streamflow at this Gauged outlet.
+    A:                                          # One of catchment outlets that contribute to streamflow at this Gauged outlet.
       Inputs:                             
         FlowLength:  8071                       # [m] Flow length between this outlet and this GaugedOutlet
       Pars:                           
         GShape:  21.7                           # In-grid UH, shape parameter of a gamma distribution. 
         GScale:  1.176                          # In-grid UH, scale parameter of a gamma distribution. 
-        Velo:    8.42                           # River UH. Wave velocity.
-        Diff:    1894.86                        # River UH. Diffusion.
+        Velo:    8.42                           # River UH. Wave velocity. If gauged outlet, None.
+        Diff:    1894.86                        # River UH. Diffusion. If gauged outlet, None.
+    B:                                          # Gauged outlet.
+      Inputs:                             
+        FlowLength:  0                          # [m] Flow length between this outlet and this GaugedOutlet
+      Pars:                           
+        GShape:  21.7                           # In-grid UH, shape parameter of a gamma distribution. 
+        GScale:  1.176                          # In-grid UH, scale parameter of a gamma distribution. 
+        Velo:    None                           # River UH. Wave velocity. If gauged outlet, None.
+        Diff:    None                           # River UH. Diffusion. If gauged outlet, None.
 #-----------------------------------------------------------
 
 

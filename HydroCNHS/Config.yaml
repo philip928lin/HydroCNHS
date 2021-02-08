@@ -1,6 +1,6 @@
 
 
-LogHandlers: [console, file]    # This will overwrite logger("HydroCNHS")'s setting if given.
+LogHandlers: [console]    # This will overwrite logger("HydroCNHS")'s setting if given.
 
 Parallelization:
   verbose: 10           # Print out Joblib progress. The higher the value of verbose, the more messages

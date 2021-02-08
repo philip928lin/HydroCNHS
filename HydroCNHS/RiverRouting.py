@@ -6,8 +6,8 @@
 
 import numpy as np
 from scipy.stats import gamma
-import logging
-logger = logging.getLogger("HydroCNHS.RR") # Get logger for logging msg.
+#import logging
+#logger = logging.getLogger("HydroCNHS.RR") # Get logger for logging msg.
 
 # Inputs
 #  FlowLen = [m] Travel distence of flow between two outlets.
@@ -50,39 +50,42 @@ def formUH_Lohmann(FlowLen, RoutePars):
     #--------------------------------------------------------------------------------------
 
     #----- Derive Daily River Impulse Response Function (Green's function) ----------------
-    Velo = RoutePars["Velo"] 
-    Diff = RoutePars["Diff"]
-    
-    # Calculate h(x, t)
-    t = 0
-    UH_RRm = np.zeros(Tgr_hr) # h() in hour
-    for k in range(Tgr_hr):
-        t = t + dT_sec          # Since Velo is m/s, we use the t in sec with 1 hr as time step.
-        pot = ((Velo * t - FlowLen) ** 2) / (4 * Diff * t)
-        if pot <= 69:		    # e^(-69) = E-30 a cut-off threshold								
-            H = FlowLen /(2 * t * (np.pi * t * Diff)**0.5) * np.exp(-pot)  
-        else:
-            H = 0
-        UH_RRm[k] = H
-
-    if sum(UH_RRm) == 0:
-        UH_RRm[0] = 1.0
-    else:
-        UH_RRm = UH_RRm / sum(UH_RRm)     # Force UH_RRm to sum to 1
-    
-    # FR: Fast response flow in hourly segments.        
-    FR = np.zeros((Tmax_hr, 2))     												
-    FR[0:23, 0] = 1 / 24    # Later sum over 24 hours, so will need to be divided by 24.
-
-    # S-map Unit conversion, from hr to day
-    for t in range(Tmax_hr):
-        for L in range (0, Tmax_hr+24):
-            if (t-L) > 0:
-                FR[t,1] = FR[t,1] + FR[t-L,0] * UH_RRm[L]
-    # Aggregate to daily UH
     UH_RR = np.zeros(T_RR)
-    for t in range(T_RR):
-        UH_RR[t] = sum(FR[(24*(t+1)-24):(24*(t+1)-1),1])
+    if FlowLen == 0:
+        UH_RR[0] = 1    # No time delay for river routing when the outlet is gauged outlet.
+    else:
+        Velo = RoutePars["Velo"] 
+        Diff = RoutePars["Diff"]
+
+        # Calculate h(x, t)
+        t = 0
+        UH_RRm = np.zeros(Tgr_hr) # h() in hour
+        for k in range(Tgr_hr):
+            t = t + dT_sec          # Since Velo is m/s, we use the t in sec with 1 hr as time step.
+            pot = ((Velo * t - FlowLen) ** 2) / (4 * Diff * t)
+            if pot <= 69:		    # e^(-69) = E-30 a cut-off threshold								
+                H = FlowLen /(2 * t * (np.pi * t * Diff)**0.5) * np.exp(-pot)  
+            else:
+                H = 0
+            UH_RRm[k] = H
+
+        if sum(UH_RRm) == 0:
+            UH_RRm[0] = 1.0
+        else:
+            UH_RRm = UH_RRm / sum(UH_RRm)     # Force UH_RRm to sum to 1
+        
+        # FR: Fast response flow in hourly segments.        
+        FR = np.zeros((Tmax_hr, 2))     												
+        FR[0:23, 0] = 1 / 24    # Later sum over 24 hours, so will need to be divided by 24.
+
+        # S-map Unit conversion, from hr to day
+        for t in range(Tmax_hr):
+            for L in range (0, Tmax_hr+24):
+                if (t-L) > 0:
+                    FR[t,1] = FR[t,1] + FR[t-L,0] * UH_RRm[L]
+        # Aggregate to daily UH
+        for t in range(T_RR):
+            UH_RR[t] = sum(FR[(24*(t+1)-24):(24*(t+1)-1),1])
 
 	#----- Combined UH_IG and UH_RR for HRU's response at the (watershed) outlet ----------
     UH_direct = np.zeros(T_IG + T_RR - 1)   # Convolute total time step [day]
@@ -91,7 +94,7 @@ def formUH_Lohmann(FlowLen, RoutePars):
             UH_direct[k+u] = UH_direct[k+u] + UH_IG[k] * UH_RR[u]
     UH_direct = UH_direct/sum(UH_direct)
     #--------------------------------------------------------------------------------------
-    logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
+    #logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
     return UH_direct
 
 
@@ -115,18 +118,17 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
     #--------------------------------------------------------------------------------------
     Qt = {}
     for g in GaugedOutlets:
-        logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+        #logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
         Qresult = 0
         Subbasin = list(RiverRouting[g].keys())
         for sb in Subbasin:
             for j in range(T_IG + T_RR - 1):
                 # Sum over the flow contributed from upstream outlets.
                 if (t-j+1) >= 1:
-                    Qresult = Qresult + UH_Lohmann[(sb, g)]*Q[sb][t]
-        Qresult += Q[g][t]      # Plus the gauged outlet its own runoff.
+                    Qresult = Qresult + UH_Lohmann[(sb, g)][j]*Q[sb][t-j]
         Qt[g] = Qresult         # Store the result for time t
-        logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
-    logger.debug("Complete routing at time step {}.".format(t))
+        #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
+    #logger.debug("Complete routing at time step {}.".format(t))
     return Qt
 
 #%% Test function

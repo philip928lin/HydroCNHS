@@ -5,8 +5,8 @@
 # 2021/02/05
 import numpy as np
 from pandas import date_range, to_datetime, to_numeric
-import logging
-logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
+#import logging
+#logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
 r"""
 Inputs:
@@ -92,6 +92,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         # CN calculation (Following GWLF2 setting)----------------------------------------------------
         CN1 = (4.2 * GWLFPars["CN2"]) / (10 - 0.058 * GWLFPars["CN2"])
         CN3 = (23 * GWLFPars["CN2"]) / (10 + 0.13 * GWLFPars["CN2"])
+        CN = None
         if at < am1:
             CN = CN1 + ((GWLFPars["CN2"] - CN1) / am1) * at
             
@@ -145,7 +146,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         CMS[i] = (SF * 0.01 * Inputs["Area"] * 10000) / 86400
         #---------------------------------------------------------------------------------------------
     # return the result array	
-    logger.info("[GWLF] Complete runoff simulation.")
+    #logger.info("[GWLF] Complete runoff simulation.")
     return CMS
 
 # More ET method code can be found at https://github.com/phydrus/PyEt 
@@ -182,7 +183,7 @@ def calPEt_Hamon(Tt, Lat, StartDate, dz = None):
     PEt = (dl / 12) ** 2 * np.exp(Tt / 16)  # Slightly different from what we used to.
     PEt = np.array(PEt/10)                  # Convert from mm to cm
     PEt[np.where(Tt <= 0)] = 0              # Force PEt = 0 when temperature is below 0.
-    logger.info("[Hamon] Complete potential evapotranspiration (PEt) calculation.")
+    #logger.info("[Hamon] Complete potential evapotranspiration (PEt) calculation.")
     return PEt      # [cm/day]
 
 #%% Test function
