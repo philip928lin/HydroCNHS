@@ -1,14 +1,27 @@
 from .SystemConrol import loadConfig
 from joblib import Parallel, delayed    # For parallelization
 import numpy as np
+import pandas as pd
 import pickle
 import os
+import logging
+logger = logging.getLogger("HydroCNHS.DMC") # Get logger 
+
+"""
+If NumSP = 0   => it should work
+Converter class
+check function 
+logger
+force parallel in HydroCNHS to stop
+timeout (function) 
+"""
 
 r"""
 Inputs = {"ParName":[], 
           "ParBound":[],  # [upper, low] or [4, 6, 9] Even for category type, it has to be numbers!
           "ParType":[],   # real or category
-          "ParWeight":[]}   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Not yet written into the main code.
+          "ParWeight":[],  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Not yet written into the main code.
+          "WD":}   
           
 Config = {"NumSP":1,
           "PopSize": 30,            # Must be even.
@@ -18,25 +31,18 @@ Config = {"NumSP":1,
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
-          "ParalCores": 2/None      # This will overwrite system config.
+          "ParalCores": 2/None,     # This will overwrite system config.
+          "AutoSave": True          # Automatically save a model snapshot after each generation.
           }
 """
-class PreDMCGA_Inputs(object):
-    def __init__(self):
-        pass  
-    def getFormatter(self):
-        pass
-        
+
 class DMCGA(object):
-    def __init__(self, LossFunc, Inputs, Config, Formatter, Continue = None):
-        if Continue is not None:
-            # Load autoSave pickle file!
-            pass
-        
+    def __init__(self, LossFunc, Inputs, Config, Formatter, ContinueFile = None, Name = None):
+               
         # Populate class attributions.
-        self.LossFunc = LossFunc            # Loss function LossFunc(pop, Formatter, SubWD = None).
+        self.LossFunc = LossFunc            # Loss function LossFunc(pop, Formatter, SubWDInfo = None).
                                              #pop is a parameter vector. 
-                                             #SubWD is a subfolder directory for storing HydroCNHS simulation results if needed.
+                                             #SubWDInfo = (CaliWD, CurrentGen, sp, k).
                                              #Lower bound of return value has to be 0.
         self.Inputs = Inputs                # Input ductionary containing ParName, ParBound, and ParType.
         self.Config = Config                # Configuration for DMCGA.
@@ -45,8 +51,20 @@ class DMCGA(object):
         self.SysConfig = loadConfig()        #Load system config => Config.yaml (Default parallelization setting)
         self.NumPar = len(Inputs["ParName"])
         
+        # If continue is True, load auto-saved pickle.
+        if ContinueFile is not None:
+            # Load autoSave pickle file!
+            with open(ContinueFile, "rb") as f:
+                Snapshot = pickle.load(f)
+            # Load back all the previous class attributions.
+            for key in Snapshot:
+                setattr(self, key, Snapshot[key])
+            self.Continue = True            # If it is continue run, no initialization is needed in "run".
+            pass
+        
         #---------- Auto save section ----------
-        if Continue is None:
+        if ContinueFile is None:
+            self.Continue = False   # If it is continue run, no initialization is needed in "run".
             # Generate index lists for later for loop and readibility.
             self.SPList = ["SP0"] + ["SP"+str(i+1) for i in range(Config["NumSP"])]
             
@@ -67,6 +85,18 @@ class DMCGA(object):
                 elif ty == "category":
                     self.BoundScale.append(np.max(Inputs["ParBound"][i]) - np.min(Inputs["ParBound"][i]))
             self.BoundScale = np.array(self.BoundScale)     # Store in array type. 
+            
+            # Create calibration folder
+            if Name is None:
+                self.__name__ = "Calibration"
+            else:
+                self.__name__ = Name
+            self.CaliWD = os.path.join(Inputs["WD"], self.__name__)
+            # Create CaliWD directory
+            if os.path.isdir(self.CaliWD) is not True:
+                os.mkdir(self.CaliWD)
+            else:
+                logger.warning("!!! Current calibration folder exists. Default to overwrite the folder!!!\n{}".format(self.CaliWD))
         #---------------------------------------
 
     def MCSample(self, pop, ParBound, ParType):
@@ -118,16 +148,13 @@ class DMCGA(object):
     def nextGen(self):
         LossFunc = self.LossFunc
         Formatter = self.Formatter
-        SubWD = None
         CurrentGen = self.CurrentGen
         PopSize = self.Config["PopSize"]
         SPList = self.SPList
         NumSP = self.Config["NumSP"]
         NumPar = self.NumPar
         NumEllite = self.Config["NumEllite"]
-        
-        
-        
+
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify, then we will use system default cores.
@@ -138,10 +165,10 @@ class DMCGA(object):
         # Note: Since HydroCHNS is a stochastic model, we will re simulate the ellite parameter set!!
         # In future, we can have an option for this to further reduce computational efficiency.
         # Evalute objective funtion (Loss function)
-        # LossFunc(pop, Formatter, SubWD = None)
+        # LossFunc(pop, Formatter, SubWDInfo = None); SubWDInfo = (CaliWD, CurrentGen, sp, k)
         LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
                            ( delayed(LossFunc)\
-                             (self.Pop[CurrentGen][sp][k], Formatter, SubWD) \
+                             (self.Pop[CurrentGen][sp][k], Formatter, (self.CaliWD, CurrentGen, sp, k)) \
                              for sp in SPList for k in range(PopSize) )  # Still go through entire Pop including ellites.
         # Get results
         for i, sp in enumerate(SPList):    # To fit two level for loop in joblib assignment.
@@ -304,29 +331,226 @@ class DMCGA(object):
         return None
     
     def dropRecord(self):
+        """Drop historical populations. However, we still keep historical tracking for all results.
+        """
         if self.Config["DropRecord"]:
             del self.Pop[self.CurrentGen-1]
-        return None
     
     def autoSave(self):
-        dictionary = self.__dict__.copy()
-        # dictionary.pop('logger', None)  # handler cannot be pickled.
-        # with open(os.path.join(path, "GAobject.pickle"), 'wb') as outfile:
-        #     pickle.dump(dictionary, outfile)
+        """Auto save a snapshot of current DMCGA process in case any model break down.
+        """
+        CaliWD = self.CaliWD
+        Snapshot = self.__dict__.copy()
+        with open(os.path.join(CaliWD, "AutoSave.pickle"), 'wb') as outfile:
+            pickle.dump(Snapshot, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+            # About protocol: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
         return None
     
     def run(self, InitialPop = None):
         SamplingMethod = self.Config["SamplingMethod"]
         MaxGen = self.Config["MaxGen"]
+        AutoSave = self.Config["AutoSave"]
         
-        self.initialize(SamplingMethod, InitialPop)
+        # If it is a continuous run from previous shockdown work, we don't need initialization.
+        if self.Continue is not True:
+            self.initialize(SamplingMethod, InitialPop)
+            
+        # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
         while self.CurrentGen <= MaxGen:
             self.nextGen()
             self.dropRecord()
-            self.autoSave()
-            
+            # If Autosave is True, a model snapshot (pickle file) will be saved at CaliWD.
+            if AutoSave:
+                self.autoSave()
+         
         del self.Pop[self.CurrentGen]   # Delete Pop with gen index = (MaxGen+1 -1)
             
+#%%
+class DMCGA_Convertor(object):
+    """This DMCGA_Convertor helps user to convert multiple parameter dataframe (can obtain nan values) into an 1D array (automatically exclude nan values) that can be used for DMCGA calibration. And the Formatter created by DMCGA_Convertor can be used to convert 1D array back to list of dataframe. Besides, we provide option for defining fixed values that doesn't need to be calibrated. 
+    Note: Dataframe index is parameter names.
+    """
+    def __init__(self):
+        pass
         
-    
+    def genFormatter(self, DFList, FixedParList = None):
+        """[Include in genDMCGAInputs] Generate Formatter for given list of dataframe objects.  
 
+        Args:
+            DFList (list): A list of dataframes. Dataframe index is parameter names.
+            FixedParList (list, optional): A list contains a list of fixed parameter names for each dataframe. Defaults to None.
+        """
+        Formatter = {"NumDF": None,
+                    "ShapeList": [],
+                    "ColNameList": [],
+                    "IndexNameList": [],
+                    "Index": [0],
+                    "NoneIndex": None,
+                    "FixedParList": None,
+                    "FixedParValueList": []}
+        if FixedParList is not None:
+                Formatter["FixedParList"] = FixedParList
+        
+        Formatter["NumDF"] = len(DFList)
+        VarArray = []        
+        for i, df in enumerate(DFList):
+            Formatter["ShapeList"].append(df.shape)
+            Formatter["ColNameList"].append(df.columns.values)
+            Formatter["IndexNameList"].append(df.index.values)
+            # Store fixed par and replace their values with None in df.
+            if FixedParList is not None:
+                if FixedParList[i] == []:
+                    Formatter["FixedParValueList"].append(None)
+                else:
+                    Formatter["FixedParValueList"].append(df.loc[FixedParList[i], :])
+                    df.loc[FixedParList[i], :] = None
+            # Convert to 1d array
+            VarArray = VarArray + list(df.to_numpy().flatten("C"))    # [Row1, Row2, .....
+            # Add Index
+            Formatter["Index"].append(len(VarArray))
+            
+        VarArray = np.array(VarArray)       # list to array
+        Formatter["NoneIndex"] = list(np.argwhere(np.isnan(VarArray)).flatten()) # Find index for np.nan
+        self.Formatter = Formatter
+    
+    def genDMCGAInputs(self, WD, DFList, ParTypeDict, ParBoundDict, ParWeightDict = None, FixedParList = None):
+        """Generate Inputs dictionary required for DMCGA.
+
+        Args:
+            WD (path): Working directory defined in the model.yaml.
+            DFList (list): A list of dataframes. Dataframe index is parameter names.
+            ParTypeDict (dict): A dictionary with key = parameter name and value = paremeter type [real/category]
+            ParBoundDict (dict): A dictionary with key = parameter name and value = [lower bound, upper bound] or [1, 2, 3 ...]
+            ParWeightDict (dict, optional): A dictionary with key = parameter name and value = weight (from SA). Defaults to None, weight = 1.
+            FixedParList (list, optional): A list contains a list of fixed parameter names (don't need calibration) for each dataframe. Defaults to None.
+        """
+        # Compute Formatter
+        self.genFormatter(DFList, FixedParList)
+        Formatter = self.Formatter
+        NoneIndex = Formatter["NoneIndex"]
+        ParName = []
+        ParType = []
+        ParBound = []
+        ParWeight = []
+        # Form a list of above infomation (1D)
+        for i in range(len(DFList)):
+            ColNameList_d = Formatter["ColNameList"][i]
+            IndexNameList_d = Formatter["IndexNameList"][i]
+            for par in IndexNameList_d:
+                for c in ColNameList_d:
+                    ParName.append(str(par)+"|"+str(c))
+                    ParType.append(ParTypeDict[par])
+                    ParBound.append(ParBoundDict[par])
+                    if ParWeightDict is None:
+                        ParWeight.append(1)
+                    else:
+                        ParWeight.append(ParWeightDict[par])
+        # Remove None index from Formatter. This include fixed par and par with None value. 
+        def delete_multiple_element(list_object, indices):
+            indices = sorted(indices, reverse=True)
+            for idx in indices:
+                if idx < len(list_object):
+                    list_object.pop(idx)
+        delete_multiple_element(ParName, NoneIndex)
+        delete_multiple_element(ParBound, NoneIndex)
+        delete_multiple_element(ParType, NoneIndex)
+        delete_multiple_element(ParWeight, NoneIndex)
+        Inputs = {"WD": WD, "ParName": ParName, "ParBound": ParBound, "ParType": ParType, "ParWeight": ParWeight}
+        self.Inputs = Inputs
+    
+    @staticmethod   # staticmethod doesn't depends on object. It can be used independently.
+    def to1DArray(DFList, Formatter):
+        """Convert a list of dataframe to a 1D array following Formatter setting.
+
+        Args:
+            DFList (list): A list of dataframes. Dataframe index is parameter names.
+            Formatter (dict): Generated by genFormatter or genDMCGAInputs. It is stored in attributions of the DMCGA_Convertor object.
+
+        Returns:
+            Array: 1D array.
+        """
+        VarArray = []        
+        for df in DFList:
+            # Convert to 1d array
+            VarArray = VarArray + list(df.to_numpy().flatten("C"))   
+            
+        def delete_multiple_element(list_object, indices):
+            indices = sorted(indices, reverse=True)
+            for idx in indices:
+                if idx < len(list_object):
+                    list_object.pop(idx)
+        delete_multiple_element(VarArray, Formatter["NoneIndex"])
+        return np.array(VarArray)
+    
+    @staticmethod   # staticmethod doesn't depends on object. It can be used independently.
+    def toDFList(VarArray, Formatter):
+        """Convert 1D array back to a list of original dataframe based on Formatter.
+
+        Args:
+            VarArray (array): 1D array.
+            Formatter (dict): Generated by genFormatter or genDMCGAInputs. It is stored in attributions of the DMCGA_Convertor object.
+
+        Returns:
+            list: A list of dataframes. Dataframe index is parameter names.
+        """
+        NoneIndex = Formatter["NoneIndex"]
+        Index = Formatter["Index"]
+        # Insert np.nan to VarArray following NoneIndex
+        for i in NoneIndex:
+            VarArray = np.insert(VarArray,i,np.nan)
+        # Form DFList
+        DFList = []
+        for i in range(Formatter["NumDF"]):
+            # 1d array to dataframe 
+            df = np.reshape(VarArray[Index[i]: Index[i+1]], Formatter["ShapeList"][i], "C")
+            df = pd.DataFrame(df)
+            df.index = Formatter["IndexNameList"][i]
+            df.columns = Formatter["ColNameList"][i]
+            # Add fixed values back
+            if Formatter["FixedParList"] is not None:
+                df.loc[Formatter["FixedParList"][i],:] = Formatter["FixedParValueList"][i]
+            DFList.append(df)
+        return DFList
+
+#%% DMCGA_Convertor Example
+r"""
+from pprint import pprint
+# Randomly create dfs
+df1 = pd.DataFrame([[1,2,3],[4,5,6]])
+df2 = pd.DataFrame([[1,None,3],[4,5,6]])
+df3 = pd.DataFrame([[1,2,3],[4,None,6]])
+DFList = [df1,df2,df3]
+for i, df in enumerate(DFList):
+    df.index = ["A"+str(i+1),"B"+str(i+1)]
+    df.columns = ["a","b","c"]
+# Define parameter properties.    
+ParTypeDict = {"A1": "real", "B1": "category",
+               "A2": "real", "B2": "category",
+               "A3": "real", "B3": "category"}
+ParBoundDict = {"A1": [1,10], "B1": [1,2,3,4,5],
+                "A2": [1,10], "B2": [4,5],
+                "A3": [1,10], "B3": [1,4,5]}
+ParWeightDict = {"A1":0.5, "B1":0.8,
+                 "A2": 0.5, "B2": 0.8,
+                 "A3": 0.5, "B3": 0.8}
+FixedParList = [["A1"],[],[]]
+
+# Create Convertor object
+Convertor = DMCGA_Convertor()
+# Run the Convertor
+Convertor.genDMCGAInputs("haha", DFList, ParTypeDict, ParBoundDict, ParWeightDict, FixedParList)
+# Take out Inputs and Formatter
+Inputs = Convertor.Inputs
+Formatter = Convertor.Formatter
+pprint(Inputs)
+pprint(Formatter)
+# Convert dfs to 1D array
+VarArray = Convertor.to1DArray(DFList, Formatter)
+print("\nDfs to 1D array, which contains no nan and fixed parameters.")
+print(VarArray)
+# Convert 1D array back to dfs
+dflist = Convertor.toDFList(VarArray, Formatter)
+print("\n1D array back to dfs.")
+dflist  
+"""
+# %%
