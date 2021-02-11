@@ -3,8 +3,9 @@
 LogHandlers: [console]    # This will overwrite logger("HydroCNHS")'s setting if given.
 
 Parallelization:
-  verbose: 10           # Print out Joblib progress. The higher the value of verbose, the more messages
+  verbose: 2           # Print out Joblib progress. The higher the value of verbose, the more messages
   # Setup cores numbers. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used. None is a marker for "unset" that will be interpreted as n_jobs=1 (sequential execution) unless the call is performed under a parallel_backend context manager that sets another value for n_jobs.
   Cores_formUH_Lohmann: 1 
   Cores_runGWLF: 1
+  Cores_DMCGA: 1
 

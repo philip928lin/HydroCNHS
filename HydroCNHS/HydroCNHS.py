@@ -29,28 +29,28 @@ class HydroCNHS(object):
         # Load HydroCNHS system configuration.
         self.Config = loadConfig()   
             
-        # Load model and distribute into several variables.
+        # Load model.yaml and distribute into several variables.
         if isinstance(model, str):
             Model = loadModel(model)
-        else: # If given dictionary directly.
+        else: # If given a model dictionary directly.
             Model = model    
             checkModel(Model)  
                            
         self.Path = Model["Path"]
         self.WS = Model["WaterSystem"]     # WS: Water system
         self.LSM = Model["LSM"]            # LSM: Land surface model
-        self.RR = Model["RiverRouting"]     # RR: River routing 
+        self.RR = Model["RiverRouting"]    # RR: River routing 
         self.ABM = Model["ABM"] 
 
-        # initialize output
+        # Initialize output
         self.Q = {}     # [cms] Streamflow for each outlet.
         for g in self.WS["GaugedOutlets"]:
             self.Q[g] = np.zeros(self.WS["DataLength"])
-        self.A = {}     # Collect output for AgentType Agent its outputs
+        self.A = {}     # Collect agent's output for each AgentType.
     
     def loadWeatherData(self, T, P, PE = None, OutletsQ = None):
         """Load temperature and precipitation data.
-        CAn add some check function or deal with miss value here.
+        Can add some check functions or deal with miss values here.
         Args:
             T (dict): [degC] Daily mean temperature time series data (value) for each sub-basin named by its outlet.
             P (dict): [cm] Daily precipitation time series data (value) for each sub-basin named by its outlet.
