@@ -53,8 +53,8 @@ plt.show()
 # %%
 # Setup DMCGA
 Inputs = {"ParName":["x", "y"], 
-          "ParBound":[[-5, 5], [-5, 5]],  # [upper, low] or [4, 6, 9] Even for category type, it has to be numbers!
-          "ParType":["real","real"],      # real or category
+          "ParBound":[[-5, 5], [-5, 5]],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
+          "ParType":["real","real"],      # real or categorical
           "ParWeight":[1, 1],  
           "WD":r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest"}   
 Config = {"NumSP":6,                # Number of sub-populations.
@@ -106,9 +106,9 @@ for i, df in enumerate(DFList):
     df.index = ["A"+str(i+1),"B"+str(i+1)]
     df.columns = ["a","b","c"]
 # Define parameter properties.    
-ParTypeDict = {"A1": "real", "B1": "category",
-               "A2": "real", "B2": "category",
-               "A3": "real", "B3": "category"}
+ParTypeDict = {"A1": "real", "B1": "categorical",
+               "A2": "real", "B2": "categorical",
+               "A3": "real", "B3": "categorical"}
 ParBoundDict = {"A1": [1,10], "B1": [1,2,3,4,5],
                 "A2": [1,10], "B2": [4,5],
                 "A3": [1,10], "B3": [1,4,5]}
@@ -124,7 +124,7 @@ Convertor = DMCGA_Convertor()
 # Run the Convertor
 # WD (path): Working directory defined in the model.yaml.
 # DFList (list): A list of dataframes. Dataframe index is parameter names.
-# ParTypeDict (dict): A dictionary with key = parameter name and value = paremeter type [real/category]
+# ParTypeDict (dict): A dictionary with key = parameter name and value = paremeter type [real/categorical]
 # ParBoundDict (dict): A dictionary with key = parameter name and value = [lower bound, upper bound] or [1, 2, 3 ...]
 # ParWeightDict (dict, optional): A dictionary with key = parameter name and value = weight (from SA). Defaults to None, weight = 1.
 # FixedParList (list, optional): A list contains a list of fixed parameter names (don't need calibration) for each . Defaults to None.

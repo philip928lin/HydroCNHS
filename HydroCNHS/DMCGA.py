@@ -27,8 +27,8 @@ Timeout (function)
 
 r"""
 Inputs = {"ParName":[], 
-          "ParBound":[],  # [upper, low] or [4, 6, 9] Even for category type, it has to be numbers!
-          "ParType":[],   # real or category
+          "ParBound":[],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
+          "ParType":[],   # real or categorical
           "ParWeight":[], # Should be an array.
           "WD":}   
           
@@ -100,12 +100,12 @@ class DMCGA(object):
                 self.Best["Index"][sp] = np.empty(self.Config["MaxGen"]+1) # +1 since including gen 0.  
             
             # Calculate scales for parameter normalization.
-            # We assume category type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
+            # We assume categorical type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
             self.BoundScale = []
             for i, ty in enumerate(Inputs["ParType"]):
                 if ty == "real":
                     self.BoundScale.append(Inputs["ParBound"][i][1] - Inputs["ParBound"][i][0])
-                elif ty == "category":
+                elif ty == "categorical":
                     self.BoundScale.append(np.max(Inputs["ParBound"][i]) - np.min(Inputs["ParBound"][i]))
             self.BoundScale = np.array(self.BoundScale)     # Store in an array type. 
             
@@ -126,7 +126,7 @@ class DMCGA(object):
             pop (Array): 2D array. [PopSize, NumPar]
             NumPar (int): Number of parameters.
             ParBound (list): List of bounds for each parameters.
-            ParType (list): List of parameter types. ["real" or "category"]
+            ParType (list): List of parameter types. ["real" or "categorical"]
 
         Returns:
             array: Populated pop array.
@@ -136,7 +136,7 @@ class DMCGA(object):
         for i in range(NumPar):
             if ParType[i] == "real":
                 pop[:,i] = np.random.uniform(ParBound[i][0], ParBound[i][1], size = PopSize)  
-            elif ParType[i] == "category":
+            elif ParType[i] == "categorical":
                 pop[:,i] = np.random.choice(ParBound[i], size = PopSize)
         return pop 
     
@@ -346,11 +346,11 @@ class DMCGA(object):
             P1_less_P2 = parent1 < parent2
             P2_less_P1 = parent2 < parent1
             P1_eq_P2 = parent2 == parent1
-            Category = self.Inputs["ParType"] == "category"
+            Categorical = self.Inputs["ParType"] == "categorical"
             child[P1_less_P2] = parent1[P1_less_P2] + ratio[P1_less_P2]*interval[P1_less_P2]
             child[P2_less_P1] = parent2[P2_less_P1] + ratio[P2_less_P1]*interval[P2_less_P1]
             child[P1_eq_P2] = MutSample_MC.flatten()[P1_eq_P2]  # Since MutSample_MC.shape = (1, NumPar).
-            child[Category] = MutSample_MC.flatten()[Category]  # Since MutSample_MC.shape = (1, NumPar).
+            child[Categorical] = MutSample_MC.flatten()[Categorical]  # Since MutSample_MC.shape = (1, NumPar).
             return child
         
         self.Pop[CurrentGen+1] = {}
@@ -533,7 +533,7 @@ class DMCGA_Convertor(object):
         Args:
             WD (path): Working directory defined in the model.yaml.
             DFList (list): A list of dataframes. Dataframe index is parameter names.
-            ParTypeDict (dict): A dictionary with key = parameter name and value = paremeter type [real/category]
+            ParTypeDict (dict): A dictionary with key = parameter name and value = paremeter type [real/categorical]
             ParBoundDict (dict): A dictionary with key = parameter name and value = [lower bound, upper bound] or [1, 2, 3 ...]
             ParWeightDict (dict, optional): A dictionary with key = parameter name and value = weight (from SA). Defaults to None, weight = 1.
             FixedParList (list, optional): A list contains a list of fixed parameter names (don't need calibration) for each dataframe. Defaults to None.
