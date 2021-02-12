@@ -97,6 +97,17 @@ def checkModel(model):
         bool: True if pass the check.
     """
     return True
+
+def Dict2String(Dict, Indentor = "  "):
+    def Dict2StringList(Dict, Indentor = "  ", count = 0, string = []):
+        for key, value in Dict.items(): 
+            string.append(Indentor * count + str(key))
+            if isinstance(value, dict):
+                string = Dict2StringList(value, Indentor, count+1, string)
+            else:
+                string.append(Indentor * (count+1) + str(value))
+        return string
+    return "\n".join(Dict2StringList(Dict, Indentor))
 #%% Test
 r"""
 from pprint import pprint
