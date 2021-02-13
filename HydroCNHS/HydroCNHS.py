@@ -4,7 +4,7 @@
 # 2021/02/05
 
 from .LSM import runGWLF, calPEt_Hamon
-from .RiverRouting import formUH_Lohmann, runTimeStep_Lohmann
+from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel, checkModel
 from joblib import Parallel, delayed    # For parallelization
 from pandas import date_range, to_datetime
@@ -39,7 +39,7 @@ class HydroCNHS(object):
         self.Path = Model["Path"]
         self.WS = Model["WaterSystem"]     # WS: Water system
         self.LSM = Model["LSM"]            # LSM: Land surface model
-        self.RR = Model["RiverRouting"]    # RR: River routing 
+        self.RR = Model["Routing"]    # RR: River routing 
         self.ABM = Model["ABM"] 
 
         # Initialize output
@@ -141,8 +141,10 @@ class HydroCNHS(object):
         # ----- Form UH for Lohmann routing method ----------------------------
         if self.RR["Model"] == "Lohmann":
             self.UH_Lohmann = {}    # Initialized the output dictionary
+            RoutingOutlets = list(self.RR.keys())
+            RoutingOutlets.remove('Model')
             # Form combination
-            UH_List = [(sb, g) for g in self.WS["GaugedOutlets"] for sb in self.RR[g]]
+            UH_List = [(sb, ro) for ro in RoutingOutlets for sb in self.RR[g]]
             # Remove assigned UH from the list. Not preserving element order in the list.
             UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
             # Start forming UH_Lohmann in parallel.
@@ -163,7 +165,9 @@ class HydroCNHS(object):
         # Obtain datetime index
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")        
         pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")    
-                        
+        RoutingOutlets = list(self.RR.keys())
+        RoutingOutlets.remove('Model')  
+        
         for t in range(self.WS["DataLength"]):
             CurrentDate = pdDatedateIndex[t]
             # ----- Update Qt by ABM
@@ -179,7 +183,7 @@ class HydroCNHS(object):
             # ----- Calculate gauged Qt by routing  
             Qt = None
             if self.RR["Model"] == "Lohmann":
-                Qt = runTimeStep_Lohmann(self.WS["GaugedOutlets"], self.RR, self.UH_Lohmann, self.Q_LSM, t)
+                Qt = runTimeStep_Lohmann(RoutingOutlets, self.RR, self.UH_Lohmann, self.Q_LSM, t)
             
             # ----- Store Qt
             for g in self.Q:

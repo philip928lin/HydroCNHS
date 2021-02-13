@@ -21,14 +21,17 @@ from scipy.stats import gamma
 # Note:
 # We fix the Base Time setting here. For future development, it is better to ture whole Lohmann routing into a class with Base Time setting as initial variables which allow to be changed accordingly.
 
-def formUH_Lohmann(FlowLen, RoutePars):
+def formUH_Lohmann(Inputs, RoutePars):
     """Derive HRU's UH at the (watershed) outlet.
     We seperately calculate in-grid UH_IG and river routing UH_RR and combine them into HRU's UH.
 
     Args:
-        FlowLen (float): [m] Travel distence of flow between two outlets.
+        Inputs (dict): Two inputs for routing: FlowLength [m] Travel distence of flow between two outlets [float], InStreamControl [bool].
         RoutePars (dict): Four parameters for routing: GShape, GScale, Velo, Diff [float]
     """
+    FlowLen = Inputs["FlowLen"]
+    InStreamControl = Inputs["InStreamControl"]
+    
     #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------
     # In-grid routing
     T_IG = 12					# [day] Base time for in-grid UH 
@@ -41,12 +44,15 @@ def formUH_Lohmann(FlowLen, RoutePars):
     
     #----- In-grid routing UH (daily) represented by Gamma distribution -------------------
     UH_IG = np.zeros(T_IG)
-    Shape = RoutePars["GShape"]
-    Scale = RoutePars["GScale"]
-    for i in range(T_IG):
-        # x-axis is in hr unit. We calculate in daily time step.
-        UH_IG[i] = gamma.cdf(24*(i + 1), a = Shape, loc = 0, scale = Scale) \
-                    - gamma.cdf(24*i, a = Shape, loc = 0, scale = Scale)
+    if InStreamControl:
+        UH_IG[0] = 1    # No time delay for river routing when the water is released through in-stream control objects (e.g. reservoir).
+    else:
+        Shape = RoutePars["GShape"]
+        Scale = RoutePars["GScale"]
+        for i in range(T_IG):
+            # x-axis is in hr unit. We calculate in daily time step.
+            UH_IG[i] = gamma.cdf(24*(i + 1), a = Shape, loc = 0, scale = Scale) \
+                        - gamma.cdf(24*i, a = Shape, loc = 0, scale = Scale)
     #--------------------------------------------------------------------------------------
 
     #----- Derive Daily River Impulse Response Function (Green's function) ----------------
@@ -98,18 +104,17 @@ def formUH_Lohmann(FlowLen, RoutePars):
     return UH_direct
 
 
-def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
+def runTimeStep_Lohmann(RoutingOutlets, Routing, UH_Lohmann, Q, t):
     """Calculate a single time step routing for the entire basin.
     Args:
-        GaugedOutlets (list): List of gauged outlets from upstream to downstream.
-        RiverRouting (dict): Sub-model dictionary from your model.yaml file.
+        Routing (dict): Sub-model dictionary from your model.yaml file.
         UH_Lohmann (dict): Contain all pre-formed UH for all connections between gauged outlets and its upstream outlets. e.g. {(subbasin, gaugedoutlet): UH_direct}
         Q (dict): Contain all updated Q (array) for each outlet. 
         t (int): Index of current time step (day).
 
     Returns:
         [dict]: Update Qt for routing.
-    """
+    """   
     #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------
     # In-grid routing
     T_IG = 12					# [day] Base time for in-grid UH 
@@ -117,16 +122,16 @@ def runTimeStep_Lohmann(GaugedOutlets, RiverRouting, UH_Lohmann, Q, t):
     T_RR = 96					# [day] Base time for river routing UH 
     #--------------------------------------------------------------------------------------
     Qt = {}
-    for g in GaugedOutlets:
+    for ro in RoutingOutlets:
         #logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
         Qresult = 0
-        Subbasin = list(RiverRouting[g].keys())
+        Subbasin = list(Routing[ro].keys())
         for sb in Subbasin:
             for j in range(T_IG + T_RR - 1):
                 # Sum over the flow contributed from upstream outlets.
                 if (t-j+1) >= 1:
-                    Qresult = Qresult + UH_Lohmann[(sb, g)][j]*Q[sb][t-j]
-        Qt[g] = Qresult         # Store the result for time t
+                    Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
+        Qt[ro] = Qresult         # Store the result for time t
         #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
     #logger.debug("Complete routing at time step {}.".format(t))
     return Qt

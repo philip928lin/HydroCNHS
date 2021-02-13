@@ -6,14 +6,19 @@
 import logging
 import logging.config
 import traceback
+from joblib import logger
 import yaml
 import ruamel.yaml      # For round trip modification (keep comments)
 import os 
+logger = logging.getLogger("HydroCNHS.SC") # Get logger 
 
 r"""
 We need to modify yaml, which we can load and write the file while keeping comments.
 https://stackoverflow.com/questions/7255885/save-dump-a-yaml-file-with-comments-in-pyyaml/27103244
 """
+#-----------------------------------------------
+#---------- Read and Wright Functions ----------
+
 this_dir, this_filename = os.path.split(__file__)
 def loadConfig():
     """Get config dictionary from Config.yaml.
@@ -25,18 +30,6 @@ def loadConfig():
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
         config = yaml.safe_load(file.read())
     return config
-
-def loadLoggingConfig():
-    """Load logging configuration and setup logging.
-    """
-    Config = loadConfig()
-    with open(os.path.join(this_dir, 'LoggingConfig.yaml'), 'rt') as file:
-        LoggingConfig = yaml.safe_load(file.read())
-    if Config["LogHandlers"] is not None:       # Customize log msg to console/log file/both
-        LoggingConfig["loggers"]["HydroCNHS"]["handlers"] = Config["LogHandlers"]
-    logging.config.dictConfig(LoggingConfig)
-
-
 
 def updateConfig(ModifiedConfig):
     """Given the dictionary of modified setting, this funciton will over write Config.yaml.
@@ -69,7 +62,7 @@ def defaultConfig():
     with open('Config.yaml', 'w') as file:
         yaml_round.dump(Config_default, file)
     
-def loadModel(model):
+def loadModel(model, Checked = False):
     """Load model and conduct initial check for its setting consistency.
 
     Args:
@@ -83,20 +76,32 @@ def loadModel(model):
         except Exception as e:
             logger.error(traceback.format_exc())   # Logs the error appropriately.
             return None
-    # Check model is consist and correct.
     
-    return Model
+    # Fill VirROutlets for routing if ABM and Routing exists.
+    if Model.get("Routing") is not None and Model.get("ABM") is not None:
+        InStreamAgentTypes = Model["ABM"]["Inputs"]["InStreamAgentTypes"]
+        VirROutlets = []
+        for ISagType in InStreamAgentTypes:
+            for ag in Model["ABM"][ISagType]:
+                Links = Model["ABM"][ISagType][ag]["Inputs"]["Links"]
+                VirROutlets += [outlet for outlet in Links if Links[outlet] == -1]
+        VirROutlets = list(set(VirROutlets))    # Eliminate duplicates.
+        Model["ABM"]["Inputs"]["VirROutlets"] = VirROutlets
+        
+    # Check model is consist and correct.
+    if Checked:     # We don't recheck model is, it has been checked.
+        return Model
+    else:
+        if checkModel(Model):
+            return Model
+        else:
+            return None
+#-----------------------------------------------
 
-def checkModel(model):
-    """Check the consistency of the model dictionary.
 
-    Args:
-        model (dict): Loaded from model.yaml. 
 
-    Returns:
-        bool: True if pass the check.
-    """
-    return True
+#-----------------------------------------
+#---------- Auxiliary Functions ----------
 
 def Dict2String(Dict, Indentor = "  "):
     def Dict2StringList(Dict, Indentor = "  ", count = 0, string = []):
@@ -108,6 +113,52 @@ def Dict2String(Dict, Indentor = "  "):
                 string.append(Indentor * (count+1) + str(value))
         return string
     return "\n".join(Dict2StringList(Dict, Indentor))
+#-----------------------------------------
+
+
+
+#-------------------------------------
+#---------- Check Functions ----------
+def checkModel(Model):
+    """Check the consistency of the model dictionary.
+
+    Args:
+        model (dict): Loaded from model.yaml. 
+
+    Returns:
+        bool: True if pass the check.
+    """
+    Pass = True
+    Pass = checkInStreamAgentInRouting(Model)
+    return Pass
+
+def checkInStreamAgentInRouting(Model):
+    GaugedOutlets = Model["WaterSystem"]["GaugedOutlets"]
+    Routing = Model["Routing"]
+    VirROutlets = Model["ABM"]["Inputs"]["VirROutlets"]
+
+    # Check VirROutlets are in RoutingOutlets
+    RoutingOutlets = list(Routing.keys())
+    RoutingOutlets.remove('Model')  
+    if any( vro not in RoutingOutlets for vro in VirROutlets ):
+        logger.error("[Load model failed] Cannot find in-stream control objects inflow outlets in Routing section. Routing outlets should include {}.".format(VirROutlets))
+        return False
+    else:
+        for end in VirROutlets:
+            for start in Routing[end]:
+                # Check if start belong to others RoutingOutlets' starts.
+                for ro in RoutingOutlets:
+                    if ro != end:
+                        if any( start in others for others in Routing[ro] ):
+                            if ro in Routing[end]:  # If it is in the upstream of VirROutlet, it is fine.
+                                pass
+                            else:
+                                logging.error("[Load model failed] {} in {}'s catchment outlets shouldn't belong to routing outlet {}'s catchment outlets. (Seperated by in-stream objects)".format(start, end, ro))
+                                return False
+        return True
+                            
+#-------------------------------------
+
 #%% Test
 r"""
 from pprint import pprint

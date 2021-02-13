@@ -73,14 +73,16 @@ LSM:
 #-----------------------------------------------------------
 
 
-#--------------- Routing Model (LSM) Setting ---------------
-# For Lohmann routing model, we have 1 inputs 4 parameters.
+#------------------ Routing Model Setting ------------------
+# Has to contain (1) Gauged outlets and (2) Outlets, which have in-stream agents (e.g. reservoirs).
+# For Lohmann routing model, we have 1 input and 4 parameters.
 RiverRouting:                                   
   Model: Lohmann                                # Selected routing model.
   B:                                            # Gauged outlet.
     A:                                          # One of catchment outlets that contribute to streamflow at this Gauged outlet.
       Inputs:                             
         FlowLength:  8071                       # [m] Flow length between this outlet and this GaugedOutlet
+        InStreamControl: False                  # If True (e.g. reservoir release), no in-grid routing. 
       Pars:                           
         GShape:  21.7                           # In-grid UH, shape parameter of a gamma distribution. 
         GScale:  1.176                          # In-grid UH, scale parameter of a gamma distribution. 
@@ -89,30 +91,44 @@ RiverRouting:
     B:                                          # Gauged outlet.
       Inputs:                             
         FlowLength:  0                          # [m] Flow length between this outlet and this GaugedOutlet
+        InStreamControl: False                  # If True (e.g. reservoir release), no in-grid routing. 
       Pars:                           
         GShape:  21.7                           # In-grid UH, shape parameter of a gamma distribution. 
         GScale:  1.176                          # In-grid UH, scale parameter of a gamma distribution. 
         Velo:    None                           # River UH. Wave velocity. If gauged outlet, None.
         Diff:    None                           # River UH. Diffusion. If gauged outlet, None.
+    Reservoir:                                  
+      Inputs:                             
+        FlowLength:  0                          # [m] Flow length between this outlet and this GaugedOutlet
+        InStreamControl: True                   # If True (e.g. reservoir release), no in-grid routing. 
+      Pars:                           
+        GShape:  None                           # In-grid UH, shape parameter of a gamma distribution. 
+        GScale:  None                           # In-grid UH, scale parameter of a gamma distribution. 
+        Velo:    8.42                           # River UH. Wave velocity. If gauged outlet, None.
+        Diff:    1894.86                        # River UH. Diffusion. If gauged outlet, None.
 #-----------------------------------------------------------
 
 
 #------------- Agent-Based Model (ABM) Setting -------------        
 # Assume same type of agents have same decision frequence.
-ABM:                                            
-  DecisionFreq:                                 
-  # [Y, M, D]. Ex: 
-  # (1) [ , 2, ]    Make decision every 2 monthes. Start counting from "StartDate" defined in WaterSystem; 
-  # (2) [-9, 3, 4]  Make decision every year on Mar 4; 
-  # (3) [-9, -9, 4] Make decision every month on day 4. 
-    AgType_IrrDiversion: [-9, 1, 1]                   
-    AgType_Reservoir:    [-9, 1, 1]                      
+ABM:
+  Inputs:                                            
+    DecisionFreq:                                 
+    # [Y, M, D]. Ex: 
+    # (1) [ , 2, ]    Make decision every 2 monthes. Start counting from "StartDate" defined in WaterSystem; 
+    # (2) [-9, 3, 4]  Make decision every year on Mar 4; 
+    # (3) [-9, -9, 4] Make decision every month on day 4. 
+      AgType_IrrDiversion: [-9, 1, 1]                   
+      AgType_Reservoir:    [-9, 1, 1]      
+    InStreamAgentTypes:  ["AgType_Reservoir"]    # Define in-stream control agent types. This will affect routing module.    
+          
   AgType_IrrDiversion:                          # Setting for agents under IrrDiversion agent type.
     AgIrrDiv1: 
       Inputs:
+        PiorityOrder: 1
         Links:  
           A: -1                                 # Add to Q of outlet "A" by -1*Action
-          B: 0.2                                   
+          B: 0.2                                # Add to Q of outlet "B" by 0.2*Action
       Pars:                                    
         LearnRate:  0.1                         # RL
         W:      [0.5,0.5]                       # RL
@@ -121,7 +137,9 @@ ABM:
   AgType_Reservoir:                             # Setting for agents under Reservoir agent type.
     AgRes: 
       Inputs:
-        Links:                                   
+        PiorityOrder: 1
+        Links:         
+          A: -1                                 # -1 in in-stream control agents means inflows.                          
           B: 1                                   
       Pars:                                
         LearnRate:  0.1                         # RL
