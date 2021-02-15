@@ -30,22 +30,26 @@ class HydroCNHS(object):
         self.Config = loadConfig()   
             
         # Load model.yaml and distribute into several variables.
-        if isinstance(model, str):
-            Model = loadModel(model)
-        else: # If given a model dictionary directly.
-            Model = model    
-            checkModel(Model)  
-                           
-        self.Path = Model["Path"]
-        self.WS = Model["WaterSystem"]     # WS: Water system
-        self.LSM = Model["LSM"]            # LSM: Land surface model
-        self.RR = Model["Routing"]    # RR: River routing 
-        self.ABM = Model["ABM"] 
-
+        Model = loadModel(model)    # We design model to be str or dictionary.
+        
+        # Need to verify Model contain all following keys.
+        
+        try:                   
+            self.Path = Model["Path"]
+            self.WS = Model["WaterSystem"]     # WS: Water system
+            self.LSM = Model["LSM"]            # LSM: Land surface model
+            self.RR = Model["Routing"]         # RR: Routing 
+            self.ABM = Model["ABM"] 
+            self.SysPD = Model["SystemParsedData"]
+        except:
+            logger.error("Model is incomplete for CNHS.")
         # Initialize output
         self.Q = {}     # [cms] Streamflow for each outlet.
-        for g in self.WS["GaugedOutlets"]:
-            self.Q[g] = np.zeros(self.WS["DataLength"])
+        RoutingOutlets = list(self.RR.keys())
+        RoutingOutlets.remove('Model') 
+        for ro in RoutingOutlets:
+            self.Q[ro] = np.zeros(self.WS["DataLength"])
+             
         self.A = {}     # Collect agent's output for each AgentType.
     
     def loadWeatherData(self, T, P, PE = None, OutletsQ = None):
@@ -108,7 +112,7 @@ class HydroCNHS(object):
             P (dict): Daily precipitation.
             PE (dict, optional): Potential evapotranspiration. Defaults to None (calculted by Hamon's method).
             AssignedQ (dict, optional): If user want to manually assign Q (value, Array) for certain outlet (key, str). Defaults to None.
-            AssignedUH (dict, optional): [description]. If user want to manually assign UH (Lohmann) (value, Array) for certain outlet (key, str). Defaults to None.
+            AssignedUH (dict, optional): If user want to manually assign UH (Lohmann) (value, Array) for certain outlet (key, str). Defaults to None.
         """
         
         # Set a timer here
@@ -160,34 +164,71 @@ class HydroCNHS(object):
                 self.UH_Lohmann[pair] = UHParel[i]
         # ---------------------------------------------------------------------
 
+        
         # ----- Time step simulation (Coupling hydrological model and ABM)-----
         # Note: Only Qt of GaugedOutlet1 and the 
         # Obtain datetime index
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")        
         pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")    
-        RoutingOutlets = list(self.RR.keys())
-        RoutingOutlets.remove('Model')  
+        SimSeq = self.SysPD["SimSeq"]
+        AgSimSeq = self.SysPD["AgSimSeq"]
+        VirROutlets = self.SysPD["VirROutlets"]
+        
+        Agents = {}     # Here we store all agent objects with key = agent name.
+        
+        # Add VirROutlets to self.Q_LSM and initialize storage space.
+        for vro in VirROutlets:
+            self.Q_LSM[vro] = np.zeros(self.WS["DataLength"])
         
         for t in range(self.WS["DataLength"]):
             CurrentDate = pdDatedateIndex[t]
-            # ----- Update Qt by ABM
-            ActiveAgTypes = self.checkActiveAgTypes(StartDate, CurrentDate)
-            for agType in ActiveAgTypes:
-                # Assume we have a function called runAgent(agInputs, agPars, Q)
-                # agParel = Parallel(n_jobs = Para["ABM"], verbose = Para["verbose"]) \
-                #             ( delayed(runAgent)\
-                #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q_LSM) \
-                #             for ag in self.ABM[agType] )     
-                pass
+            for node in SimSeq:
+                if node in VirROutlets:     # For in-stream objects.
+                    
+                    #----- Update in-stream agent's actions to streamflow for later routing usage.
+                    for ag in AgSimSeq["AgSimPlus"][node]:
+                        #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                        pass
+                    for ag in AgSimSeq["AgSimMinus"][node]:
+                        #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                        pass
+                else:
+                    if self.RR["Model"] == "Lohmann":
+                        
+                        #----- Update none in-stream agent's actions (imply in AgSimSeq calculation) to streamflow for later routing usage.
+                        for ag in AgSimSeq["AgSimPlus"][node]:
+                            #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                            pass
+                        for ag in AgSimSeq["AgSimMinus"][node]:
+                            #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                            pass
+                        
+                        #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day). 
+                        Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_LSM, t)
+                        
+                        #----- Store Qt to final output.
+                        self.Q[node][t] = Qt 
+        
+        
+        # for t in range(self.WS["DataLength"]):
+        #     CurrentDate = pdDatedateIndex[t]
+        #     # ----- Update Qt by ABM
+        #     ActiveAgTypes = self.checkActiveAgTypes(StartDate, CurrentDate)
+        #     for agType in ActiveAgTypes:
+        #         # Assume we have a function called runAgent(agInputs, agPars, Q)
+        #         # agParel = Parallel(n_jobs = Para["ABM"], verbose = Para["verbose"]) \
+        #         #             ( delayed(runAgent)\
+        #         #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q_LSM) \
+        #         #             for ag in self.ABM[agType] )     
+        #         pass
             
-            # ----- Calculate gauged Qt by routing  
-            Qt = None
-            if self.RR["Model"] == "Lohmann":
-                Qt = runTimeStep_Lohmann(RoutingOutlets, self.RR, self.UH_Lohmann, self.Q_LSM, t)
-            
-            # ----- Store Qt
-            for g in self.Q:
-                self.Q[g][t] = Qt[g]
+        #     # ----- Calculate gauged Qt by routing  
+        #     Qt = None
+        #     if self.RR["Model"] == "Lohmann":
+        #         Qt = runTimeStep_Lohmann(RoutingOutlets, self.RR, self.UH_Lohmann, self.Q_LSM, t)
+
+        #     for g in self.Q:
+        #         self.Q[g][t] = Qt[g]
             
             
         elapsed_time = time.monotonic() - start_time

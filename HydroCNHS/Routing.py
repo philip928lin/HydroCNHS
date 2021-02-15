@@ -103,8 +103,7 @@ def formUH_Lohmann(Inputs, RoutePars):
     #logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
     return UH_direct
 
-
-def runTimeStep_Lohmann(RoutingOutlets, Routing, UH_Lohmann, Q, t):
+def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, t):
     """Calculate a single time step routing for the entire basin.
     Args:
         Routing (dict): Sub-model dictionary from your model.yaml file.
@@ -121,20 +120,53 @@ def runTimeStep_Lohmann(RoutingOutlets, Routing, UH_Lohmann, Q, t):
     # River routing 
     T_RR = 96					# [day] Base time for river routing UH 
     #--------------------------------------------------------------------------------------
-    Qt = {}
-    for ro in RoutingOutlets:
-        #logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
-        Qresult = 0
-        Subbasin = list(Routing[ro].keys())
-        for sb in Subbasin:
-            for j in range(T_IG + T_RR - 1):
-                # Sum over the flow contributed from upstream outlets.
-                if (t-j+1) >= 1:
-                    Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
-        Qt[ro] = Qresult         # Store the result for time t
-        #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
+    Qt = None
+    ro = RoutingOutlet
+    #logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+    Qresult = 0
+    Subbasin = list(Routing[ro].keys())
+    for sb in Subbasin:
+        for j in range(T_IG + T_RR - 1):
+            # Sum over the flow contributed from upstream outlets.
+            if (t-j+1) >= 1:
+                Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
+    Qt = Qresult         # Store the result for time t
+    #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
     #logger.debug("Complete routing at time step {}.".format(t))
     return Qt
+
+
+# def runTimeStep_Lohmann(RoutingOutlets, Routing, UH_Lohmann, Q, t):
+#     """Calculate a single time step routing for the entire basin.
+#     Args:
+#         Routing (dict): Sub-model dictionary from your model.yaml file.
+#         UH_Lohmann (dict): Contain all pre-formed UH for all connections between gauged outlets and its upstream outlets. e.g. {(subbasin, gaugedoutlet): UH_direct}
+#         Q (dict): Contain all updated Q (array) for each outlet. 
+#         t (int): Index of current time step (day).
+
+#     Returns:
+#         [dict]: Update Qt for routing.
+#     """   
+#     #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------
+#     # In-grid routing
+#     T_IG = 12					# [day] Base time for in-grid UH 
+#     # River routing 
+#     T_RR = 96					# [day] Base time for river routing UH 
+#     #--------------------------------------------------------------------------------------
+#     Qt = {}
+#     for ro in RoutingOutlets:
+#         #logger.debug("Start updating {} outlet = {} for routing at time step {}.".format(g, Q[g][t], t))
+#         Qresult = 0
+#         Subbasin = list(Routing[ro].keys())
+#         for sb in Subbasin:
+#             for j in range(T_IG + T_RR - 1):
+#                 # Sum over the flow contributed from upstream outlets.
+#                 if (t-j+1) >= 1:
+#                     Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
+#         Qt[ro] = Qresult         # Store the result for time t
+#         #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
+#     #logger.debug("Complete routing at time step {}.".format(t))
+#     return Qt
 
 #%% Test function
 r"""
