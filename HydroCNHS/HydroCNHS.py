@@ -9,6 +9,7 @@ from .SystemConrol import loadConfig, loadModel
 from joblib import Parallel, delayed    # For parallelization
 from pandas import date_range, to_datetime
 from tqdm import tqdm
+from copy import deepcopy   # For deepcopy dictionary.
 import numpy as np
 import time
 import logging
@@ -141,7 +142,7 @@ class HydroCNHS(object):
                               (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
                               for sb in Outlets_GWLF ) 
             # Add user assigned Q first.
-            self.Q_LSM = AssignedQ      
+            self.Q_LSM = deepcopy(AssignedQ)      
             # Collect QParel results
             for i, sb in enumerate(Outlets_GWLF):
                 self.Q_LSM[sb] = QParel[i]
@@ -166,7 +167,7 @@ class HydroCNHS(object):
             # Add user assigned UH first.
 
             # Form UH
-            self.UH_Lohmann = AssignedUH
+            self.UH_Lohmann = deepcopy(AssignedUH)
             for i, pair in enumerate(UH_List_Lohmann):
                 self.UH_Lohmann[pair] = UHParel[i]
             logger.info("[{}] Complete forming UHs for Lohmann routing... [{}]".format(self.__name__, getElapsedTime()))
@@ -216,8 +217,8 @@ class HydroCNHS(object):
                         
                         #----- Store Qt to final output.
                         self.Q[node][t] = Qt 
-        print("\n")
-        logger.info("[{}] Complete HydroCNHS simulation! [{}]".format(self.__name__, getElapsedTime()))
+        #print("\n")
+        logger.info("[{}] Complete HydroCNHS simulation! [{}]\n".format(self.__name__, getElapsedTime()))
         return self.Q
 
 

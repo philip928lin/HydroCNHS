@@ -81,17 +81,32 @@ def formUH_Lohmann(Inputs, RoutePars):
             UH_RRm = UH_RRm / sum(UH_RRm)     # Force UH_RRm to sum to 1
         
         # FR: Fast response flow in hourly segments.        
-        FR = np.zeros((Tmax_hr, 2))     												
-        FR[0:23, 0] = 1 / 24    # Later sum over 24 hours, so will need to be divided by 24.
+        # FR = np.zeros((Tmax_hr, 2))    
+        # # Should be  FR[0:24, 0] since (t-L) > 0									
+        # FR[0:23, 0] = 1 / 24    # Later sum over 24 hours, so will need to be divided by 24.
 
-        # S-map Unit conversion, from hr to day
-        for t in range(Tmax_hr):
-            for L in range (0, Tmax_hr+24):
-                if (t-L) > 0:
-                    FR[t,1] = FR[t,1] + FR[t-L,0] * UH_RRm[L]
+        # # S-map Unit conversion, from hr to day
+        # for t in range(Tmax_hr):
+        #     for L in range (0, Tmax_hr+24):  
+        #         if (t-L) > 0:   # We didn't store t = 0 (h = 0) in UH_RRm
+        #             FR[t,1] = FR[t,1] + FR[t-L,0] * UH_RRm[L]
+        # # Aggregate to daily UH
+        # for t in range(T_RR):
+        #     UH_RR[t] = sum(FR[(24*(t+1)-24):(24*(t+1)-1),1])
+        
+        
+        # Much quicker!!  Think about S-hydrograph process. And remember we should have [0] in UH_RRm[0]. 
+        # Therefore, we use i+1 and 23 to form S-hydrolograph.
+        FR = np.zeros((Tmax_hr+23, Tmax_hr-1))   
+        for i in range(Tmax_hr-1):
+            FR[:,i] = np.pad(UH_RRm, (i+1, 23), 'constant', constant_values=(0, 0))[:Tmax_hr+23]
+        FR = np.sum(FR, axis = 1)/24
+        # Lag 24 hrs
+        FR = FR[:Tmax_hr] - np.pad(FR, (24, 0), 'constant', constant_values=(0, 0))[:Tmax_hr]
+        
         # Aggregate to daily UH
         for t in range(T_RR):
-            UH_RR[t] = sum(FR[(24*(t+1)-24):(24*(t+1)-1),1])
+            UH_RR[t] = sum(FR[(24*(t+1)-24):(24*(t+1)-1)])
 
 	#----- Combined UH_IG and UH_RR for HRU's response at the (watershed) outlet ----------
     UH_direct = np.zeros(T_IG + T_RR - 1)   # Convolute total time step [day]

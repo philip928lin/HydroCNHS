@@ -41,7 +41,7 @@ def updateConfig(ModifiedConfig):
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
         config = yaml_round.load(file.read())
         
-    # Relace values
+    # Replace values
     for key in ModifiedConfig:
         if isinstance(ModifiedConfig, dict):    # Second level
             for key2 in ModifiedConfig[key]:
@@ -49,7 +49,7 @@ def updateConfig(ModifiedConfig):
         else:                                   # First level
             config[key] = ModifiedConfig[key]
             
-    with open('Config.yaml', 'w') as file:
+    with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
         yaml_round.dump(config, file)
 
 
@@ -57,9 +57,9 @@ def defaultConfig():
     """Repalce Config.yaml back to default setting.
     """
     yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
-    with open('Config_default.yaml', 'rt') as file:
+    with open(os.path.join(this_dir, 'Config_default.yaml'), 'rt') as file:
         Config_default = yaml_round.load(file.read())
-    with open('Config.yaml', 'w') as file:
+    with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
         yaml_round.dump(Config_default, file)
 
     
