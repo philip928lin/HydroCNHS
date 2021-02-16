@@ -5,9 +5,10 @@
 
 from .LSM import runGWLF, calPEt_Hamon
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
-from .SystemConrol import loadConfig, loadModel, checkModel
+from .SystemConrol import loadConfig, loadModel
 from joblib import Parallel, delayed    # For parallelization
 from pandas import date_range, to_datetime
+from tqdm import tqdm
 import numpy as np
 import time
 import logging
@@ -44,26 +45,26 @@ class HydroCNHS(object):
         except:
             logger.error("Model is incomplete for CNHS.")
         # Initialize output
-        self.Q = {}     # [cms] Streamflow for each outlet.
-        RoutingOutlets = list(self.RR.keys())
-        RoutingOutlets.remove('Model') 
+        self.Q = {}     # [cms] Streamflow for routing outlets (Gauged outlets and inflow outlets of in-stream agents).
+        RoutingOutlets = self.SysPD["RoutingOutlets"]
         for ro in RoutingOutlets:
             self.Q[ro] = np.zeros(self.WS["DataLength"])
              
         self.A = {}     # Collect agent's output for each AgentType.
     
-    def loadWeatherData(self, T, P, PE = None, OutletsQ = None):
-        """Load temperature and precipitation data.
+    def loadWeatherData(self, T, P, PE = None, LSMOutlets = None):
+        """[Include in run] Load temperature and precipitation data.
         Can add some check functions or deal with miss values here.
         Args:
             T (dict): [degC] Daily mean temperature time series data (value) for each sub-basin named by its outlet.
             P (dict): [cm] Daily precipitation time series data (value) for each sub-basin named by its outlet.
             PE(dict/None): [cm] Daily potential evapotranpiration time series data (value) for each sub-basin named by its outlet.
+            LSMOutlets(dict/None): Should equal to self.WS["Outlets"]
         """
         if PE is None:
             PE = {}
             # Default to calculate PE with Hamon's method and no dz adjustment.
-            for sb in OutletsQ:
+            for sb in LSMOutlets:
                 PE[sb] = calPEt_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
         self.Weather = {"T":T, "P":P, "PE":PE}
         logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
@@ -118,8 +119,12 @@ class HydroCNHS(object):
         # Set a timer here
         start_time = time.monotonic()
         self.elapsed_time = 0
+        def getElapsedTime():
+            elapsed_time = time.monotonic() - start_time
+            self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+            return self.elapsed_time
         
-        Para = self.Config["Parallelization"]
+        Paral = self.Config["Parallelization"]
         Outlets = self.WS["Outlets"]
         self.Q_LSM = {}  # Temporily store Q result from land surface simulation.
         
@@ -127,10 +132,11 @@ class HydroCNHS(object):
         if self.LSM["Model"] == "GWLF":
             # Remove sub-basin that don't need to be simulated. Not preserving element order in the list.
             Outlets_GWLF = list(set(Outlets) - set(AssignedQ.keys()))  
+            logger.info("[{}] Start GWLF for {} sub-basins. [{}]".format(self.__name__, len(Outlets_GWLF), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets_GWLF)    
             # Start GWLF simulation in parallel.
-            QParel = Parallel(n_jobs = Para["Cores_runGWLF"], verbose = Para["verbose"]) \
+            QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
                             ( delayed(runGWLF)\
                               (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
                               for sb in Outlets_GWLF ) 
@@ -139,22 +145,23 @@ class HydroCNHS(object):
             # Collect QParel results
             for i, sb in enumerate(Outlets_GWLF):
                 self.Q_LSM[sb] = QParel[i]
+            logger.info("[{}] Complete GWLF... [{}]".format(self.__name__, getElapsedTime()))
         # ---------------------------------------------------------------------    
     
 
         # ----- Form UH for Lohmann routing method ----------------------------
         if self.RR["Model"] == "Lohmann":
             self.UH_Lohmann = {}    # Initialized the output dictionary
-            RoutingOutlets = list(self.RR.keys())
-            RoutingOutlets.remove('Model')
+            RoutingOutlets = self.SysPD["RoutingOutlets"]
             # Form combination
-            UH_List = [(sb, ro) for ro in RoutingOutlets for sb in self.RR[g]]
+            UH_List = [(sb, ro) for ro in RoutingOutlets for sb in self.RR[ro]]
             # Remove assigned UH from the list. Not preserving element order in the list.
             UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
             # Start forming UH_Lohmann in parallel.
-            UHParel = Parallel(n_jobs = Para["Cores_formUH_Lohmann"], verbose = Para["verbose"]) \
+            logger.info("[{}] Start forming {} UHs for Lohmann routing. [{}]".format(self.__name__, len(UH_List_Lohmann), getElapsedTime()))
+            UHParel = Parallel(n_jobs = Paral["Cores_formUH_Lohmann"], verbose = Paral["verbose"]) \
                             ( delayed(formUH_Lohmann)\
-                            (self.RR[pair[1]][pair[0]]["Inputs"]["FlowLength"], self.RR[pair[1]][pair[0]]["Pars"]) \
+                            (self.RR[pair[1]][pair[0]]["Inputs"], self.RR[pair[1]][pair[0]]["Pars"]) \
                             for pair in UH_List_Lohmann )     # pair = (Outlet, GaugedOutlet)
             # Add user assigned UH first.
 
@@ -162,6 +169,7 @@ class HydroCNHS(object):
             self.UH_Lohmann = AssignedUH
             for i, pair in enumerate(UH_List_Lohmann):
                 self.UH_Lohmann[pair] = UHParel[i]
+            logger.info("[{}] Complete forming UHs for Lohmann routing... [{}]".format(self.__name__, getElapsedTime()))
         # ---------------------------------------------------------------------
 
         
@@ -172,27 +180,27 @@ class HydroCNHS(object):
         pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")    
         SimSeq = self.SysPD["SimSeq"]
         AgSimSeq = self.SysPD["AgSimSeq"]
-        VirROutlets = self.SysPD["VirROutlets"]
+        InStreamAgents = self.SysPD["InStreamAgents"]
         
         Agents = {}     # Here we store all agent objects with key = agent name.
         
-        # Add VirROutlets to self.Q_LSM and initialize storage space.
-        for vro in VirROutlets:
-            self.Q_LSM[vro] = np.zeros(self.WS["DataLength"])
+        # Add InStreamAgents to self.Q_LSM and initialize storage space.
+        for isag in InStreamAgents:
+            self.Q_LSM[isag] = np.zeros(self.WS["DataLength"])
         
-        for t in range(self.WS["DataLength"]):
+        for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__):
             CurrentDate = pdDatedateIndex[t]
             for node in SimSeq:
-                if node in VirROutlets:     # For in-stream objects.
+                if node in InStreamAgents:     # The node is an in-stream agent.
                     
-                    #----- Update in-stream agent's actions to streamflow for later routing usage.
+                    #----- Update in-stream agent's actions to streamflow (self.Q_LSM) for later routing usage.
                     for ag in AgSimSeq["AgSimPlus"][node]:
                         #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
                         pass
                     for ag in AgSimSeq["AgSimMinus"][node]:
                         #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
                         pass
-                else:
+                else:   # The node is a routing outlet.
                     if self.RR["Model"] == "Lohmann":
                         
                         #----- Update none in-stream agent's actions (imply in AgSimSeq calculation) to streamflow for later routing usage.
@@ -208,15 +216,21 @@ class HydroCNHS(object):
                         
                         #----- Store Qt to final output.
                         self.Q[node][t] = Qt 
-        
-        
+        print("\n")
+        logger.info("[{}] Complete HydroCNHS simulation! [{}]".format(self.__name__, getElapsedTime()))
+        return self.Q
+
+
+
+
+
         # for t in range(self.WS["DataLength"]):
         #     CurrentDate = pdDatedateIndex[t]
         #     # ----- Update Qt by ABM
         #     ActiveAgTypes = self.checkActiveAgTypes(StartDate, CurrentDate)
         #     for agType in ActiveAgTypes:
         #         # Assume we have a function called runAgent(agInputs, agPars, Q)
-        #         # agParel = Parallel(n_jobs = Para["ABM"], verbose = Para["verbose"]) \
+        #         # agParel = Parallel(n_jobs = Paral["ABM"], verbose = Paral["verbose"]) \
         #         #             ( delayed(runAgent)\
         #         #             (self.ABM[agType][ag]["Inputs"], self.ABM[agType][ag]["Inputs"]["Pars"], self.Q_LSM) \
         #         #             for ag in self.ABM[agType] )     
@@ -229,9 +243,3 @@ class HydroCNHS(object):
 
         #     for g in self.Q:
         #         self.Q[g][t] = Qt[g]
-            
-            
-        elapsed_time = time.monotonic() - start_time
-        self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-        logger.info("Complete HydroCNHS simulation [{}].".format(self.elapsed_time))
-        return self.Q

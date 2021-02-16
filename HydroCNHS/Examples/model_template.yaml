@@ -151,8 +151,9 @@ ABM:
 #---------- System Parsed Data (Auto-generation) ----------
 # This section will be automatically updated when everytime loading model.yaml. 
 SystemParsedData:
-    VirROutlets: []                             # System-assigned variable. This contains in-stream control object's inflow outlets.
-                                                # VirROutlets will combine with GaugedOutlets in routing simulation.
+    InStreamAgent: []                             # System-assigned variable. This contains in-stream control object's inflow outlets.
+                                                # InStreamAgent will combine with GaugedOutlets in routing simulation.
+    RoutingOutlets: None                        # Ordered.
     SimSeq: None
     AgSimSeq: None
 

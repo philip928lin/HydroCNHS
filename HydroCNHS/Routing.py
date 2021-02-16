@@ -29,7 +29,7 @@ def formUH_Lohmann(Inputs, RoutePars):
         Inputs (dict): Two inputs for routing: FlowLength [m] Travel distence of flow between two outlets [float], InStreamControl [bool].
         RoutePars (dict): Four parameters for routing: GShape, GScale, Velo, Diff [float]
     """
-    FlowLen = Inputs["FlowLen"]
+    FlowLen = Inputs["FlowLength"]
     InStreamControl = Inputs["InStreamControl"]
     
     #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------

@@ -43,3 +43,5 @@ print("Correlation of monthly result: ", ResultM.corr().iloc[0,1])
 ResultY = Result.resample("Y").mean()
 ResultY.plot()
 print("Correlation of yearly result: ", ResultY.corr().iloc[0,1])
+
+# %%
