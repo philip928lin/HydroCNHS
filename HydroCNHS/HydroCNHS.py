@@ -133,6 +133,14 @@ class HydroCNHS(object):
         if self.LSM["Model"] == "GWLF":
             # Remove sub-basin that don't need to be simulated. Not preserving element order in the list.
             Outlets_GWLF = list(set(Outlets) - set(AssignedQ.keys()))  
+            if AssignedQ != {}:
+                RoutingOutlets = self.SysPD["RoutingOutlets"]
+                for ro in RoutingOutlets:
+                    for sb in self.RR[ro]:
+                        if sb in AssignedQ:
+                            self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
+                            self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GScale"] = None   # No in-grid routing.
+                            logger.info("Turn {}'s GShape and GScale in routing setting to None. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
             logger.info("[{}] Start GWLF for {} sub-basins. [{}]".format(self.__name__, len(Outlets_GWLF), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets_GWLF)    

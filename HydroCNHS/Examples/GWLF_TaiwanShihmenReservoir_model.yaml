@@ -39,7 +39,7 @@ LSM:
       U0:     6                                 # [cm] Unsaturated soil water content.
       SnowS:  0                                 # [cm] Snow storage.
                                                 # [degC] Monthly mean temperature.
-      MonthlyTavg: [-5.43,-3.96,1.42,8.06,14.59,19.70,22.04,20.95,16.93,10.54,3.93,-2.47]    
+      #MonthlyTavg: [-5.43,-3.96,1.42,8.06,14.59,19.70,22.04,20.95,16.93,10.54,3.93,-2.47]    
     Pars:                                       
       CN2:    52.61                             # Curve number.
       IS:     0.2                               # Interception coefficient 0.05 ~ 0.2.

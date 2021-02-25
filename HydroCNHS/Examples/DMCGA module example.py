@@ -30,11 +30,11 @@ def HimmelblauFunc(var, Formatter = None, SubWDInfo = None):
     return (x**2+y-11)**2 + (x+y**2-7)**2 #+ 10*np.random.normal()
 
 r"""
-# Four optimal solutions
-HimmelblauFunc([3,2])                   = 0
-HimmelblauFunc([-2.805118,3.131312])    = 0
-HimmelblauFunc([-3.779310,-3.283186])   = 0
-HimmelblauFunc([3.584428,-1.848126])    = 0
+# Four optimal solutions  => 0
+HimmelblauFunc([3,2])              
+HimmelblauFunc([-2.805118,3.131312])   
+HimmelblauFunc([-3.779310,-3.283186])   
+HimmelblauFunc([3.584428,-1.848126])   
 """
 # Plot HimmelblauFunc.  =>   -5 <= x,y <= 5
 x = np.linspace(-5, 5, 100)

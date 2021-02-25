@@ -1,5 +1,6 @@
 #%%
 import pandas as pd
+import numpy as np
 import HydroCNHS
 
 WthData = pd.read_csv(r"C:\Users\Philip\Documents\GitHub\HydroCNHS\HydroCNHS\Examples\GWLF_TaiwanShihmenReservoir_Data.csv")
@@ -11,7 +12,6 @@ ModelPath = r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRu
 
 HydroCNHS.updateConfig({"Parallelization":{"Cores_formUH_Lohmann":1, "verbose":0}})
 HydroCNHS.loadConfig()
-#%%
 Test = HydroCNHS.HydroCNHS(ModelPath, "Test")
 #%%
 T={}; P={}
@@ -20,27 +20,66 @@ for o in ["S1","g","S2","V11","S3","S4","V12","S5","V2","G"]:
     P[o] = prep
     
 Q = Test.run(T, P)
-#Q2 = Test2.run(T, P)
-# %% Calculate PE
+
+# 20000 runs 60yrs ~ 14 days on a single computer with single core.
+
+#%%
+Model = HydroCNHS.loadModel(ModelPath)
+def toParsDFList(Sections = ["LSM","Routing","ABM"]):
+    DFList = []
+    for s in Sections:
+        if s == "LSM":
+            LSM = list(Model["LSM"].keys())
+            LSM.remove("Model")
+            if Model["LSM"]["Model"] == "GWLF":
+                df = pd.DataFrame(index = ['CN2', 'IS', 'Res', 'Sep', 'Alpha', 'Beta', 'Ur', 'Df', 'Kc'])
+            for i in LSM:
+                df[i] = df.index.map(Model["LSM"][i]["Pars"])  
+            DFList.append(df)
+        if s == "Routing":
+            Routing = list(Model["Routing"].keys())
+            Routing.remove("Model")
+            if Model["Routing"]["Model"] == "Lohmann":
+                df = pd.DataFrame(index = ['GShape', 'GScale', 'Velo', 'Diff'])
+            for end in Routing:
+                for start in Model["Routing"][end]:
+                    df[(start, end)] = df.index.map(Model["Routing"][end][start]["Pars"])  
+            DFList.append(df)    
+        if s == "ABM":
+            pass        
+    return DFList
+
+a = toParsDFList()
+                
+            pd.concat([df, Model["LSM"][i]["Pars"]])
+Routing = Model["Routing"]
+RoutingOutlets = list(Routing.keys())
+RoutingOutlets.remove('Model')  
 
 
 
-import copy
-import numpy as np
-x = np.array([[1, 2, 3],[4, 5, 6]])
-
-np.pad(x,((0,0),(1,0)), mode='constant')[:, :-1]
-
-
-
-a = [1, 2, 3, 4, 5]
 
 
 
 
 
 
-np.pad(a, (1, 0), 'constant', constant_values=(0, 0))[:-1]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -45,7 +45,9 @@ def formUH_Lohmann(Inputs, RoutePars):
     #----- In-grid routing UH (daily) represented by Gamma distribution -------------------
     UH_IG = np.zeros(T_IG)
     if InStreamControl:
-        UH_IG[0] = 1    # No time delay for river routing when the water is released through in-stream control objects (e.g. reservoir).
+        UH_IG[0] = 1    # No time delay for in-grid routing when the water is released through in-stream control objects (e.g. reservoir).
+    elif RoutePars.get("GShape") is None and RoutePars.get("GScale"):
+        UH_IG[0] = 1    # No time delay for in-grid routing since Q is given by user and we assume Q is observed streamflow, which no need to consider time delay for in-grid routing. This is trigger automatically in HydroCNHS module.
     else:
         Shape = RoutePars["GShape"]
         Scale = RoutePars["GScale"]

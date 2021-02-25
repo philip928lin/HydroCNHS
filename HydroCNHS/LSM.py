@@ -4,7 +4,7 @@
 # GWLF is based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
 # 2021/02/05
 import numpy as np
-from pandas import date_range, to_datetime, to_numeric
+from pandas import date_range, to_datetime, to_numeric, DataFrame
 #import logging
 #logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
@@ -52,16 +52,20 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     St = Inputs["S0"]                   # [cm] Initialize shallow saturated soil water content.
     Ut = Inputs["U0"]                   # [cm] Initialize unsaturated soil water content.
     AnteMois = [0, 0, 0, 0, 0]          # [cm] Define the initial Antecedent Moisture (5 days) as 0.
-    MonthlyTavg = np.array(Inputs["MonthlyTavg"]) # Monthly mean temperature.
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
     Pt = np.array(Pt)                   # [cm] Daily precipitation.
     PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
     
-    # Calculate month index for each data point for realizing growing season purpose.
+    # Calculate monthly mean temperature for distinguishing growing season purpose.
     StartDate = to_datetime(StartDate, format="%Y/%m/%d")                               # to Datetime
     pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")   # gen pd dateIndex
-    m = to_numeric(pdDatedateIndex.strftime('%m'))                                      # get month
-    m = np.array(m)                                                                     # to array
+    MonthlyTavg = DataFrame(index = pdDatedateIndex)
+    MonthlyTavg["T"] = Tt
+    MonthlyTavg = MonthlyTavg.resample("MS").mean()     # e.g. 1950-1-"1" (Month Start, MS)
+    # Broadcast back to daily sequence.
+    # Note: Data has to longer than a month or it will show error.
+    MonthlyTavg.index = [pdDatedateIndex[0]] + list(MonthlyTavg.index[1:-1]) + [pdDatedateIndex[-1]]
+    MonthlyTavg = MonthlyTavg.resample('D').ffill()["T"].to_numpy()
     #--------------------------------------------------------------------------------------
 
     #----- Loop through all days (Python for loop ending needs +1) ------------------------
@@ -69,7 +73,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     for i in range(DataLength): 	
         # Determine the am1 and am2 values based on growing season for CN calculation.
         # Growing season (mean monthly temperature > 10 deg C).
-        if MonthlyTavg[int(m[i])-1]> 10: # "m" = [1~12] to fit index 0 (=Jan) to 11 (=Dec)
+        if MonthlyTavg[i] > 10:     # MonthlyTavg
             am1 = 3.6
             am2 = 5.3
         else:

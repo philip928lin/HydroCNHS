@@ -1,5 +1,5 @@
 # Load functions that directly available for user when the package is loaded.
-from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel
+from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV
 from .HydroCNHS import HydroCNHS
 from .DMCGA import DMCGA, DMCGA_Convertor
 
