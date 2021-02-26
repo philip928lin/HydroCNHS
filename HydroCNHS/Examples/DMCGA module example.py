@@ -57,10 +57,10 @@ Inputs = {"ParName":["x", "y"],
           "ParType":["real","real"],      # real or categorical
           "ParWeight":[1, 1],  
           "WD":r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest"}   
-Config = {"NumSP":6,                # Number of sub-populations.
+Config = {"NumSP":5,                # Number of sub-populations.
           "PopSize": 40,            # Population size. Must be even.
           "MaxGen": 100,            # Maximum generation.
-          "SamplingMethod": "MC",   # Monte Carlo sampling method.
+          "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
           "Tolerance":1.2,          # >= 1 
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.

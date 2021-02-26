@@ -12,6 +12,7 @@ from joblib import Parallel, delayed                # For parallelization
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import ast
 import pickle
 import os
 import logging
@@ -35,7 +36,7 @@ Inputs = {"ParName":[],
 Config = {"NumSP":1,                # Number of sub-populations.
           "PopSize": 30,            # Population size. Must be even.
           "MaxGen": 100,            # Maximum generation.
-          "SamplingMethod": "MC",   # Monte Carlo sampling method.
+          "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
           "Tolerance":1.2,          # >= 1 
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
@@ -140,7 +141,37 @@ class DMCGA(object):
                 pop[:,i] = np.random.choice(ParBound[i], size = PopSize)
         return pop 
     
-    def initialize(self, SamplingMethod = "MC", InitialPop = None):
+    def LatinHyperCubeSample(self, pop, ParBound, ParType):
+        """Generate samples using Latin Hyper Cube (LHC) method. However, if the parameter type is categorical, we use MCSample instead.
+
+        Args:
+            pop (Array): 2D array. [PopSize, NumPar]
+            NumPar (int): Number of parameters.
+            ParBound (list): List of bounds for each parameters.
+            ParType (list): List of parameter types. ["real" or "categorical"]
+
+        Returns:
+            array: Populated pop array.
+        """
+        PopSize = pop.shape[0]      # pop = [PopSize, NumPar]
+        NumPar = pop.shape[1]
+        for i in range(NumPar):
+            if ParType[i] == "real":
+                d = 1.0 / PopSize
+                temp = np.empty([PopSize])
+                # Uniformly sample in each interval.
+                for j in range(PopSize):
+                    temp[j] = np.random.uniform(low=j * d, high=(j + 1) * d)
+                # Shuffle to random order.
+                np.random.shuffle(temp)
+                # Scale [0,1] to its bound.
+                pop[:,i] = temp*(ParBound[i][1] - ParBound[i][0]) + ParBound[i][0]
+            elif ParType[i] == "categorical":
+                pop[:,i] = np.random.choice(ParBound[i], size = PopSize)
+        return pop 
+        
+    
+    def initialize(self, SamplingMethod = "LHC", InitialPop = None):
         """Initialize population members and storage spaces (PopRes, SPCentroid) for each sub population for generation 0.
 
         Args:
@@ -163,6 +194,8 @@ class DMCGA(object):
                 pop = np.zeros((PopSize, NumPar))  # Create 2D array population for single generation.
                 if SamplingMethod == "MC":
                     self.Pop[0][sp] = self.MCSample(pop, ParBound, ParType)
+                elif SamplingMethod == "LHC":
+                    self.Pop[0][sp] = self.LatinHyperCubeSample(pop, ParBound, ParType)
         else:                       # Initialize parameters with user inputs.
             self.Pop[0] = InitialPop
         
@@ -492,8 +525,15 @@ class DMCGA_Convertor(object):
 
         Args:
             DFList (list): A list of dataframes. Dataframe index is parameter names.
-            FixedParList (list, optional): A list contains a list of fixed parameter names for each dataframe. Defaults to None.
+            FixedParList (list, optional): A list contains a list of tuples of fixed parameter loc [e.g. (["CN2"], ["S1", "S2"])] for each dataframe. Defaults to None.
         """
+        for i in range(len(DFList)):
+            # Convert index and column into String, since tuple is not directly callable.
+            ParsedIndex = [str(item) for item in DFList[i].index]
+            ParsedCol = [str(item) for item in DFList[i].columns]
+            DFList[i].index = ParsedIndex
+            DFList[i].columns = ParsedCol
+            
         Formatter = {"NumDF": None,
                     "ShapeList": [],
                     "ColNameList": [],
@@ -516,8 +556,10 @@ class DMCGA_Convertor(object):
                 if FixedParList[i] == []:
                     Formatter["FixedParValueList"].append(None)
                 else:
-                    Formatter["FixedParValueList"].append(df.loc[FixedParList[i], :])
-                    df.loc[FixedParList[i], :] = None
+                    for tup in FixedParList[i]:
+                        Value = df.loc[tup[0], tup[1]].to_numpy()
+                        Formatter["FixedParValueList"].append(Value)
+                        df.loc[tup[0], tup[1]] = None
             # Convert to 1d array
             VarArray = VarArray + list(df.to_numpy().flatten("C"))    # [Row1, Row2, .....
             # Add Index (where it ends in the 1D array)
@@ -527,7 +569,7 @@ class DMCGA_Convertor(object):
         Formatter["NoneIndex"] = list(np.argwhere(np.isnan(VarArray)).flatten())    # Find index for np.nan values.
         self.Formatter = Formatter
     
-    def genDMCGAInputs(self, WD, DFList, ParTypeDict, ParBoundDict, ParWeightDict = None, FixedParList = None):
+    def genDMCGAInputs(self, WD, DFList, ParTypeDFList, ParBoundDFList, ParWeightDFList = None, FixedParList = None, Parse = False):
         """Generate Inputs dictionary required for DMCGA.
 
         Args:
@@ -538,6 +580,16 @@ class DMCGA_Convertor(object):
             ParWeightDict (dict, optional): A dictionary with key = parameter name and value = weight (from SA). Defaults to None, weight = 1.
             FixedParList (list, optional): A list contains a list of fixed parameter names (don't need calibration) for each dataframe. Defaults to None.
         """
+        # Parse df to make sure the consistency of data type.
+        def parse(Series):
+            Series = list(Series)
+            for i, v in enumerate(Series):
+                try:
+                    Series[i] = ast.literal_eval(v)
+                except:
+                    Series[i] = v
+            return Series       
+        
         # Compute Formatter
         self.genFormatter(DFList, FixedParList)
         Formatter = self.Formatter
@@ -550,15 +602,27 @@ class DMCGA_Convertor(object):
         for i in range(len(DFList)):
             ColNameList_d = Formatter["ColNameList"][i]
             IndexNameList_d = Formatter["IndexNameList"][i]
+            # Make sure index and column is callable and identical to DFList.
+            ParTypeDFList[i].index = IndexNameList_d
+            ParTypeDFList[i].columns = ColNameList_d
+            ParBoundDFList[i].index = IndexNameList_d
+            ParBoundDFList[i].columns = ColNameList_d
+            if ParWeightDFList is not None:
+                ParWeightDFList[i].index = IndexNameList_d
+                ParWeightDFList[i].columns = ColNameList_d
+            if Parse:   # Parse string list or tuple to list or tuple. 
+                ParBoundDFList[i].apply(parse, axis=0)
+                
+            # Assignment starts here.    
             for par in IndexNameList_d:
                 for c in ColNameList_d:
                     ParName.append(str(par)+"|"+str(c))
-                    ParType.append(ParTypeDict[par])
-                    ParBound.append(ParBoundDict[par])
-                    if ParWeightDict is None:
+                    ParType.append(ParTypeDFList[i].loc[par,c])
+                    ParBound.append(ParBoundDFList[i].loc[par,c])
+                    if ParWeightDFList is None:
                         ParWeight.append(1)
                     else:
-                        ParWeight.append(ParWeightDict[par])
+                        ParWeight.append(ParWeightDFList[i].loc[par,c])
         # Remove elements in None index from Formatter. This includes fixed pars and pars with None values. 
         def delete_multiple_element(list_object, indices):
             indices = sorted(indices, reverse=True)
@@ -622,6 +686,7 @@ class DMCGA_Convertor(object):
             df.columns = Formatter["ColNameList"][i]
             # Add fixed values back
             if Formatter["FixedParList"] is not None:
-                df.loc[Formatter["FixedParList"][i],:] = Formatter["FixedParValueList"][i]
+                for ii, tup in enumerate(Formatter["FixedParList"][i]):
+                    df.loc[tup[0], tup[1]] = Formatter["FixedParValueList"][i][ii]
             DFList.append(df)
         return DFList
