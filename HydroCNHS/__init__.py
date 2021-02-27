@@ -1,8 +1,8 @@
 # Load functions that directly available for user when the package is loaded.
 from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV
 from .HydroCNHS import HydroCNHS
-from .DMCGA import DMCGA, DMCGA_Convertor
-
+from .DMCGA import DMCGA, GA_Convertor
+from .KmeansGA import KmeansGA
 
 # Setup logging when HydroCNHS is imported.
 # Default only show console log. Log file is created in the HydroCNHS class according to user's setting.

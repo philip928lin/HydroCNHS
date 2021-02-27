@@ -20,6 +20,7 @@
 # https://en.wikipedia.org/wiki/Test_functions_for_optimization
 
 from HydroCNHS.DMCGA import DMCGA
+from HydroCNHS.KmeansGA import KmeansGA
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -37,47 +38,84 @@ HimmelblauFunc([-3.779310,-3.283186])
 HimmelblauFunc([3.584428,-1.848126])   
 """
 # Plot HimmelblauFunc.  =>   -5 <= x,y <= 5
-x = np.linspace(-5, 5, 100)
-y = np.linspace(-5, 5, 100)
-X, Y = np.meshgrid(x, y)
-Z = HimmelblauFunc([X, Y])
-ax = plt.axes(projection='3d')
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1,
-                cmap='nipy_spectral', edgecolor='none')
-ax.view_init(70, 15)
-ax.set_xlabel("x")
-ax.set_ylabel("y")
-ax.set_title("Himmelblau's Function");
-plt.show()
+# x = np.linspace(-5, 5, 100)
+# y = np.linspace(-5, 5, 100)
+# X, Y = np.meshgrid(x, y)
+# Z = HimmelblauFunc([X, Y])
+# ax = plt.axes(projection='3d')
+# ax.plot_surface(X, Y, Z, rstride=1, cstride=1,
+#                 cmap='nipy_spectral', edgecolor='none')
+# ax.view_init(70, 15)
+# ax.set_xlabel("x")
+# ax.set_ylabel("y")
+# ax.set_title("Himmelblau's Function");
+# plt.show()
 
 # %%
 # Setup DMCGA
+# Inputs = {"ParName":["x", "y"], 
+#           "ParBound":[[-5, 5], [-5, 5]],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
+#           "ParType":["real","real"],      # real or categorical
+#           "ParWeight":[1, 1],  
+#           "WD":r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest"}   
+# Config = {"NumSP":5,                # Number of sub-populations.
+#           "PopSize": 40,            # Population size. Must be even.
+#           "MaxGen": 100,            # Maximum generation.
+#           "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
+#           "Tolerance":1.2,          # >= 1 
+#           "NumEllite": 1,           # Ellite number for each SP. At least 1.
+#           "MutProb": 0.3,           # Mutation probability.
+#           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
+#           "ParalCores": 1,     # This will overwrite system config.
+#           "AutoSave": True,         # Automatically save a model snapshot after each generation.
+#           "Printlevel": 10,         # Print out level. e.g. Every ten generations.
+#           "Plot": True              # Plot loss with Printlevel frequency.
+#           }   
+
+# Himmelblau = DMCGA(LossFunc = HimmelblauFunc, Inputs = Inputs, Config = Config)
+
+# # %%
+# # Run DMCGA to solve Himmelblau's function.
+# Himmelblau.run()
+# Sols = Himmelblau.Solutions
+
+#%%
+# Setup KmeansGA
 Inputs = {"ParName":["x", "y"], 
           "ParBound":[[-5, 5], [-5, 5]],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
           "ParType":["real","real"],      # real or categorical
           "ParWeight":[1, 1],  
           "WD":r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\ModelRunTest"}   
-Config = {"NumSP":5,                # Number of sub-populations.
-          "PopSize": 40,            # Population size. Must be even.
-          "MaxGen": 100,            # Maximum generation.
+Config = {"NumSP":0,                # Number of sub-populations.
+          "PopSize": 300,            # Population size. Must be even.
+          "MaxGen": 30,            # Maximum generation.
           "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
           "Tolerance":1.2,          # >= 1 
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
+          "KClusterMin": 3,
+          "KClusterMax": 10,      # Must be smaller than PopSize. 
+          "KLeastImproveRate": 0.3,
+          "KExplainedVarThres": 0.95,
           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
           "ParalCores": 1,     # This will overwrite system config.
           "AutoSave": True,         # Automatically save a model snapshot after each generation.
           "Printlevel": 10,         # Print out level. e.g. Every ten generations.
           "Plot": True              # Plot loss with Printlevel frequency.
-          }   
+          }
 
-Himmelblau = DMCGA(LossFunc = HimmelblauFunc, Inputs = Inputs, Config = Config)
+Himmelblau = KmeansGA(LossFunc = HimmelblauFunc, Inputs = Inputs, Config = Config)
 
-# %%
+#%%
 # Run DMCGA to solve Himmelblau's function.
 Himmelblau.run()
 Sols = Himmelblau.Solutions
 
+#%%
+[02/27 12:07:14] HydroCNHS.KmGA [INFO] Solutions:
+[[ 3.02923917  1.96490417]
+ [-3.77568756 -3.27417875]
+ [-2.83762452  3.14450135]]
 # %%
 # If program shutdown somehow, you can continue the previous unfinished run by loading into AutoSave.pickle.
 # Himmelblau = DMCGA(LossFunc = HimmelblauFunc, Inputs = Inputs, Config = Config, ContinueFile = r"......\AutoSave.pickle" )
