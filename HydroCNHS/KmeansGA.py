@@ -305,13 +305,13 @@ class KmeansGA(object):
                 if KExplainedVar[-1] >= KExplainedVarThres:
                     SelectedK = k
                     self.KPopRes[CurrentGen]["Kby"] = "ExplainedVar"
-                    print("Select k = {}, Explained Var = {}.".format(k-1, KExplainedVar[-1]))
+                    print("Select k = {}, Explained Var = {}.".format(SelectedK, KExplainedVar[-1]))
                     break
             if len(KdDistortions) >= 2:
                 if KdDistortions[-1]/KdDistortions[-2] < KLeastImproveRate:
                     SelectedK = k-1
                     self.KPopRes[CurrentGen]["Kby"] = "ImproveRate"
-                    print("Select k = {}, KImproveRate = {}.".format(k-1, KdDistortions[-1]/KdDistortions[-2]))
+                    print("Select k = {}, KImproveRate = {}.".format(SelectedK, KdDistortions[-1]/KdDistortions[-2]))
                     break
             self.KPopRes[CurrentGen]["Kby"] = "KMax"
             

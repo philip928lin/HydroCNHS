@@ -93,7 +93,7 @@ Config = {"NumSP":0,                # Number of sub-populations.
           "Tolerance":1.2,          # >= 1 
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
-          "KClusterMin": 3,
+          "KClusterMin": 2,
           "KClusterMax": 10,      # Must be smaller than PopSize. 
           "KLeastImproveRate": 0.3,
           "KExplainedVarThres": 0.95,
