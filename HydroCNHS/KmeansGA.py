@@ -84,7 +84,7 @@ while CurrentGen <= MaxGen:
      
     #---------- Kmeans: K selection ----------    
     for k in range(KClusterMin-1, KClusterMax):
-        KMeans(n_clusters = k).fit(SubPop)
+        KMeans(n_clusters = k).fit(SubPop, ParWeight)
         if ExplainedVariance >= KExplainedVarThres:
             K = k
             break loop
@@ -337,7 +337,7 @@ class KmeansGA(object):
         KClusterMax = self.Config["KClusterMax"]
         KLeastImproveRate = self.Config["KLeastImproveRate"]
         KExplainedVarThres = self.Config["KExplainedVarThres"]
-        ParWeight = self.Inputsget("ParWeight")     # Weights for each parameter. Default None. 
+        ParWeight = self.Inputs.get("ParWeight")     # Weights for each parameter. Default None. 
         KDistortions = []
         KExplainedVar = []
         KdDistortions = []
