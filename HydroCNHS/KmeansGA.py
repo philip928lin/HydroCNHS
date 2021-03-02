@@ -28,28 +28,79 @@ Timeout (function)
 
 r"""
 Inputs = {"ParName":[], 
-          "ParBound":[],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
-          "ParType":[],   # real or categorical
-          #"ParWeight":[], # Should be an array.
+          "ParBound":[],    # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
+          "ParType":[],     # real or categorical
+          #"ParWeight":[],  # An array with length equal to number of parameters.
           "WD":}   
           
 Config = {#"NumSP":0,               # Number of sub-populations.
           "PopSize": 30,            # Population size. Must be even.
           "MaxGen": 100,            # Maximum generation.
           "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "Tolerance":1.2,          # >= 1 
+          "FeasibleTolRate": 1.2    # A dynamic criteria according to the best loss. Should be >= 1.
+          "FeasibleThres": 0.3      # A fix threshold for loss value.
           #"NumEllite": 1,          # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
           "KClusterMin": 2,         # Must be at least 2. See #----- Kmeans clustering
           "KClusterMax": 10,        # Must be smaller than PopSize. 
-          "KLeastImproveRate": 0.5,
-          "KExplainedVarThres": 0.8,
+          "KLeastImproveRate": 0.5, # Improving rate criteria for k cluster selection.
+          "KExplainedVarThres": 0.8,# Total explained criteria for k cluster selection.
           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
           "ParalCores": 2/None,     # This will overwrite system config.
           "AutoSave": True,         # Automatically save a model snapshot after each generation.
           "Printlevel": 10,         # Print out level. e.g. Every ten generations.
           "Plot": True              # Plot loss with Printlevel frequency.
           }
+"""
+r"""
+Psuedo code for KmeansGA
+Input KmeansGA Config setting 
+(e.g. PopSize, NumPar, FeasibleTolRate, FeasibleThres, 
+KClusterMin/Max, KLeastImproveRate, KExplainedVarThres)
+
+# Intialization
+Pop <= np.empty((PopSize, NumPar))
+Pop <= Latin Hyper Cube sampling.
+CurrentGen = 0
+
+while CurrentGen <= MaxGen:
+    #---------- Evaluation ----------
+    Loss = np.empty((PopSize, NumPar))
+    for p in range(PopSize):
+        Loss[p] = LossFunc(Pop[p])
+    
+    #---------- Feasibility ----------
+    Feasibility = np.zero(PopSize)
+    Best = Min(Loss)
+    Criteria = max([Best*FeasibleTolRate, FeasibleThres])
+    Feasibility[Loss <= Criteria] = 1 
+    
+    #---------- SubPop Selection ----------
+    if num of feasible solutions >= PopSize/2:
+        SubPop = Pop[Feasibility == 1]
+    else:
+        SubPop = PopSize/2 of best Loss value.
+    SubPop <= Scaled SubPop ([0,1])
+     
+    #---------- Kmeans: K selection ----------    
+    for k in range(KClusterMin-1, KClusterMax):
+        KMeans(n_clusters = k).fit(SubPop)
+        if ExplainedVariance >= KExplainedVarThres:
+            K = k
+            break loop
+        if ImproveRate < KLeastImproveRate:
+            K = k-1
+            break loop
+
+    #---------- GA Evolution Process for Each SubPop ----------
+    for sub in range(K):
+        Select single ellite.
+        Select parants through binary tournament. 
+        Uniform Crossover and Mutation.
+    Pop <= Collect all evolved SubPop and Add ellites of each sub-Pop.
+
+    #---------- Prepare Next Iteration ----------
+    CurrentGen += 1
 """
 
 class KmeansGA(object):
@@ -176,7 +227,6 @@ class KmeansGA(object):
                 pop[:,i] = np.random.choice(ParBound[i], size = PopSize)
         return pop 
         
-    
     def initialize(self, SamplingMethod = "LHC", InitialPop = None):
         """Initialize population members and storage spaces (PopRes, SPCentroid) for each sub population for generation 0.
 
@@ -256,10 +306,12 @@ class KmeansGA(object):
         # Determine the feasibility of each solution in SP.
         if SP0Best == 0:
             SP0Best = 0.0001 # To prevent 0, which results in no tolerance for other SP. 
-        Tol = self.Config["Tolerance"]      # Should be >= 1
+        TolRate = self.Config["FeasibleTolRate"]      # Should be >= 1
+        Thres = self.Config["FeasibleThres"]      # Should be >= 1
         for sp in SPList:    
             Feasibility = np.zeros(PopSize)
-            Feasibility[self.PopRes[CurrentGen][sp]["Loss"] <= SP0Best*Tol] = 1   # Only valid when lower bound is zero
+            Criteria = max([SP0Best*TolRate, Thres])
+            Feasibility[self.PopRes[CurrentGen][sp]["Loss"] <= Criteria] = 1   # Only valid when lower bound is zero
             self.PopRes[CurrentGen][sp]["Feasibility"] = Feasibility.astype(int)
         #---------------------------------
         
@@ -270,7 +322,7 @@ class KmeansGA(object):
         # We set the criteria as PopSize/2 for now, which can be switch to dynamically updated according to CurrentGen.
         # Select subPop for clustering => Max(#Feasible Sol, PopSize/2)
         if np.sum(Feasibility_sp0) >= SubPopSizeThres:
-            KPopIndex = Feasibility_sp0[Feasibility_sp0 == 1]
+            KPopIndex = np.where(Feasibility_sp0 == 1)[0]   # Take out 1d array of indexes.
         else:
             KPopIndex = np.argpartition(Loss_sp0, SubPopSizeThres)[:SubPopSizeThres].astype(int)          # return n smallest Loss index.
         KPop = self.Pop[CurrentGen]["SP0"][KPopIndex, :]
@@ -285,6 +337,7 @@ class KmeansGA(object):
         KClusterMax = self.Config["KClusterMax"]
         KLeastImproveRate = self.Config["KLeastImproveRate"]
         KExplainedVarThres = self.Config["KExplainedVarThres"]
+        ParWeight = self.Inputsget("ParWeight")     # Weights for each parameter. Default None. 
         KDistortions = []
         KExplainedVar = []
         KdDistortions = []
@@ -294,7 +347,7 @@ class KmeansGA(object):
         
         for k in range(KClusterMin, KClusterMax+1):
             KStore[0] = KStore[1]
-            km = KMeans(n_clusters = k, random_state=0).fit(Nor_KPop)
+            km = KMeans(n_clusters = k, random_state=0).fit(Nor_KPop, ParWeight)
             KStore[1] = km
             # inertia_: Sum of squared distances of samples to their closest cluster center.
             KDistortions.append(km.inertia_)
@@ -322,7 +375,7 @@ class KmeansGA(object):
         self.KPopRes[CurrentGen]["SelectedK"] = SelectedK
         self.KPopRes[CurrentGen]["KDistortions"] = KDistortions
         self.KPopRes[CurrentGen]["KExplainedVar"] = KExplainedVar
-        self.KPopRes[CurrentGen]["Centers"] = KM.cluster_centers_
+        self.KPopRes[CurrentGen]["Centers"] = np.multiply(KM.cluster_centers_, self.BoundScale.reshape(1, NumPar)) 
         KLabels = np.empty(PopSize); KLabels[:] = np.nan
         KLabels[KPopIndex] = KM.labels_
         self.KPopRes[CurrentGen]["PopLabels"] = KLabels

@@ -94,9 +94,9 @@ Config = {"NumSP":0,                # Number of sub-populations.
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
           "KClusterMin": 2,
-          "KClusterMax": 10,      # Must be smaller than PopSize. 
-          "KLeastImproveRate": 0.3,
-          "KExplainedVarThres": 0.95,
+          "KClusterMax": 10,        # Must be smaller than PopSize. 
+          "KLeastImproveRate": 0.3,     # Main par determining the K.
+          "KExplainedVarThres": 0.95,   # Safety net. Shouldn't be too low.
           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
           "ParalCores": 1,     # This will overwrite system config.
           "AutoSave": True,         # Automatically save a model snapshot after each generation.
@@ -112,10 +112,7 @@ Himmelblau.run()
 Sols = Himmelblau.Solutions
 
 #%%
-[02/27 12:07:14] HydroCNHS.KmGA [INFO] Solutions:
-[[ 3.02923917  1.96490417]
- [-3.77568756 -3.27417875]
- [-2.83762452  3.14450135]]
+
 # %%
 # If program shutdown somehow, you can continue the previous unfinished run by loading into AutoSave.pickle.
 # Himmelblau = DMCGA(LossFunc = HimmelblauFunc, Inputs = Inputs, Config = Config, ContinueFile = r"......\AutoSave.pickle" )

@@ -30,7 +30,7 @@ r"""
 Inputs = {"ParName":[], 
           "ParBound":[],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
           "ParType":[],   # real or categorical
-          "ParWeight":[], # Should be an array.
+          "ParWeight":[], # An array with length equal to number of parameters.
           "WD":}   
           
 Config = {"NumSP":1,                # Number of sub-populations.
