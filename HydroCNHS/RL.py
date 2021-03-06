@@ -343,9 +343,9 @@ class Actor_Critic(object):
         self.Theta = np.array(Pars["Theta"]).reshape((-1,1))
         self.LR_W = np.array(Pars["LR_W"]).reshape((-1,1))
         self.LR_T = np.array(Pars["LR_T"]).reshape((-1,1))
-        self.LR_R = Pars["LR_R"]
-        self.Lambda_W = Pars["Lambda_W"]
-        self.Lambda_T = Pars["Lambda_T"]
+        self.LR_R = Pars["LR_R"][0]
+        self.Lambda_W = Pars["Lambda_W"][0]
+        self.Lambda_T = Pars["Lambda_T"][0]
         
         # Initialize variables
         self.AvgR = 0                           # Average rewards
@@ -355,6 +355,9 @@ class Actor_Critic(object):
         
         # Collect other kwargs
         self.kwargs = kwargs
+        
+        # Control variable
+        self.Initial = True
     
     def getAction(self, X):
         """Get action according to the policy.
@@ -370,6 +373,7 @@ class Actor_Critic(object):
         kwargs = self.kwargs
         actionTuple = self.Policy(X, Theta, **kwargs)
         self.PreX = X
+        self.Initial = False
         return actionTuple
     
     def updatePars(self, X_new, R, **kwargs):
@@ -378,17 +382,23 @@ class Actor_Critic(object):
         Args:
             X_new (array): A feature vector of next state.
             R (float): Reward from taking the action in last state. We didn't provide the reward function for users. Please feed in the Reward directly.
+            **kwargs: If adopted Gaussian Policy function, actionTuple needs to be given.
         """
-        V = self.Value
-        P = self.Policy
-        Theta = self.Theta
-        W = self.W
-        kwargs = {**self.kwargs, **kwargs}      # Merge two kwargs dictionaries.
-        
-        # Update parameters
-        delta = R - self.AvgR + V(X_new, W, **kwargs) - V(self.PreX, W, **kwargs)
-        self.AvgR = self.AvgR + self.LR_R*delta
-        self.Z_W = self.Lambda_W * self.Z_W + V(self.PreX, W, "gradient", **kwargs)
-        self.Z_T = self.Lambda_T * self.Z_T + P(self.PreX, Theta, "gradient", **kwargs)
-        self.W = W + self.LR_W * (self.Z_W * delta)
-        self.Theta = Theta + self.LR_T * (self.Z_T * delta)
+        if self.Initial:
+            # Do nothing.
+            # Making sure that if there are no actions have been taken, then no parameters are updated.
+            self.Initial = False
+        else: 
+            V = self.Value
+            P = self.Policy
+            Theta = self.Theta
+            W = self.W
+            kwargs = {**self.kwargs, **kwargs}      # Merge two kwargs dictionaries.
+            
+            # Update parameters
+            delta = R - self.AvgR + V(X_new, W, **kwargs) - V(self.PreX, W, **kwargs)
+            self.AvgR = self.AvgR + self.LR_R*delta
+            self.Z_W = self.Lambda_W * self.Z_W + V(self.PreX, W, "gradient", **kwargs)
+            self.Z_T = self.Lambda_T * self.Z_T + P(self.PreX, Theta, "gradient", **kwargs)
+            self.W = W + self.LR_W * (self.Z_W * delta)
+            self.Theta = Theta + self.LR_T * (self.Z_T * delta)

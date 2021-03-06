@@ -106,7 +106,7 @@ class HydroCNHS(object):
                         ActiveAgTypes.append(agType)
         return ActiveAgTypes    
         
-    def run(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}):
+    def __call__(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}):
         """Run HydroCNHS simulation. The simulation is controled by model.yaml and Config.yaml (HydroCNHS system file).
         
         Args:
@@ -200,8 +200,8 @@ class HydroCNHS(object):
         for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__):
             CurrentDate = pdDatedateIndex[t]
             for node in SimSeq:
+                
                 if node in InStreamAgents:     # The node is an in-stream agent.
-                    
                     #----- Update in-stream agent's actions to streamflow (self.Q_LSM) for later routing usage.
                     for ag in AgSimSeq["AgSimPlus"][node]:
                         #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
