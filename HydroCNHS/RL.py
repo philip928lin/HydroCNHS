@@ -1,6 +1,8 @@
+#==============================================================
 # Reinforcement learning algorithm.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# 2021/02/05
+# 2021/03/01
+#==============================================================
 
 import numpy as np 
 from scipy.stats import norm
@@ -332,6 +334,15 @@ class Actor_Critic(object):
         self.Value = toFunc(ValueFunc)
         self.Policy = toFunc(PolicyFunc)
 
+        # Customize section
+        # ====================================================================
+        # Actor_Critic class provide a most general framework. However, the 
+        # total number of parameters might be overwhelmed for some purpose.
+        # Therefore, this section is to set the default number if par is not
+        # given or not given in a correct format. 
+        # ====================================================================
+        
+        
         # Load parameter from Pars
         # ====================================================================
         # Note that this Actor_Critic is design for linear approximation 

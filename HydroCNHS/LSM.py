@@ -1,45 +1,43 @@
-#%%
+#===================================================================================
 # Land Surface model using GWLF model.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# GWLF is based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
+# GWLF  is based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
+# HYMOD is based on the code from KMarkert @ https://github.com/KMarkert/hymod
 # 2021/02/05
-from typing import KeysView
+#===================================================================================
+
 import numpy as np
 from pandas import date_range, to_datetime, to_numeric, DataFrame
 #import logging
 #logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
 r"""
-# GWLF model
+# HYMOD model
 Weather:
     T:                                        # [degC] Daily mean temperature.
     P:                                        # [cm] Daily precipitation.
     PE:                                       # [cm] Daily potential evapotranspiration.
 Inputs:
     Area:                                     # [ha] Sub-basin area.
-    S0:     10                                # [cm] Shallow saturated soil water content.
-    U0:     10                                # [cm] Unsaturated soil water content
     SnowS:  5                                 # [cm] Snow storage.
-    MonthlyTavg: []                           # [degC] Monthly mean temperature.
-GWLFPars:                                       # For GWLF, we have 9 parameters.
-    CN2:                                      # Curve number
-    IS:                                       # Interception coefficient 0.05 ~ 0.2
-    Res:                                      # Recession coefficient
-    Sep:                                      # Deep seepage coefficient
-    Alpha:                                    # Baseflow coefficient (Eq 4 in Luo et al. (2012))
-    Beta:                                     # Deep seepage coefficient (Eq 2 in Luo et al. (2012))
-    Ur:                                       # [cm] Avaliable/Soil water capacity (Root zone)
-    Df:                                       # [cm/degC] Degree-day coefficient for snowmelt.
-    Kc:                                       # Land cover coefficient.
+HYMODPars:                                    ## For HYMOD, we have 6 parameters.
+    Cmax:                                     # [cm] Maximum storage capacity. [1, 10]
+    Bexp:                                     # Degree of spatial variability of the soil moisture capacity. [0, 2]
+    Alpha:                                    # Factor distributing the flow between slow and quick release reservoirs. [0.2, 0.99]
+    Kq:                                       # Residence time of the slow release reservoir. [0.5, 0.2]
+    Ks:                                       # Residence time of the quick release reservoirs. [0.01, 0.5]
+    Df:                                       # [cm] Snow storage.
 """
 
-def runHYMOD(HYMODPars, Inputs, Pt, PEt, DataLength, InitFlow = True):
-    """HYMOD for rainfall runoff simulation.
+def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
+    """HYMOD for rainfall runoff simulation with additional snow module.
         There is no snow component in current version.
+        Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
     Args:
         HYMODPars (dict): [description]
         Inputs (dict): [description]
         Pt (Array): [cm] Daily precipitation.
+        Tt (Array): [degC] Daily mean temperature.
         PEt (Array): [cm] Daily potential evaportranspiration.
         DataLength (int): Total data length.
         InitFlow (bool, optional): Whether to calculate initial flow. Defaults to True.
@@ -52,8 +50,10 @@ def runHYMOD(HYMODPars, Inputs, Pt, PEt, DataLength, InitFlow = True):
     Alpha = HYMODPars["Alpha"]
     Kq = HYMODPars["Kq"]
     Ks = HYMODPars["Ks"]
+    Df = HYMODPars["Df"]
     
     Pt = np.array(Pt)                   # [cm] Daily precipitation.
+    Tt = np.array(Tt)                   # [degC] Daily mean temperature.
     PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
     
     # Initialize slow tank state
@@ -97,8 +97,24 @@ def runHYMOD(HYMODPars, Inputs, Pt, PEt, DataLength, InitFlow = True):
     x_loss = 0.0
     #----- START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
     for t in range(DataLength): 
+        
+        # Snow module
+        # Determine rainfall, snowfall and snow accumulation
+        if Tt[i] > 0:           # If temperature is above 0 degC, 
+            Rt = Pt[i]          # precipitation is rainfall (cm) and no snow accumulation
+        else:
+            Rt = 0              # Else, precipitation is snowfall (cm) so rainfall = 0
+            Inputs["SnowS"] = Inputs["SnowS"] + Pt[i] # Snowfall will accumulated and become snow storage(cm)	
+        # Determine snowmelt (Degree-day method)
+        if Tt[i] > 0:           # Temperature above 0 degC
+            Mt = min(Inputs["SnowS"], Df * Tt[i])   # Snowmelt (cm) capped by snow storage
+            Inputs["SnowS"] = Inputs["SnowS"] - Mt              # Update snow storage
+        else:	
+            Mt = 0
+        
+        
         # Compute excess precipitation and evaporation
-        ER1, ER2, x_loss = calExcess(x_loss, Cmax, Bexp, Pt[t], PEt[t])
+        ER1, ER2, x_loss = calExcess(x_loss, Cmax, Bexp, Rt+Mt, PEt[t])
         # Calculate total effective rainfall
         ERT = ER1 + ER2
         #  Now partition ER between quick and slow flow reservoirs
@@ -116,7 +132,33 @@ def runHYMOD(HYMODPars, Inputs, Pt, PEt, DataLength, InitFlow = True):
         # Compute total flow and convert cm to cms.
         CMS[t] = ((QS + QQ) * 0.01 * Inputs["Area"] * 10000) / 86400
     return CMS
-    
+
+
+
+r"""
+# GWLF model
+Weather:
+    T:                                        # [degC] Daily mean temperature.
+    P:                                        # [cm] Daily precipitation.
+    PE:                                       # [cm] Daily potential evapotranspiration.
+Inputs:
+    Area:                                     # [ha] Sub-basin area.
+    S0:     10                                # [cm] Shallow saturated soil water content.
+    U0:     10                                # [cm] Unsaturated soil water content
+    SnowS:  5                                 # [cm] Snow storage.
+GWLFPars:                                       # For GWLF, we have 9 parameters.
+    CN2:                                      # Curve number
+    IS:                                       # Interception coefficient 0.05 ~ 0.2
+    Res:                                      # Recession coefficient
+    Sep:                                      # Deep seepage coefficient
+    Alpha:                                    # Baseflow coefficient (Eq 4 in Luo et al. (2012))
+    Beta:                                     # Deep seepage coefficient (Eq 2 in Luo et al. (2012))
+    Ur:                                       # [cm] Avaliable/Soil water capacity (Root zone)
+    Df:                                       # [cm/degC] Degree-day coefficient for snowmelt.
+    Kc:                                       # Land cover coefficient.
+"""
+
+
 def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     """GWLF for rainfall runoff simulation.
 

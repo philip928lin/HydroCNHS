@@ -1,3 +1,8 @@
+#==============================================================
+# ModelBuilder.
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# 2021/03/10
+#==============================================================
 r"""
 ModelBuilder is a user interface for building Model.yaml.
 Note that ModelBuilder only help users to establish the skeleton of Model.yaml,
