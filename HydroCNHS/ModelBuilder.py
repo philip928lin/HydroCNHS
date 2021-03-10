@@ -51,7 +51,8 @@ Agent = {"Attributions": None,
             
 class ModelBuilder(object):
     def __init__(self):
-        self.Model = OrderedDict()
+        #self.Model = OrderedDict()
+        self.Model = {}
         self.Model["Path"] = {"WD": "Required"}
         self.Model["WaterSystem"] = {}
         self.Model["WaterSystem"]["StartDate"]      = "Required"
@@ -74,7 +75,7 @@ class ModelBuilder(object):
         
         self.Model["LSM"] = {"Model": model}
         for sub in OutletLists:
-            self.Model[sub] = deepcopy(LSM_templete)                                 
+            self.Model["LSM"][sub] = deepcopy(LSM_templete)                                 
     
     def addRoutingLinks(self, GaugedOutletsDict, InstreamOutlets = [], model = "Lohmann"):
         if self.Model.get("LSM") is None:
@@ -105,7 +106,7 @@ class ModelBuilder(object):
             self.Model["Routing"][g][g]["Pars"]["Diff"] = None
         # Add all outlets in-grid routing.
         for o in self.Model["WaterSystem"]["Outlets"]:
-            self.Model["Routing"][o][o] = deepcopy(Routing_templete)
+            self.Model["Routing"][o] = {o: deepcopy(Routing_templete)}
             self.Model["Routing"][o][o]["Inputs"]["FlowLength"] = 0
             self.Model["Routing"][o][o]["Pars"]["Velo"] = None
             self.Model["Routing"][o][o]["Pars"]["Diff"] = None

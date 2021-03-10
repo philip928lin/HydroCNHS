@@ -109,7 +109,7 @@ def writeModel(modelDict, modelname, org_model = None):
             yaml_round.dump(model, file)
     else:                       # Dump without comments in the original model file.
         with open(modelname, 'w') as file:
-            SavedModel = yaml.dump(modelDict, file)
+            SavedModel = yaml.safe_dump(modelDict, file, sort_keys=False, default_flow_style=None)
     logger.info("Model is saved at {}.".format(modelname))
 
 def writeModelToDF(modelDict, KeyOption = ["Pars"], Prefix = ""):
