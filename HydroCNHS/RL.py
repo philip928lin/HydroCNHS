@@ -166,6 +166,22 @@ class Policy(object):
         return FuncList
     
     @staticmethod
+    def Constant(X, Return = "value", **kwargs):
+        """Constant value X.
+
+        Args:
+            X (float): A constant value.
+            Return (str, optional): "value" or "gradient" of the function. Defaults to "value".
+            
+        Returns:
+            float/float: "value": float; "gradient": float.
+        """
+        if Return == "value":
+            return X  # A single value
+        elif Return == "gradient":
+            return 0
+    
+    @staticmethod
     def Linear(X, Theta, Return = "value", **kwargs):
         """This is an auxiliary function. Linear = Theta^TX.
 
@@ -257,18 +273,23 @@ class Policy(object):
         """
         # If muIndexInfo and sigIndexInfo are not given, 
         # then we assume first half is for mu and second half is for sigma.
+        FixedSig = False
         if kwargs.get("muIndexInfo") is None and kwargs.get("sigIndexInfo") is None:
-            half = int(Theta.shape[0]/2)
-            muII = [0, half]
-            sigII = [half, Theta.shape[0]]
+            if kwargs.get("FixedSig") is None:
+                half = int(Theta.shape[0]/2)
+                muII = [0, half]
+                sigII = [half, Theta.shape[0]]
+            else:
+                FixedSig = True
+                sig = kwargs["FixedSig"]
         else:
             muII = kwargs["muIndexInfo"]     # muIndexInfo = [StartIndex, length]
-            sigII = kwargs["sigIndexInfo"]   # sigIndexInfo = [StartIndex, length]
+            sigII = kwargs["sigIndexInfo"]   # sigIndexInfo = [StartIndex, length] or ["Sig", 0]
         
         # Get auxiliary functions for mu and sig.
         if kwargs.get("muFunc") is None:
             raise KeyError("muFunc argument is missing.")
-        if kwargs.get("sigFunc") is None:
+        if kwargs.get("sigFunc") is None and FixedSig is False:
             raise KeyError("sigFunc argument is missing.")
         
         def toFunc(Func):
@@ -277,12 +298,14 @@ class Policy(object):
             else:
                 return Func          # Directly assign a function object.
         muFunc = toFunc(kwargs["muFunc"])
-        sigFunc = toFunc(kwargs["sigFunc"])
+        if FixedSig is False:
+            sigFunc = toFunc(kwargs["sigFunc"])
         
         if Return == "value":
             # Calculate mu and sig using approximation functions.
             mu = muFunc(X[muII[0]:muII[0]+muII[1], :], Theta[muII[0]:muII[0]+muII[1], :], **kwargs)
-            sig = sigFunc(X[sigII[0]:sigII[0]+sigII[1], :], Theta[sigII[0]:sigII[0]+sigII[1], :], **kwargs)
+            if FixedSig is False:
+                sig = sigFunc(X[sigII[0]:sigII[0]+sigII[1], :], Theta[sigII[0]:sigII[0]+sigII[1], :], **kwargs)
             
             # Generate action according a normal distribution.
             rn = np.random.uniform()
@@ -300,14 +323,18 @@ class Policy(object):
             dmu = 1/sig**2 * (a-mu)
             dsig = ((a-mu)**2 / sig**2 - 1)
             dZmu = muFunc(X[muII[0]:muII[0]+muII[1], :], Theta[muII[0]:muII[0]+muII[1], :], "gradient", **kwargs)
-            dZsig = sigFunc(X[muII[0]:muII[0]+muII[1], :], Theta[muII[0]:muII[0]+muII[1], :], "gradient", **kwargs)
             dTmu = dmu * dZmu
-            dTsig = dsig * dZsig
+            if FixedSig is False:
+                dZsig = sigFunc(X[muII[0]:muII[0]+muII[1], :], Theta[muII[0]:muII[0]+muII[1], :], "gradient", **kwargs)
+                dTsig = dsig * dZsig
             
-            if muII[0] < sigII[0]:
-                gradient = np.concatenate((dTmu, dTsig), axis=0)
+            if FixedSig is False:
+                if muII[0] < sigII[0]:
+                    gradient = np.concatenate((dTmu, dTsig), axis=0)
+                else:
+                    gradient = np.concatenate((dTsig, dTmu), axis=0)
             else:
-                gradient = np.concatenate((dTsig, dTmu), axis=0)
+                gradient = dTmu
             return gradient
 
 class Actor_Critic(object):
@@ -342,7 +369,16 @@ class Actor_Critic(object):
         # given or not given in a correct format. 
         # ====================================================================
         
+        #!! Eligible trace is not given.
+        if Pars.get("Lambda_W") is None:
+            Pars["Lambda_W"] = [0]      # Default TD mode.
+        if Pars.get("Lambda_T") is None:
+            Pars["Lambda_T"] = [0]      # Default TD mode.
         
+        #!! Sig is a constant
+        if kwargs.get("FixedSig") is not None:
+            kwargs["FixedSig"] = Pars["Sig"][0]
+             
         # Load parameter from Pars
         # ====================================================================
         # Note that this Actor_Critic is design for linear approximation 

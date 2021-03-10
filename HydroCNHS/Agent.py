@@ -220,13 +220,13 @@ class AgType_Reservoir(BasicAgent):
         return X_value
     
     def getPolicyFeatureVector(self):
-        """Policy features = [ dP_forecast, dInflow_forecast, dResS%]
+        """Policy features = [dP_forecast, dInflow_forecast, dResS%]
             dP_forecast         (monthly):  self.ObvDf["MonthlydPrep"] at CurrentDate (month).
             dInflow_forecast    (monthly):  self.Qin (daily to monthly) at CurrentDate (month).
             dResS%              (monthly):  self.AgentDict[r].Records["MonthlyStoragePercent"][self.t - 1] (previous day).
                                             ResRef: self.AgentDict[r].ResRef (list of 12 ref ResS% for each month)
         Returns:
-            array: [ dP_forecast, dInflow_forecast, dResS%]
+            array: [dP_forecast, dInflow_forecast, dResS%]
         """
         CurrentDate = deepcopy(self.CurrentDate).replace(day=1) # convert to the day one of the month
         Scale = self.Attributions["Scale"]                       # Scale 
@@ -393,7 +393,7 @@ class AgType_IrrDiversion(BasicAgent):
         return X_value
     
     def getPolicyFeatureVector(self):
-        """Policy features = [ dP_forecast, dInflow_forecast, dResS%]
+        """Policy features = [dP_forecast, dResS%]
             dP_ResWTotal         (monthly):  self.ObvDf["MonthlydPrep"] at CurrentDate (month).
             dResS%              (monthly):  self.AgentDict[r].Records["MonthlyStoragePercent"][self.t - 1] (previous day).
                                             ResRef: self.AgentDict[r].ResRef (list of 12 ref ResS% for each month)
