@@ -3,6 +3,7 @@ from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, wr
 from .HydroCNHS import HydroCNHS
 from .DMCGA import DMCGA, GA_Convertor
 from .KmeansGA import KmeansGA
+from .ModelBuilder import ModelBuilder
 
 # Setup logging when HydroCNHS is imported.
 # Default only show console log. Log file is created in the HydroCNHS class according to user's setting.
