@@ -3,12 +3,14 @@
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # GWLF is based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
 # 2021/02/05
+from typing import KeysView
 import numpy as np
 from pandas import date_range, to_datetime, to_numeric, DataFrame
 #import logging
 #logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
 
 r"""
+# GWLF model
 Weather:
     T:                                        # [degC] Daily mean temperature.
     P:                                        # [cm] Daily precipitation.
@@ -31,6 +33,90 @@ GWLFPars:                                       # For GWLF, we have 9 parameters
     Kc:                                       # Land cover coefficient.
 """
 
+def runHYMOD(HYMODPars, Inputs, Pt, PEt, DataLength, InitFlow = True):
+    """HYMOD for rainfall runoff simulation.
+        There is no snow component in current version.
+    Args:
+        HYMODPars (dict): [description]
+        Inputs (dict): [description]
+        Pt (Array): [cm] Daily precipitation.
+        PEt (Array): [cm] Daily potential evaportranspiration.
+        DataLength (int): Total data length.
+        InitFlow (bool, optional): Whether to calculate initial flow. Defaults to True.
+
+    Returns:
+        [Array]: [cms] CMS (Qt)
+    """
+    Cmax = HYMODPars["Cmax"]
+    Bexp = HYMODPars["Bexp"]
+    Alpha = HYMODPars["Alpha"]
+    Kq = HYMODPars["Kq"]
+    Ks = HYMODPars["Ks"]
+    
+    Pt = np.array(Pt)                   # [cm] Daily precipitation.
+    PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
+    
+    # Initialize slow tank state
+    # value of 0 init flow works ok if calibration data starts with low discharge
+    x_slow = 2.3503 / (Ks * 22.5) if InitFlow else 0
+    
+    # Initialize state(s) of quick tank(s)
+    x_quick = np.zeros(3)
+    CMS = np.zeros(DataLength) # Create a 1D array to store results
+    
+    def calExcess(x_loss, Cmax, Bexp, p, pet):
+        
+        def power(X,Y):
+            X=abs(X)    # Needed to capture invalid overflow with netgative values
+            return X**Y
+        
+        # This function calculates excess precipitation and evaporation
+        xn_prev = x_loss
+        ct_prev = Cmax * (1 - power( (1 - ((Bexp + 1) * (xn_prev) / Cmax)), (1 / (Bexp + 1)) ))
+        
+        # Calculate Effective rainfall 1
+        ER1 = max((p - Cmax + ct_prev), 0.0)
+        p = p - ER1
+        dummy = min(((ct_prev + p) / Cmax), 1)
+        xn = (Cmax / (Bexp + 1)) * (1 - power((1 - dummy), (Bexp + 1)))
+
+        # Calculate Effective rainfall 2
+        ER2 = max(p - (xn - xn_prev), 0)
+
+        # Alternative approach
+        evap = (1 - (((Cmax / (Bexp + 1)) - xn) / (Cmax / (Bexp + 1)))) * pet  # actual ET is linearly related to the soil moisture state
+        xn = max(xn - evap, 0)  # update state
+        return ER1, ER2, xn
+    
+    def calLinearReservoir(x, inflow, Rs):
+        # Linear reservoir
+        x = (1 - Rs) * x + (1 - Rs) * inflow
+        outflow = (Rs / (1 - Rs)) * x
+        return x, outflow
+    
+    x_loss = 0.0
+    #----- START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
+    for t in range(DataLength): 
+        # Compute excess precipitation and evaporation
+        ER1, ER2, x_loss = calExcess(x_loss, Cmax, Bexp, Pt[t], PEt[t])
+        # Calculate total effective rainfall
+        ERT = ER1 + ER2
+        #  Now partition ER between quick and slow flow reservoirs
+        UQ = Alpha * ERT
+        US = (1 - Alpha) * ERT
+        # Route slow flow component with single linear reservoir
+        x_slow, QS = calLinearReservoir(x_slow, US, Ks)
+        # Route quick flow component with linear reservoirs
+        inflow = UQ
+        for i in range(3):
+            # Linear reservoir
+            x_quick[i], outflow = calLinearReservoir(x_quick[i], inflow, Kq)
+            inflow = outflow
+        QQ = outflow
+        # Compute total flow and convert cm to cms.
+        CMS[t] = ((QS + QQ) * 0.01 * Inputs["Area"] * 10000) / 86400
+    return CMS
+    
 def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     """GWLF for rainfall runoff simulation.
 
@@ -44,7 +130,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         DataLength (int): Total data length.
         
     Returns:
-        [Array]: [cms] Qt
+        [Array]: [cms] CMS (Qt)
     """
     #----- Setup initial values -----------------------------------------------------------
     Gt =  GWLFPars["Res"]*Inputs["S0"]  # [cm] Initialize saturated zone discharge to the stream.
@@ -152,6 +238,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         SF = Qt + Gt + BFt #Streamflow = surface quick flow + subsurface flow + baseflow
         #---------------------------------------------------------------------------------------------			
         # Change unit to cms (m^3/sec)----------------------------------------------------------------
+        # Area [ha]
         CMS[i] = (SF * 0.01 * Inputs["Area"] * 10000) / 86400
         #---------------------------------------------------------------------------------------------
     # return the result array	
