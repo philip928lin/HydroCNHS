@@ -7,6 +7,7 @@ to check and parse Model.yaml, which ensure the eligibility of Model.yaml.
 """
 from .SystemConrol import loadModel, writeModel
 from copy import deepcopy
+from collections import OrderedDict
 
 GWLF = {"Inputs": {"Area":      "Required",
                    "Latitude":  "Required",
@@ -50,7 +51,8 @@ Agent = {"Attributions": None,
             
 class ModelBuilder(object):
     def __init__(self):
-        self.Path = {"WD": "Required"}
+        self.Model = OrderedDict()
+        self.Model["Path"] = {"WD": "Required"}
         self.Model["WaterSystem"] = {}
         self.Model["WaterSystem"]["StartDate"]      = "Required"
         self.Model["WaterSystem"]["NumSubbasin"]    = 0
