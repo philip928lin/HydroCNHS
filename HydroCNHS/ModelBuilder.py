@@ -12,7 +12,7 @@ to check and parse Model.yaml, which ensure the eligibility of Model.yaml.
 """
 from .SystemConrol import loadModel, writeModel
 from copy import deepcopy
-from collections import OrderedDict
+import os
 
 GWLF = {"Inputs": {"Area":      "Required",
                    "Latitude":  "Required",
@@ -66,9 +66,10 @@ Agent = {"Attributions": None,
     
 # This section is customize for YRB.
 NumResModels = 5
+InputDataPath = r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\YRBModel\InputData"
 ResAgent = {"Attributions": {"Capacity": "Required",
-                             "ObvDfPath": {"MonthlyFlow": "Required",
-                                           "MonthlydPrep": "Required"},
+                             "ObvDfPath": {"MonthlyFlow":   os.path.join(InputDataPath, "Res_MonthlyFlow(cms).csv"),
+                                           "MonthlydPrep":  os.path.join(InputDataPath, "Res_MonthlydPrep(cm).csv")},
                              "InitStorage": "Required",
                              "InitResRef": "Required",
                              "Scale": {"G": 1, "C1": 1, "C2": 1, "dPTolWin": 1, 
@@ -91,8 +92,8 @@ ResAgent = {"Attributions": {"Capacity": "Required",
                      "Sig":     [-99] * NumResModels}}  
 
 DivAgent = {"Attributions": {"Area": "Required",
-                             "ObvDfPath": {"MonthlyFlow": "Required",
-                                           "MonthlydPrep": "Required"},
+                             "ObvDfPath": {"AnnualFlow":    os.path.join(InputDataPath, "Div_AnnualFlow(cms).csv"),
+                                           "AnnualdPrep":   os.path.join(InputDataPath, "Div_AnnualdPrep(cm).csv")},
                              "InitDivRef": "Required",
                              "Scale": {"G": 1, "C1": 1, "C2": 1, "dPTolWin": 1, 
                                        "dPR1": 1, "dPR2": 1, "dPR3": 1, 
@@ -123,7 +124,6 @@ class ModelBuilder(object):
             StartDate (str): Simulation start date (e.g. YYYY/M/D).
             DataLength (str): Simulation length.
         """
-        #self.Model = OrderedDict()
         self.Model = {}
         self.Model["Path"] = {"WD": WD}
         self.Model["WaterSystem"] = {}

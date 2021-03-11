@@ -394,7 +394,7 @@ class AgType_IrrDiversion(BasicAgent):
     
     def getPolicyFeatureVector(self):
         """Policy features = [dP_forecast, dResS%]
-            dP_ResWTotal         (monthly):  self.ObvDf["MonthlydPrep"] at CurrentDate (month).
+            dP_ResWTotal        (monthly):  self.ObvDf["AnnualdPrep"] at CurrentDate (month).
             dResS%              (monthly):  self.AgentDict[r].Records["MonthlyStoragePercent"][self.t - 1] (previous day).
                                             ResRef: self.AgentDict[r].ResRef (list of 12 ref ResS% for each month)
         Returns:
