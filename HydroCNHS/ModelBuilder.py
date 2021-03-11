@@ -193,7 +193,10 @@ class ModelBuilder(object):
             self.Model["Routing"][g][g]["Pars"]["Diff"] = None
         # Add all outlets in-grid routing.
         for o in self.Model["WaterSystem"]["Outlets"]:
-            self.Model["Routing"][o] = {o: deepcopy(Routing_templete)}
+            if self.Model["Routing"].get(o) is None:
+                self.Model["Routing"][o] = {o: deepcopy(Routing_templete)}
+            else:
+                self.Model["Routing"][o][o] = deepcopy(Routing_templete)
             self.Model["Routing"][o][o]["Inputs"]["FlowLength"] = 0
             self.Model["Routing"][o][o]["Pars"]["Velo"] = None
             self.Model["Routing"][o][o]["Pars"]["Diff"] = None
