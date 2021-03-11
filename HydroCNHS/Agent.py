@@ -144,9 +144,9 @@ class AgType_Reservoir(BasicAgent):
     def __init__(self, Name, Config, StartDate, DataLength):
         super().__init__(Name, Config, StartDate, DataLength)
         # Initialize Actor_Critic for different group!
-        GroupAssList = self.Inputs["GroupAssList"]      # 0~...
+        ModelAssignList = self.Inputs["ModelAssignList"]      # 0~...
         Pars = self.Pars
-        NumModel = len(set(GroupAssList))               # Total number of different RL models.
+        NumModel = len(set(ModelAssignList))               # Total number of different RL models.
         self.Actor_Critic = {}
         for m in range(NumModel):
             ModelPars = {}
@@ -172,7 +172,7 @@ class AgType_Reservoir(BasicAgent):
         # Dynamic release reference 10 yr moving average for each month. 
         self.ResRef = np.zeros((10 ,12))                    # Each column store one month data and each row is one year.
         self.ResRef[:] = np.nan 
-        self.ResRef[0,:] = self.Attributions["InitRefRef"]  # A list with size 12 (month)
+        self.ResRef[0,:] = self.Attributions["InitResRef"]  # A list with size 12 (month)
         
         # Will only count it at the first DM and store it for later usage, since the inflow will not be updated in YRB case study.
         self.QSMonthlyDF = None         # Monthly inflow from simulation.
@@ -300,7 +300,7 @@ class AgType_Reservoir(BasicAgent):
         
         # Actor_Critic make decision.
         ## Select corresponding model
-        m = self.Attributions["GroupAssList"][self.CurrentDate.month-1]
+        m = self.Attributions["ModelAssignList"][self.CurrentDate.month-1]
         Actor_Critic = self.Actor_Critic[m]
         Actor_Critic.updatePars(X_new = X_value, R = 0, actionTuple = self.actionTuple)
         actionTuple = Actor_Critic.getAction(X_action)  # (action, mu, sig)

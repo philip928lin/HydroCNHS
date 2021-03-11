@@ -273,7 +273,7 @@ class Policy(object):
         """
         # If muIndexInfo and sigIndexInfo are not given, 
         # then we assume first half is for mu and second half is for sigma.
-        FixedSig = False
+        FixedSig = False    # Control option for fixed sigma!
         if kwargs.get("muIndexInfo") is None and kwargs.get("sigIndexInfo") is None:
             if kwargs.get("FixedSig") is None:
                 half = int(Theta.shape[0]/2)
