@@ -1,8 +1,8 @@
 # Load functions that directly available for user when the package is loaded.
-from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV
+from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV, loadParsDFToModelDict
 from .HydroCNHS import HydroCNHS
-from .DMCGA import DMCGA, GA_Convertor
-from .KmeansGA import KmeansGA
+from .Calibration.DMCGA import DMCGA, GA_Convertor
+from .Calibration.KmeansGA import KmeansGA
 from .ModelBuilder import ModelBuilder
 
 # Setup logging when HydroCNHS is imported.
