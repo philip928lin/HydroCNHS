@@ -7,7 +7,7 @@
 # Also, beside DMCGA class, we create GA_Convertor class to help user convert back and forth between 1D array used by DMCGA and original parameter dataframes.
 # 2021/02/11
 
-from .SystemConrol import loadConfig, Dict2String   # HydroCNHS module
+from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
 from joblib import Parallel, delayed                # For parallelization
 import matplotlib.pyplot as plt
 import numpy as np

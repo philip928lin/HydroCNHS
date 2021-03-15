@@ -15,7 +15,7 @@ import time
 import logging
 logger = logging.getLogger("HydroCNHS") # Get logger 
 
-class HydroCNHS(object):
+class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
 
     """
@@ -41,7 +41,7 @@ class HydroCNHS(object):
             self.WS = Model["WaterSystem"]     # WS: Water system
             self.LSM = Model["LSM"]            # LSM: Land surface model
             self.RR = Model["Routing"]         # RR: Routing 
-            self.ABM = Model["ABM"] 
+            self.ABM = Model.get("ABM")        # ABM can be none 
             self.SysPD = Model["SystemParsedData"]
         except:
             logger.error("Model is incomplete for CNHS.")
@@ -69,43 +69,7 @@ class HydroCNHS(object):
                 PE[sb] = calPEt_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
         self.Weather = {"T":T, "P":P, "PE":PE}
         logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
-    
-    def checkActiveAgTypes(self, StartDate, CurrentDate):
-        """Check the decision point accross agent types.
-
-        Args:
-            StartDate (datetime): Start date.
-            CurrentDate (datetime): Current date.
-
-        Returns:
-            list: List of agent types that make decisions.
-        """
-        DecisionFreq = self.ABM["DecisionFreq"] # Coupling frequency setting from DecisionFreq (dict)
-        ActiveAgTypes = []
-        for agType in DecisionFreq:
-            DeciFreq = DecisionFreq[agType]
-            if DeciFreq.count(None) == 2:   # Type 1 format specify period. e.g. every 2 months.
-                if DeciFreq[2] is not None:     # day period
-                    dD = (CurrentDate - StartDate).days
-                    if dD%DeciFreq[2] == 0:
-                        ActiveAgTypes.append(agType)
-                elif DeciFreq[1] is not None:     # month period
-                    dM = (CurrentDate.year - StartDate.year) * 12 + (CurrentDate.month - StartDate.month)
-                    if dM%DeciFreq[1] == 0 and (CurrentDate.day - StartDate.day) == 0:
-                        ActiveAgTypes.append(agType)
-                elif DeciFreq[0] is not None:     # year period
-                    dY = CurrentDate.year - StartDate.year
-                    if dY%DeciFreq[0] == 0 and (CurrentDate.month - StartDate.month) == 0 and (CurrentDate.day - StartDate.day) == 0:
-                        ActiveAgTypes.append(agType)
-            elif DeciFreq.count(None) == 0: # Type 2 format specific date. e.g. every year on 1/1
-                if DeciFreq.count(-9) == 2:
-                    if CurrentDate.day == DeciFreq[2]:  # every month on day d
-                        ActiveAgTypes.append(agType)
-                elif DeciFreq.count(-9) == 1:
-                    if CurrentDate.month == DeciFreq[1] and CurrentDate.day == DeciFreq[2]:  # every year on m/d
-                        ActiveAgTypes.append(agType)
-        return ActiveAgTypes    
-        
+           
     def __call__(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}):
         """Run HydroCNHS simulation. The simulation is controled by model.yaml and Config.yaml (HydroCNHS system file).
         
@@ -200,7 +164,6 @@ class HydroCNHS(object):
         for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__):
             CurrentDate = pdDatedateIndex[t]
             for node in SimSeq:
-                
                 if node in InStreamAgents:     # The node is an in-stream agent.
                     #----- Update in-stream agent's actions to streamflow (self.Q_LSM) for later routing usage.
                     for ag in AgSimSeq["AgSimPlus"][node]:
@@ -231,7 +194,41 @@ class HydroCNHS(object):
 
 
 
+    # def checkActiveAgTypes(self, StartDate, CurrentDate):
+    #     """Check the decision point accross agent types.
 
+    #     Args:
+    #         StartDate (datetime): Start date.
+    #         CurrentDate (datetime): Current date.
+
+    #     Returns:
+    #         list: List of agent types that make decisions.
+    #     """
+    #     DecisionFreq = self.ABM["DecisionFreq"] # Coupling frequency setting from DecisionFreq (dict)
+    #     ActiveAgTypes = []
+    #     for agType in DecisionFreq:
+    #         DeciFreq = DecisionFreq[agType]
+    #         if DeciFreq.count(None) == 2:   # Type 1 format specify period. e.g. every 2 months.
+    #             if DeciFreq[2] is not None:     # day period
+    #                 dD = (CurrentDate - StartDate).days
+    #                 if dD%DeciFreq[2] == 0:
+    #                     ActiveAgTypes.append(agType)
+    #             elif DeciFreq[1] is not None:     # month period
+    #                 dM = (CurrentDate.year - StartDate.year) * 12 + (CurrentDate.month - StartDate.month)
+    #                 if dM%DeciFreq[1] == 0 and (CurrentDate.day - StartDate.day) == 0:
+    #                     ActiveAgTypes.append(agType)
+    #             elif DeciFreq[0] is not None:     # year period
+    #                 dY = CurrentDate.year - StartDate.year
+    #                 if dY%DeciFreq[0] == 0 and (CurrentDate.month - StartDate.month) == 0 and (CurrentDate.day - StartDate.day) == 0:
+    #                     ActiveAgTypes.append(agType)
+    #         elif DeciFreq.count(None) == 0: # Type 2 format specific date. e.g. every year on 1/1
+    #             if DeciFreq.count(-9) == 2:
+    #                 if CurrentDate.day == DeciFreq[2]:  # every month on day d
+    #                     ActiveAgTypes.append(agType)
+    #             elif DeciFreq.count(-9) == 1:
+    #                 if CurrentDate.month == DeciFreq[1] and CurrentDate.day == DeciFreq[2]:  # every year on m/d
+    #                     ActiveAgTypes.append(agType)
+    #     return ActiveAgTypes    
 
         # for t in range(self.WS["DataLength"]):
         #     CurrentDate = pdDatedateIndex[t]

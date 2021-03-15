@@ -10,8 +10,10 @@ which users need to manually populate values inside Model.yaml.
 After populating values inside Model.yaml, ModelBuilder provide a loadmodel() staticmethod 
 to check and parse Model.yaml, which ensure the eligibility of Model.yaml.
 """
-from .SystemConrol import loadModel, writeModel
+from os.path import split
+from .SystemConrol import loadModel, writeModel, loadDFToModelDict, writeModelToCSV
 from copy import deepcopy
+import pandas as pd
 import os
 
 GWLF = {"Inputs": {"Area":      "Required",
@@ -124,6 +126,7 @@ class ModelBuilder(object):
             StartDate (str): Simulation start date (e.g. YYYY/M/D).
             DataLength (str): Simulation length.
         """
+        self.WD = WD
         self.Model = {}
         self.Model["Path"] = {"WD": WD}
         self.Model["WaterSystem"] = {}
@@ -251,8 +254,37 @@ class ModelBuilder(object):
         for agType, agList in self.Model["ABM"].items():
             if agType != "Inputs":
                 count += len(agList)
-        self.Model["WaterSystem"]["NumAgents"] = count    
-    
+        self.Model["WaterSystem"]["NumAgents"] = count         
+        
+    def createCSVTemplate(self, Prefix = ""):
+        """Create csv templates for users to populate the model in a concise way.
+            CSVFilenameList will be created in self. Also ReplacePrefix option is available for importCSVFiles ().
+
+        Args:
+            Prefix (str, optional): Prefix of the filename. Defaults to "".
+        """
+        CSVFilenameList = []
+        InputsCSVName = writeModelToCSV(self.WD, self.Model, KeyOption=["Inputs"], Prefix=Prefix + "_Inputs_")
+        ParsCSVName = writeModelToCSV(self.WD, self.Model, KeyOption=["Pars"], Prefix=Prefix + "_Pars_")
+        CSVFilenameList = InputsCSVName + ParsCSVName
+        if self.Model.get("ABM") is not None:
+            AttrCSVName = writeModelToCSV(self.WD, self.Model, KeyOption=["Attributions"], Prefix=Prefix + "_Attributions_")
+            CSVFilenameList = CSVFilenameList + AttrCSVName
+        self.CSVFilenameList = CSVFilenameList
+        print("Done! Check {}".format(self.WD))
+        
+    def importCSVFiles(self, ReplacePrefix = None):
+        if ReplacePrefix is not None:   # Change the prefix.
+            self.CSVFilenameList = ["_".join([ReplacePrefix] + i.split("_")[1:]) for i in self.CSVFilenameList]
+        for csv in self.CSVFilenameList:
+            filename = os.path.join(self.WD, csv)
+            df = pd.read_csv(filename, index_col=[0])
+            Split = csv[:-4].split("_")
+            section = Split[2]
+            key = Split[1]
+            self.Model = loadDFToModelDict(self.Model, df, section, key)
+            print("Import ", csv)
+        
     def getModelDict(self):
         return self.Model
     
@@ -263,3 +295,4 @@ class ModelBuilder(object):
     @staticmethod
     def verifyModel(Model):
         loadModel(Model)
+        

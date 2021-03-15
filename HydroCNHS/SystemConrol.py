@@ -11,6 +11,7 @@ import yaml
 import ruamel.yaml      # For round trip modification (keep comments)
 import os 
 import ast
+import numpy as np
 from copy import deepcopy   # For deepcopy dictionary.
 logger = logging.getLogger("HydroCNHS.SC") # Get logger 
 
@@ -148,7 +149,7 @@ def writeModelToDF(modelDict, KeyOption = ["Pars"], Prefix = ""):
     SectionList = [i for i in AllowedOutputSections if i in modelDict]
     DFName = []; OutputDFList = [] 
     for s in SectionList:
-        if s == "LSM":
+        if s == "LSM" and KeyOption != ["Attributions"]:
             DFName.append(Prefix + "LSM_" + modelDict[s]["Model"])
             df = pd.DataFrame()
             for sub in modelDict[s]:
@@ -158,7 +159,7 @@ def writeModelToDF(modelDict, KeyOption = ["Pars"], Prefix = ""):
                     convertedDict = convertDictToDF(MergedDict, sub)
                     df = pd.concat([df, convertedDict], axis=1)
             OutputDFList.append(df)   
-        elif s == "Routing":
+        elif s == "Routing" and KeyOption != ["Attributions"]:
             DFName.append(Prefix + "Routing_" + modelDict[s]["Model"])
             df = pd.DataFrame()
             for ro in modelDict[s]:
@@ -196,9 +197,68 @@ def writeModelToCSV(FolderPath, modelDict, KeyOption = ["Pars"], Prefix = ""):
     for i, df in enumerate(OutputDFList):
         df.to_csv(os.path.join(FolderPath, DFName[i]))
     logger.info("Output files {} at {}.".format(DFName, FolderPath))
+    return DFName       # CSV filenames
+
+def loadDFToModelDict(modelDict, DF, Section, Key):
+
+    def parseDFToDict(df):
+        def parse(i):
+            try:
+                val = ast.literal_eval(i)
+                if val == -99: val = int(val)       # HydroCNHS special setting.
+                return val
+            except:
+                return i    
+        
+        def toNativePyType(val):
+            # Make sure the value is Native Python Type, which can be safely dump to yaml.
+            if "numpy" in str(type(val)):
+                return val.item()
+            else:
+                if np.isnan(val):   # Convert df's null value, which is np.nan into None.
+                    return None     # So yaml will displat null instead of .nan
+                else:
+                    return val
+        
+        # Form a corresponding dictionary for Pars.
+        Col = [parse(i) for i in df.columns]        # Since we might have tuples.
+        df.columns = Col
+        # Identify list items by ".".
+        Ind = [i.split(".")[0] for i in df.index]   
+        Ind_dup = {v: (Ind.count(v) if "." in df.index[i] else 0) for i, v in enumerate(Ind)}
+        # Parse entire df
+        df = df.applymap(parse)
+        # Form structured dictionary with only native python type object.
+        Dict = {}
+        for i in Col:   # Add each sub model setting to the dict. The value is either list or str or float or int.
+            temp = {}
+            for par in Ind_dup:
+                if Ind_dup[par] > 0:
+                    temp[par] = list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten().item())
+                    temp[par] = [toNativePyType(val) for val in temp[par]]
+                else:
+                    temp[par] = toNativePyType(df.loc[par, [i]].values[0])
+            Dict[i] = temp
+        return Dict
+    
+    modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
+    DFDict = parseDFToDict(DF)          # DF to Dict
+    
+    #Replace the original modelDict accordingly.
+    if Section == "LSM":
+        for sub in DFDict:
+            modelDict["LSM"][sub][Key] = DFDict[sub]
+    elif Section == "Routing":
+        for roo in DFDict:
+            modelDict["Routing"][roo[1]][roo[0]][Key] = DFDict[roo]
+    elif Section == "ABM":
+        for agagType in DFDict:
+            modelDict["ABM"][agagType[1]][agagType[0]][Key] = DFDict[agagType]
+                    
+    return modelDict
 
 def loadParsDFToModelDict(modelDict, DFList, SectionList):
-
+    raise ValueError("descript!")
     def parseDFToDict(df):
         def parse(i):
             try:
