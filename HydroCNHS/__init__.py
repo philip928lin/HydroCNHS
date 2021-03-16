@@ -1,9 +1,11 @@
 # Load functions that directly available for user when the package is loaded.
-from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV, loadParsDFToModelDict
+from .SystemConrol import loadConfig, updateConfig, defaultConfig, loadModel, writeModel, writeModelToDF, writeModelToCSV, loadDFToModelDict
 from .HydroCNHS import HydroCNHSModel
-from .Calibration.DMCGA import DMCGA, GA_Convertor
-from .Calibration.KmeansGA import KmeansGA
+# from .Calibration.DMC import DMC, GA_Convertor
+# from .Calibration.KmeansGA import KmeansGA
+from .Calibration.Calibration import Cali
 from .ModelBuilder import ModelBuilder
+from .Indicators import Indicator
 
 # Setup logging when HydroCNHS is imported.
 # Default only show console log. Log file is created in the HydroCNHS class according to user's setting.

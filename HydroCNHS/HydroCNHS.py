@@ -150,7 +150,8 @@ class HydroCNHSModel(object):
         # Note: Only Qt of GaugedOutlet1 and the 
         # Obtain datetime index
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")        
-        pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")    
+        pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")
+        self.pdDatedateIndex = pdDatedateIndex  # So users can use it directly.    
         SimSeq = self.SysPD["SimSeq"]
         AgSimSeq = self.SysPD["AgSimSeq"]
         InStreamAgents = self.SysPD["InStreamAgents"]

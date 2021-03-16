@@ -200,12 +200,22 @@ def writeModelToCSV(FolderPath, modelDict, KeyOption = ["Pars"], Prefix = ""):
     return DFName       # CSV filenames
 
 def loadDFToModelDict(modelDict, DF, Section, Key):
+    """Load dataframe to model dictionary. The dataframe has to be in certain format that generate by ModelBuilder.
+
+    Args:
+        modelDict (dict): Model dictionary.
+        DF (DataFrame): DataFrame with certain format.
+        Section (str): LSM or Routing or ABM.
+        Key (str): Inputs or Pars or Attributions.
+    
+    Return:
+        (dict) updated modelDict.
+    """
 
     def parseDFToDict(df):
         def parse(i):
             try:
                 val = ast.literal_eval(i)
-                if val == -99: val = int(val)       # HydroCNHS special setting.
                 return val
             except:
                 return i    
@@ -213,12 +223,17 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
         def toNativePyType(val):
             # Make sure the value is Native Python Type, which can be safely dump to yaml.
             if "numpy" in str(type(val)):
-                return val.item()
-            else:
                 if np.isnan(val):   # Convert df's null value, which is np.nan into None.
                     return None     # So yaml will displat null instead of .nan
                 else:
+                    val = val.item()
+                    if val == -99: val = int(val)       # HydroCNHS special setting.
                     return val
+            else:   # Sometime np.nan is not consider as numpy.float type.
+                if np.isnan(val):   # Convert df's null value, which is np.nan into None.
+                    return None     # So yaml will displat null instead of .nan
+                else:
+                    return val      # return other type
         
         # Form a corresponding dictionary for Pars.
         Col = [parse(i) for i in df.columns]        # Since we might have tuples.
@@ -489,8 +504,11 @@ def parseSimulationSeqence(Model):
     
     
     # LastNode = End nodes - start node. Last node is the only one that does not exist in start nodes.
-    LastNode = list(set(BackTrackingDict.keys()) - set([i[0] for i in Edges]))[0]   
-    SimSeq = formSimSeq(LastNode, BackTrackingDict, RoutingOutlets)
+    if BackTrackingDict == {}:      # If there is only a single outlet!
+        SimSeq = RoutingOutlets
+    else:
+        LastNode = list(set(BackTrackingDict.keys()) - set([i[0] for i in Edges]))[0]   
+        SimSeq = formSimSeq(LastNode, BackTrackingDict, RoutingOutlets)
     SystemParsedData["SimSeq"] = SimSeq
     # Sort RoutingOutlets to SimSeq
     SystemParsedData["RoutingOutlets"] = [ro for ro in SimSeq if ro in RoutingOutlets] 
