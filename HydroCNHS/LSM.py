@@ -31,7 +31,6 @@ HYMODPars:                                    ## For HYMOD, we have 6 parameters
 
 def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
     """HYMOD for rainfall runoff simulation with additional snow module.
-        There is no snow component in current version.
         Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
     Args:
         HYMODPars (dict): [description]
