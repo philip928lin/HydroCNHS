@@ -44,7 +44,7 @@ HYMOD = {"Inputs": {"Area":      "Required",
 Lohmann = {"Inputs": {"FlowLength":        "Required",
                       "InStreamControl":   False},
            "Pars": {"GShape":   -99,
-                    "GScale":   -99,
+                    "GRate":   -99,
                     "Velo":     -99,
                     "Diff":     -99}}
 
@@ -188,7 +188,7 @@ class ModelBuilder(object):
                 if o in InstreamControls:
                     self.Model["Routing"][g][o]["Inputs"]["InStreamControl"] = True
                     self.Model["Routing"][g][o]["Pars"]["GShape"] = None
-                    self.Model["Routing"][g][o]["Pars"]["GScale"] = None
+                    self.Model["Routing"][g][o]["Pars"]["GRate"] = None
             # Make sure adding g
             self.Model["Routing"][g][g] = deepcopy(Routing_templete)
             self.Model["Routing"][g][g]["Inputs"]["FlowLength"] = 0

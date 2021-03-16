@@ -321,6 +321,9 @@ def Dict2String(Dict, Indentor = "  "):
                 string.append(Indentor * (count+1) + str(value))
         return string
     return "\n".join(Dict2StringList(Dict, Indentor))
+
+def setSeed(seed):
+    np.random.seed(seed)
 #-----------------------------------------
 
 

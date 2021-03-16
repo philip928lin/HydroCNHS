@@ -103,8 +103,8 @@ class HydroCNHSModel(object):
                     for sb in self.RR[ro]:
                         if sb in AssignedQ:
                             self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
-                            self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GScale"] = None   # No in-grid routing.
-                            logger.info("Turn {}'s GShape and GScale in routing setting to None. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
+                            self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GRate"] = None   # No in-grid routing.
+                            logger.info("Turn {}'s GShape and GRate in routing setting to None. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
             logger.info("[{}] Start GWLF for {} sub-basins. [{}]".format(self.__name__, len(Outlets_GWLF), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets_GWLF)    
@@ -159,6 +159,9 @@ class HydroCNHSModel(object):
         Agents = {}     # Here we store all agent objects with key = agent name.
         
         # Add InStreamAgents to self.Q_LSM and initialize storage space.
+        if InStreamAgents is None:  # Create empty list.
+            InStreamAgents = []
+            
         for isag in InStreamAgents:
             self.Q_LSM[isag] = np.zeros(self.WS["DataLength"])
         
@@ -177,12 +180,13 @@ class HydroCNHSModel(object):
                     if self.RR["Model"] == "Lohmann":
                         
                         #----- Update none in-stream agent's actions (imply in AgSimSeq calculation) to streamflow for later routing usage.
-                        for ag in AgSimSeq["AgSimPlus"][node]:
-                            #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
-                            pass
-                        for ag in AgSimSeq["AgSimMinus"][node]:
-                            #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
-                            pass
+                        if AgSimSeq is not None:    # Check if it is a coupling model (with ABM module)
+                            for ag in AgSimSeq["AgSimPlus"][node]:
+                                #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                                pass
+                            for ag in AgSimSeq["AgSimMinus"][node]:
+                                #self.Q_LSM = Agents[ag].act(self.Q_LSM, StartDate, CurrentDate)      # Define in Basic Agent Class.
+                                pass
                         
                         #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day). 
                         Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_LSM, t)

@@ -247,10 +247,12 @@ class DMC(object):
         # Determine the feasibility of each solution in SP.
         if SP0Best == 0:
             SP0Best = 0.0001 # To prevent 0, which results in no tolerance for other SP. 
-        Tol = self.Config["Tolerance"]      # Should be >= 1
+        TolRate = self.Config["FeasibleTolRate"]      # Should be >= 1
+        Thres = self.Config["FeasibleThres"]   
         for sp in SPList:    
             Feasibility = np.zeros(PopSize)
-            Feasibility[self.PopRes[CurrentGen][sp]["Loss"] <= SP0Best*Tol] = 1   # Only valid when lower bound is zero
+            Criteria = max([SP0Best*TolRate, Thres])
+            Feasibility[self.PopRes[CurrentGen][sp]["Loss"] <= Criteria] = 1   # Only valid when lower bound is zero
             self.PopRes[CurrentGen][sp]["Feasibility"] = Feasibility.astype(int)
         #---------------------------------
         

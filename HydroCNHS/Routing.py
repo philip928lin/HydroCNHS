@@ -14,7 +14,7 @@ from scipy.stats import gamma
 
 # Parameters
 #  RoutePars["GShape"] = Sub-basin's UH shape parameter (Gamma distribution argument) (N)
-#  RoutePars["GScale"] = Sub-basin's UH scale parameter (reservior storage constant)  (K)
+#  RoutePars["GRate"] = Sub-basin's UH rate parameter (reservior storage constant)  (K)
 #  RoutePars["Velo"]   = [m/s] Wave velocity in the linearized Saint-Venant equation   
 #  RoutePars["Diff"]   = [m2/s] Diffusivity in the linearized Saint-Venant equation
 
@@ -27,7 +27,7 @@ def formUH_Lohmann(Inputs, RoutePars):
 
     Args:
         Inputs (dict): Two inputs for routing: FlowLength [m] Travel distence of flow between two outlets [float], InStreamControl [bool].
-        RoutePars (dict): Four parameters for routing: GShape, GScale, Velo, Diff [float]
+        RoutePars (dict): Four parameters for routing: GShape, GRate, Velo, Diff [float]
     """
     FlowLen = Inputs["FlowLength"]
     InStreamControl = Inputs["InStreamControl"]
@@ -46,15 +46,16 @@ def formUH_Lohmann(Inputs, RoutePars):
     UH_IG = np.zeros(T_IG)
     if InStreamControl:
         UH_IG[0] = 1    # No time delay for in-grid routing when the water is released through in-stream control objects (e.g. reservoir).
-    elif RoutePars.get("GShape") is None and RoutePars.get("GScale"):
+    elif RoutePars.get("GShape") is None and RoutePars.get("GRate"):
         UH_IG[0] = 1    # No time delay for in-grid routing since Q is given by user and we assume Q is observed streamflow, which no need to consider time delay for in-grid routing. This is trigger automatically in HydroCNHS module.
     else:
         Shape = RoutePars["GShape"]
-        Scale = RoutePars["GScale"]
+        Rate = RoutePars["GRate"]
+        if Rate <= 0.0001: Rate = 0.0001    # Since we cannot divide zero.
         for i in range(T_IG):
             # x-axis is in hr unit. We calculate in daily time step.
-            UH_IG[i] = gamma.cdf(24*(i + 1), a = Shape, loc = 0, scale = Scale) \
-                        - gamma.cdf(24*i, a = Shape, loc = 0, scale = Scale)
+            UH_IG[i] = gamma.cdf(24*(i + 1), a = Shape, loc = 0, scale = 1/Rate) \
+                        - gamma.cdf(24*i, a = Shape, loc = 0, scale = 1/Rate)
     #--------------------------------------------------------------------------------------
 
     #----- Derive Daily River Impulse Response Function (Green's function) ----------------
@@ -189,7 +190,7 @@ def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, t):
 r"""
 RoutePars = {}
 RoutePars["GShape"] = 62.6266
-RoutePars["GScale"] = 1/0.4447
+RoutePars["GRate"] = 1/0.4447
 RoutePars["Velo"] = 19.1643
 RoutePars["Diff"] = 1985.4228
 FlowLen = 11631

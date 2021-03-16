@@ -10,7 +10,7 @@ class Convertor(object):
         pass
         
     def genFormatter(self, DFList, FixedParList = None):
-        """[Already included in genDMCGAInputs()] Generate Formatter for given list of dataframe objects.  
+        """[Already included in genCaliInputs()] Generate Formatter for given list of dataframe objects.  
 
         Args:
             DFList (list): A list of dataframes. Dataframe index is parameter names.
@@ -58,7 +58,7 @@ class Convertor(object):
         Formatter["NoneIndex"] = list(np.argwhere(np.isnan(VarArray)).flatten())    # Find index for np.nan values.
         self.Formatter = Formatter
     
-    def genCaliInputs(self, WD, DFList, ParTypeDFList, ParBoundDFList, ParWeightDFList = None, FixedParList = None, Parse = False):
+    def genCaliInputs(self, WD, DFList, ParTypeDFList, ParBoundDFList, ParWeightDFList = None, FixedParList = None):
         """Generate Inputs dictionary required for DMCGA.
 
         Args:
@@ -69,15 +69,13 @@ class Convertor(object):
             ParWeightDFList (dict, optional): Similar to DFList but with values => paremeter type [real/categorical] weight (from SA). Defaults to None, weight = 1.
             FixedParList (list, optional): A list contains a list of fixed parameter names (don't need calibration) for each dataframe. Defaults to None.
         """
-        # Parse df to make sure the consistency of data type.
-        def parse(Series):
-            Series = list(Series)
-            for i, v in enumerate(Series):
-                try:
-                    Series[i] = ast.literal_eval(v)
-                except:
-                    Series[i] = v
-            return Series       
+        # Parse value from str to list or others.
+        def parse(i):
+            try:
+                val = ast.literal_eval(i)
+                return val
+            except:
+                return i           
         
         # Compute Formatter
         self.genFormatter(DFList, FixedParList)
@@ -99,19 +97,17 @@ class Convertor(object):
             if ParWeightDFList is not None:
                 ParWeightDFList[i].index = IndexNameList_d
                 ParWeightDFList[i].columns = ColNameList_d
-            if Parse:   # Parse string list or tuple to list or tuple. 
-                ParBoundDFList[i].apply(parse, axis=0)
                 
             # Assignment starts here.    
             for par in IndexNameList_d:
                 for c in ColNameList_d:
                     ParName.append(str(par)+"|"+str(c))
                     ParType.append(ParTypeDFList[i].loc[par,c])
-                    ParBound.append(ParBoundDFList[i].loc[par,c])
+                    ParBound.append(parse(ParBoundDFList[i].loc[par,c]))
                     if ParWeightDFList is None:
                         ParWeight.append(1)
                     else:
-                        ParWeight.append(ParWeightDFList[i].loc[par,c])
+                        ParWeight.append(parse(ParWeightDFList[i].loc[par,c]))
         # Remove elements in None index from Formatter. This includes fixed pars and pars with None values. 
         def delete_multiple_element(list_object, indices):
             indices = sorted(indices, reverse=True)
