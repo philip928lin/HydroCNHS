@@ -525,7 +525,12 @@ class KGCA(object):
         elapsed_time = time.monotonic() - start_time
         self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
         logger.info("Done! [{}]".format(self.elapsed_time))
-        logger.info("Solutions:\n" + Dict2String(self.Result))
+        logger.info("Report:\n" + Dict2String(self.Result))
+        with open(os.path.join(self.CaliWD, "Report_KGCA_" + self.__name__ + ".txt"), "w") as text_file:
+            text_file.write(Dict2String(self.Result))
+            text_file.write("\n=====================================================")
+            text_file.write("\nKGCA user input Config:\n")
+            text_file.write(Dict2String(self.Config))
         
     def plotProgress(self, Save = True):
         """Plot KGCA progress to visualize the convergence. 
