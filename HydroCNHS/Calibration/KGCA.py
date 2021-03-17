@@ -248,7 +248,6 @@ class KGCA(object):
         
         # Initialize storage space for each SP
         self.KPopRes[0] = {}
-        self.SPCentroid[0] = {}
         
     def nextGen(self):
         """Complete all simulations and generate next generation of Pop.
