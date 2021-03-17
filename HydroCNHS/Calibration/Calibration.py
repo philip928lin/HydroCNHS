@@ -1,6 +1,5 @@
 from .Convertor import Convertor
 from .DMC import DMC
-from .KmeansGA import KmeansGA
 from .KGCA import KGCA
 class Cali():
     DMC = DMC

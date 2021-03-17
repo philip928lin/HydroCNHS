@@ -381,8 +381,8 @@ class KGCA(object):
             SubPopSize += 1
             
         self.KPopRes[CurrentGen]["Ellites"] = np.zeros((SelectedK, NumPar))
-        self.KPopRes[CurrentGen]["EllitesIndex"] = np.zeros((SelectedK, NumPar))
-        self.KPopRes[CurrentGen]["EllitesLoss"] = np.zeros((SelectedK, NumPar))
+        self.KPopRes[CurrentGen]["EllitesIndex"] = np.zeros(SelectedK)
+        self.KPopRes[CurrentGen]["EllitesLoss"] = np.zeros(SelectedK)
         
         for k in range(SelectedK):
             KIndex = np.where(KLabels == k)[0]
@@ -434,7 +434,7 @@ class KGCA(object):
             # Store ellite of each cluster.
             self.KPopRes[CurrentGen]["Ellites"][k] = Pop[int(KElliteIndex[k])]
             self.KPopRes[CurrentGen]["EllitesIndex"][k] = int(KElliteIndex[k])
-            self.KPopRes[CurrentGen]["EllitesLoss"][k] = Loss_k
+            self.KPopRes[CurrentGen]["EllitesLoss"][k] = Loss[int(KElliteIndex[k])]
         
         # Fill KChildren into new gen of pop.
         self.Pop[CurrentGen+1] = {}
@@ -515,17 +515,17 @@ class KGCA(object):
         self.Result = {}
         self.Result["GlobalOptimum"] = {}
         self.Result["GlobalOptimum"]["Loss"] = self.Best["Loss"][self.CurrentGen - 1]
-        self.Result["GlobalOptimum"]["Index"] = self.Best["Index"][self.CurrentGen - 1]
+        self.Result["GlobalOptimum"]["Index"] = int(self.Best["Index"][self.CurrentGen - 1])
         self.Result["GlobalOptimum"]["Solutions"] = self.Pop[self.CurrentGen - 1][self.Result["GlobalOptimum"]["Index"]]
-        self.Result["Loss"] = self.KPopRes[self.CurrentGen - 1]["Ellites"] 
-        self.Result["Index"] = self.KPopRes[self.CurrentGen - 1]["EllitesIndex"]
-        self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["EllitesLoss"]
+        self.Result["Loss"] = self.KPopRes[self.CurrentGen - 1]["EllitesLoss"]
+        self.Result["Index"] = self.KPopRes[self.CurrentGen - 1]["EllitesIndex"].astype(int)
+        self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["Ellites"] 
         
         #----- Count duration.
         elapsed_time = time.monotonic() - start_time
         self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
         logger.info("Done! [{}]".format(self.elapsed_time))
-        logger.info("Solutions:\n" + Dict2String(self.Solutions))
+        logger.info("Solutions:\n" + Dict2String(self.Result))
         
     def plotProgress(self, Save = True):
         """Plot KGCA progress to visualize the convergence. 
@@ -533,14 +533,14 @@ class KGCA(object):
         fig, ax = plt.subplots()
         # Plot scatter points for ellites in each cluster.
         for gen in range(self.CurrentGen+1):
-            Eillites = self.KPopRes[gen]["Ellites"]
-            ax.plot([gen]*len(Eillites), Eillites, "+", color='gray')      
+            EllitesLoss = self.KPopRes[gen]["EllitesLoss"]
+            ax.plot([gen]*len(EllitesLoss), EllitesLoss, "+", color='gray')      
         # Plot global optimum.     
         x = np.arange(0, self.CurrentGen+1)   
         loss = self.Best["Loss"][:self.CurrentGen+1]
         ax.plot(x, loss, label = "Best", linewidth = 2, color = "black")        
         ax.set_title(self.__name__)
-        ax.set_xlim([0, self.Config["MaxGen"]+1])
+        ax.set_xlim([0, self.Config["MaxGen"]])
         ax.set_ylim([0, loss[0]*1.1])
         ax.set_xlabel("Generation")
         ax.set_ylabel("Loss (Minimun = 0)")
