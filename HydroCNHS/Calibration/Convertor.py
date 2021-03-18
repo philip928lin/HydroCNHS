@@ -55,6 +55,7 @@ class Convertor(object):
             Formatter["Index"].append(len(VarArray))
             
         VarArray = np.array(VarArray)       # list to array
+        VarArray[VarArray<-90]
         Formatter["NoneIndex"] = list(np.argwhere(np.isnan(VarArray)).flatten())    # Find index for np.nan values.
         self.Formatter = Formatter
     
@@ -78,7 +79,7 @@ class Convertor(object):
                 return i           
         
         # Compute Formatter
-        self.genFormatter(DFList, FixedParList)
+        self.genFormatter(ParBoundDFList, FixedParList)     # We use ParBoundDFList to determine None.
         Formatter = self.Formatter
         NoneIndex = Formatter["NoneIndex"]
         ParName = []
