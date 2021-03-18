@@ -50,6 +50,7 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
     Kq = HYMODPars["Kq"]
     Ks = HYMODPars["Ks"]
     Df = HYMODPars["Df"]
+    SnowSt = Inputs["SnowS"]            # [cm] Initial snow storage.
     
     Pt = np.array(Pt)                   # [cm] Daily precipitation.
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
@@ -103,11 +104,11 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
             Rt = Pt[i]          # precipitation is rainfall (cm) and no snow accumulation
         else:
             Rt = 0              # Else, precipitation is snowfall (cm) so rainfall = 0
-            Inputs["SnowS"] = Inputs["SnowS"] + Pt[i] # Snowfall will accumulated and become snow storage(cm)	
+            SnowSt = SnowSt + Pt[i] # Snowfall will accumulated and become snow storage(cm)	
         # Determine snowmelt (Degree-day method)
         if Tt[i] > 0:           # Temperature above 0 degC
-            Mt = min(Inputs["SnowS"], Df * Tt[i])   # Snowmelt (cm) capped by snow storage
-            Inputs["SnowS"] = Inputs["SnowS"] - Mt              # Update snow storage
+            Mt = min(SnowSt, Df * Tt[i])   # Snowmelt (cm) capped by snow storage
+            SnowSt = SnowSt - Mt              # Update snow storage
         else:	
             Mt = 0
         
@@ -178,6 +179,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     BFt = Gt						    # [cm] Initialize baseflow to stream.
     St = Inputs["S0"]                   # [cm] Initialize shallow saturated soil water content.
     Ut = Inputs["U0"]                   # [cm] Initialize unsaturated soil water content.
+    SnowSt = Inputs["SnowS"]            # [cm] Initial snow storage.
     AnteMois = [0, 0, 0, 0, 0]          # [cm] Define the initial Antecedent Moisture (5 days) as 0.
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
     Pt = np.array(Pt)                   # [cm] Daily precipitation.
@@ -212,12 +214,12 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
             Rt = Pt[i]          # precipitation is rainfall (cm) and no snow accumulation
         else:
             Rt = 0              # Else, precipitation is snowfall (cm) so rainfall = 0
-            Inputs["SnowS"] = Inputs["SnowS"] + Pt[i] # Snowfall will accumulated and become snow storage(cm)
+            SnowSt = SnowSt + Pt[i] # Snowfall will accumulated and become snow storage(cm)
         #---------------------------------------------------------------------------------------------		
         # Determine snowmelt (Degree-day method)------------------------------------------------------
         if Tt[i] > 0:           # Temperature above 0 degC
-            Mt = min(Inputs["SnowS"], GWLFPars["Df"] * Tt[i])   # Snowmelt (cm) capped by snow storage
-            Inputs["SnowS"] = Inputs["SnowS"] - Mt              # Update snow storage
+            Mt = min(SnowSt, GWLFPars["Df"] * Tt[i])   # Snowmelt (cm) capped by snow storage
+            SnowSt = SnowSt - Mt              # Update snow storage
         else:	
             Mt = 0
         #---------------------------------------------------------------------------------------------	
