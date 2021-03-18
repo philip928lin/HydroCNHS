@@ -78,7 +78,7 @@ class Convertor(object):
                 return i           
         
         # Compute Formatter
-        self.genFormatter(ParBoundDFList, FixedParList)     # We use ParBoundDFList to determine None.
+        self.genFormatter(DFList, FixedParList)     # We use ParBoundDFList to determine None.
         Formatter = self.Formatter
         NoneIndex = Formatter["NoneIndex"]
         ParName = []
