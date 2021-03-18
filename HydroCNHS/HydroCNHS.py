@@ -210,10 +210,11 @@ class HydroCNHSModel(object):
                 else:                           # The node is a routing outlet.
                     if self.RR["Model"] == "Lohmann":
                         #----- Update none in-stream agent's actions (imply in AgSimSeq calculation) to streamflow (self.Q_LSM) for later routing usage.
-                        for ag in AgSimSeq["AgSimPlus"][node]:
-                            self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        for ag in AgSimSeq["AgSimMinus"][node]:
-                            self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                        if self.ABM is not None: 
+                            for ag in AgSimSeq["AgSimPlus"][node]:
+                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            for ag in AgSimSeq["AgSimMinus"][node]:
+                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                         
                         #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day). 
                         Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_LSM, t)

@@ -42,7 +42,7 @@ class Convertor(object):
             Formatter["IndexNameList"].append(df.index.values)
             # Store fixed par and replace their values with None in df.
             if FixedParList is not None:
-                if FixedParList[i] == [] or FixedParList[i] == ():
+                if FixedParList[i] == []:
                     Formatter["FixedParValueList"].append(None)
                 else:
                     for tup in FixedParList[i]:
