@@ -1,3 +1,4 @@
+from numpy.lib.function_base import append
 import pandas as pd
 import numpy as np
 import ast
@@ -41,14 +42,14 @@ class Convertor(object):
             Formatter["ColNameList"].append(df.columns.values)
             Formatter["IndexNameList"].append(df.index.values)
             # Store fixed par and replace their values with None in df.
+            
             if FixedParList is not None:
-                if FixedParList[i] == []:
-                    Formatter["FixedParValueList"].append(None)
-                else:
-                    for tup in FixedParList[i]:
-                        Value = df.loc[tup[0], tup[1]].to_numpy()
-                        Formatter["FixedParValueList"].append(Value)
-                        df.loc[tup[0], tup[1]] = None
+                FixedParValueList = []
+                for tup in FixedParList[i]:
+                    Value = df.loc[tup[0], tup[1]].to_numpy()
+                    FixedParValueList.append(Value)
+                    df.loc[tup[0], tup[1]] = None
+                Formatter["FixedParValueList"].append(FixedParValueList)
             # Convert to 1d array
             VarArray = VarArray + list(df.to_numpy().flatten("C"))    # [Row1, Row2, .....
             # Add Index (where it ends in the 1D array)
