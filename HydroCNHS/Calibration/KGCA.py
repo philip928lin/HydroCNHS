@@ -194,7 +194,7 @@ class KGCA(object):
             if localpop[k] >=1:  localpop[k] = 1
             if localpop[k] <=0:  localpop[k] = 0
             Scaledlocalpop = self.scale(localpop)
-            localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", k))
+            localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", i))
             if localloss < LocalLoss:
                 pop = localpop
                 LocalLoss = localloss
@@ -204,7 +204,7 @@ class KGCA(object):
                 if localpop[k] >=1:  localpop[k] = 1
                 if localpop[k] <=0:  localpop[k] = 0
                 Scaledlocalpop = self.scale(localpop)
-                localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", k))
+                localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", i))
                 if localloss < LocalLoss:
                     pop = localpop
                     LocalLoss = localloss
