@@ -534,6 +534,7 @@ class KGCA(object):
         return None
     
     def run(self, InitialPop = None):
+        logger.info("Start KGCA......")
         #----- Setting timer
         start_time = time.monotonic()
         self.elapsed_time = 0
