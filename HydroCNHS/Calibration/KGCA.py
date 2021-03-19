@@ -36,6 +36,7 @@ Config = {"PopSize":            30,     # Population size. Must be even.
           "MutProb":            0.3,    # Mutation probability.
           "KClusterMin":        2,      # >= 1
           "KClusterMax":        10,     # Must be smaller than PopSize/2. Otherwise, you will more likely to encounter error. 
+          "KInterval":          10,     # An interval to rerun Kmeans clustering.
           "DropRecord":         True,   # Population record will be dropped. However, ALL simulated results will still be kept. 
           "ParalCores":         2/None, # This will replace system config.
           "AutoSave":           True,   # Automatically save a model snapshot after each generation.
@@ -334,42 +335,52 @@ class KGCA(object):
         
         #----- Kmeans clustering
         ## Check eligibility of KClusterMax
-        if self.Config["KClusterMax"] > NumFeaSols:
-            logger.warning("Number of feasible solutions is less than KClusterMax. We reset KClusterMax to {} for Gen {}.".format(NumFeaSols, self.Config["KClusterMax"]))
-        KClusterMax = min(self.Config["KClusterMax"], len(KPop)/2)
-        KClusterMin = self.Config["KClusterMin"]
-        ParWeight = self.Inputs.get("ParWeight")     # Weights for each parameter. Default None. 
-        
-        KmeansModel = {}
-        KDistortions = []
-        KExplainedVar = []
-        SilhouetteAvg = []
-        SSE = np.sum(np.var(KPop, axis = 0))*KPop.shape[0]
-        for k in range(KClusterMin, KClusterMax+1):
-            km = KMeans(n_clusters = k, random_state=0).fit(KPop, ParWeight)
-            KmeansModel[k] = km
-            # Calculate some indicators for kmeans
-            ## inertia_: Sum of squared distances of samples to their closest cluster center.
-            KDistortions.append(km.inertia_)
-            KExplainedVar.append((SSE - KDistortions[-1])/SSE)
-            ## The silhouette_score gives the average value for all the samples.
-            ## This gives a perspective into the density and separation of the formed clusters
-            ## The coefficient varies between -1 and 1. A value close to 1 implies that the instance is close to its cluster is a part of the right cluster. 
-            cluster_labels = km.labels_
-            if k == 1:  # If given k == 1, then assign the worst value.
-                SilhouetteAvg.append(-1) 
-            else:
-                silhouette_avg = silhouette_score(KPop, cluster_labels)
-                SilhouetteAvg.append(silhouette_avg)
+        if CurrentGen%self.Config["KInterval"] == 0 or CurrentGen == self.Config["MaxGen"]:
+            if self.Config["KClusterMax"] > NumFeaSols:
+                logger.warning("Number of feasible solutions is less than KClusterMax. We reset KClusterMax to {} for Gen {}.".format(NumFeaSols, self.Config["KClusterMax"]))
+            KClusterMax = int(min(self.Config["KClusterMax"], len(KPop)/2))
+            KClusterMin = self.Config["KClusterMin"]
+            ParWeight = self.Inputs.get("ParWeight")     # Weights for each parameter. Default None. 
+            
+            KmeansModel = {}
+            KDistortions = []
+            KExplainedVar = []
+            SilhouetteAvg = []
+            SSE = np.sum(np.var(KPop, axis = 0))*KPop.shape[0]
+            for k in range(KClusterMin, KClusterMax+1):
+                km = KMeans(n_clusters = k, random_state=0).fit(KPop, ParWeight)
+                KmeansModel[k] = km
+                # Calculate some indicators for kmeans
+                ## inertia_: Sum of squared distances of samples to their closest cluster center.
+                KDistortions.append(km.inertia_)
+                KExplainedVar.append((SSE - KDistortions[-1])/SSE)
+                ## The silhouette_score gives the average value for all the samples.
+                ## This gives a perspective into the density and separation of the formed clusters
+                ## The coefficient varies between -1 and 1. A value close to 1 implies that the instance is close to its cluster is a part of the right cluster. 
+                cluster_labels = km.labels_
+                if k == 1:  # If given k == 1, then assign the worst value.
+                    SilhouetteAvg.append(-1) 
+                else:
+                    silhouette_avg = silhouette_score(KPop, cluster_labels)
+                    SilhouetteAvg.append(silhouette_avg)
 
-        # Store records.
-        MaxSilhouetteAvg = max(SilhouetteAvg)
-        self.KPopRes[CurrentGen]["SelectedK"] = SilhouetteAvg.index(MaxSilhouetteAvg) + KClusterMin
-        self.KPopRes[CurrentGen]["SilhouetteAvg"] = SilhouetteAvg
-        self.KPopRes[CurrentGen]["KDistortions"] = KDistortions
-        self.KPopRes[CurrentGen]["KExplainedVar"] = KExplainedVar
-        KM = KmeansModel[self.KPopRes[CurrentGen]["SelectedK"]]
-        self.KPopRes[CurrentGen]["Centers"] = self.scale(KM.cluster_centers_)
+            # Store records.
+            MaxSilhouetteAvg = max(SilhouetteAvg)
+            self.KPopRes[CurrentGen]["SelectedK"] = SilhouetteAvg.index(MaxSilhouetteAvg) + KClusterMin
+            self.KPopRes[CurrentGen]["SilhouetteAvg"] = SilhouetteAvg
+            self.KPopRes[CurrentGen]["KDistortions"] = KDistortions
+            self.KPopRes[CurrentGen]["KExplainedVar"] = KExplainedVar
+            KM = KmeansModel[self.KPopRes[CurrentGen]["SelectedK"]]
+            self.KM = KM
+            self.KPopRes[CurrentGen]["Centers"] = self.scale(KM.cluster_centers_)
+        else:
+            # Retrieve data from last generation.
+            self.KPopRes[CurrentGen]["SelectedK"] = self.KPopRes[CurrentGen-1]["SelectedK"]
+            self.KPopRes[CurrentGen]["SilhouetteAvg"] = self.KPopRes[CurrentGen-1]["SilhouetteAvg"]
+            self.KPopRes[CurrentGen]["KDistortions"] = self.KPopRes[CurrentGen-1]["KDistortions"]
+            self.KPopRes[CurrentGen]["KExplainedVar"] = self.KPopRes[CurrentGen-1]["KExplainedVar"]
+            KM = self.KM
+            self.KPopRes[CurrentGen]["Centers"] = self.KPopRes[CurrentGen-1]["Centers"]
         
         # Assign all pop according to KM model. Therefore those infeasible solutions will still participate in the tournament.
         self.KPopRes[CurrentGen]["PopLabels"] = KM.fit_predict(self.Pop[CurrentGen])
@@ -513,12 +524,12 @@ class KGCA(object):
                 pass
             
     def autoSave(self):
-        """Auto save a snapshot of current DMCGA process in case any model break down.
+        """Auto save a snapshot of current KGCA process in case any model break down.
         """
         CaliWD = self.CaliWD
         Snapshot = self.__dict__.copy()
         with open(os.path.join(CaliWD, "AutoSave.pickle"), 'wb') as outfile:
-            pickle.dump(Snapshot, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(Snapshot, outfile)#, protocol=pickle.HIGHEST_PROTOCOL)
             # About protocol: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
         return None
     
