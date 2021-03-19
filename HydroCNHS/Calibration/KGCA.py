@@ -557,7 +557,7 @@ class KGCA(object):
         self.Result["GlobalOptimum"] = {}
         self.Result["GlobalOptimum"]["Loss"] = self.Best["Loss"][self.CurrentGen - 1]
         self.Result["GlobalOptimum"]["Index"] = int(self.Best["Index"][self.CurrentGen - 1])
-        self.Result["GlobalOptimum"]["Solutions"] = self.Pop[self.CurrentGen - 1][self.Result["GlobalOptimum"]["Index"]]
+        self.Result["GlobalOptimum"]["Solutions"] = self.scale(self.Pop[self.CurrentGen - 1][self.Result["GlobalOptimum"]["Index"]])
         self.Result["Loss"] = self.KPopRes[self.CurrentGen - 1]["EllitesLoss"]
         self.Result["Index"] = self.KPopRes[self.CurrentGen - 1]["EllitesIndex"].astype(int)
         self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["Ellites"] 
