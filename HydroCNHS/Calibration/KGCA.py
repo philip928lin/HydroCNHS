@@ -53,56 +53,6 @@ Config = {#"NumSP":0,               # Number of sub-populations.
           "Plot": True              # Plot loss with Printlevel frequency.
           }
 """
-r"""
-Psuedo code for KmeansGA
-Input KmeansGA Config setting 
-(e.g. PopSize, NumPar, FeasibleTolRate, FeasibleThres, 
-KClusterMin/Max, KLeastImproveRate, KExplainedVarThres)
-
-# Intialization
-Pop <= np.empty((PopSize, NumPar))
-Pop <= Latin Hyper Cube sampling.
-CurrentGen = 0
-
-while CurrentGen <= MaxGen:
-    #---------- Evaluation ----------
-    Loss = np.empty((PopSize, NumPar))
-    for p in range(PopSize):
-        Loss[p] = LossFunc(Pop[p])
-    
-    #---------- Feasibility ----------
-    Feasibility = np.zero(PopSize)
-    Best = Min(Loss)
-    Criteria = max([Best*FeasibleTolRate, FeasibleThres])
-    Feasibility[Loss <= Criteria] = 1 
-    
-    #---------- SubPop Selection ----------
-    if num of feasible solutions >= PopSize/2:
-        SubPop = Pop[Feasibility == 1]
-    else:
-        SubPop = PopSize/2 of best Loss value.
-    SubPop <= Scaled SubPop ([0,1])
-     
-    #---------- Kmeans: K selection ----------    
-    for k in range(KClusterMin-1, KClusterMax):
-        KMeans(n_clusters = k).fit(SubPop, ParWeight)
-        if ExplainedVariance >= KExplainedVarThres:
-            K = k
-            break loop
-        if ImproveRate < KLeastImproveRate:
-            K = k-1
-            break loop
-
-    #---------- GA Evolution Process for Each SubPop ----------
-    for sub in range(K):
-        Select single ellite.
-        Select parants through binary tournament. 
-        Uniform Crossover and Mutation.
-    Pop <= Collect all evolved SubPop and Add ellites of each sub-Pop.
-
-    #---------- Prepare Next Iteration ----------
-    CurrentGen += 1
-"""
 
 class KGCA(object):
     def __init__(self, LossFunc, Inputs, Config, Formatter = None, ContinueFile = None, Name = "Calibration"):
@@ -335,7 +285,7 @@ class KGCA(object):
                     LocalLoss.append(LocalPopAndLoss[k][1])
                 self.KPopRes[CurrentGen]["Loss"] = np.array(LocalLoss)
                 logger.info("Local search iteration {}/{}.".format(iter, self.Config["LocalSearchIter"]))
-                print(self.KPopRes[CurrentGen]["Loss"])
+                logger.debug("Local search Loss: \n{}".format(self.KPopRes[CurrentGen]["Loss"]))
         #------------------------------------------
         
         
@@ -594,6 +544,7 @@ class KGCA(object):
                 if self.Config["Plot"]:                 # Plot Loss of all SPs. To visualize the convergence.
                     self.plotProgress()
             #----- Next generation
+            logger.info("Complete Gen {}/{}.".format(self.CurrentGen, self.Config["MaxGen"]))
             self.CurrentGen += 1 
                             
                 

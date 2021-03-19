@@ -71,7 +71,7 @@ class HydroCNHSModel(object):
         self.Weather = {"T":T, "P":P, "PE":PE}
         logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
            
-    def __call__(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}):
+    def __call__(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}, disable = False):
         """Run HydroCNHS simulation. The simulation is controled by model.yaml and Config.yaml (HydroCNHS system file).
         
         Args:
@@ -194,7 +194,7 @@ class HydroCNHSModel(object):
             self.Q_LSM[isag] = np.zeros(self.WS["DataLength"])
         
         # Run time step routing and agent simulation to update Q_LSM.
-        for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__):
+        for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__, disable=disable):
             CurrentDate = pdDatedateIndex[t]
             for node in SimSeq:
                 # These are not duplicated and redundant code!
