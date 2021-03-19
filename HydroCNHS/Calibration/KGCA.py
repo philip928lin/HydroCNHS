@@ -1,82 +1,72 @@
 #%%
-# Kmeans genetic algorithm (GA).
+# Kmeans Genetic Calibration Algorithm (KGCA).
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# We generalized the code and add a mutation method call mutation_middle.
-# However, we deactivate mutation_middle for DMC. This function helps convergence but restricts exploration in DMC case.
-# 2021/02/25
-from scipy.stats import truncnorm
-from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
-from joblib import Parallel, delayed                 # For parallelization
-import matplotlib.pyplot as plt
-import numpy as np
-import pickle
-import os
-import logging
-import time
-from sklearn.cluster import KMeans
+# The algorithm is based on the idea of (Poikolainen et al., 2015) DOI: 10.1016/j.ins.2014.11.026.
+# However, we simplify and modify the idea to fit our need for identifying equifinal model representatives (EMRs). 
+# 2021/03/13
+from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
+from scipy.stats import rankdata, truncnorm             # Rank data & Truncated normal distribution.
+from joblib import Parallel, delayed                    # For parallelization.
+from sklearn.cluster import KMeans                      # KMeans algorithm by sklearn.
 from sklearn.metrics import silhouette_score
-from scipy.stats import rankdata
+import matplotlib.pyplot as plt
 from copy import deepcopy
-logger = logging.getLogger("HydroCNHS.KGCA") # Get logger 
+import numpy as np
+import logging
+import pickle
+import time
+import os
+logger = logging.getLogger("HydroCNHS.KGCA")            # Get logger 
 
 r"""
-Need to be added sometime.
-Check function 
-Force parallel in HydroCNHS to stop
-Timeout (function) 
-"""
+Inputs = {"ParName":    [],     # List of parameters name.
+          "ParBound":   [],     # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
+          "ParType":    [],     # real or categorical
+          #"ParWeight": [],     # An array with length equal to number of parameters.
+          "WD":         r""}    # Working directory. (Can be same as HydroCNHS model.)   
+# Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
 
-r"""
-Inputs = {"ParName":[], 
-          "ParBound":[],    # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
-          "ParType":[],     # real or categorical
-          #"ParWeight":[],  # An array with length equal to number of parameters.
-          "WD":}   
-          
-Config = {#"NumSP":0,               # Number of sub-populations.
-          "PopSize": 30,            # Population size. Must be even.
-          "LocalSearchIter": 5      #
-          "MaxGen": 100,            # Maximum generation.
-          "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "FeasibleTolRate": 1.2    # A dynamic criteria according to the best loss. Should be >= 1.
-          "FeasibleThres": 0.3      # A fix threshold for loss value.
-          #"NumEllite": 1,          # Ellite number for each SP. At least 1.
-          "MutProb": 0.3,           # Mutation probability.
-          "KClusterMin": 2,         # Must be at least 2. See #----- Kmeans clustering
-          "KClusterMax": 10,        # Must be smaller than PopSize. 
-          "KLeastImproveRate": 0.5, # Improving rate criteria for k cluster selection.
-          "KExplainedVarThres": 0.8,# Total explained criteria for k cluster selection.
-          "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
-          "ParalCores": 2/None,     # This will overwrite system config.
-          "AutoSave": True,         # Automatically save a model snapshot after each generation.
-          "Printlevel": 10,         # Print out level. e.g. Every ten generations.
-          "Plot": True              # Plot loss with Printlevel frequency.
+Config = {"PopSize":            30,     # Population size. Must be even.
+          "LocalSearchIter":    5,      # Number of iterations for each individual for its local search.
+          "LocalSearchIta":     0.2,    # Initial local search initial step size. 
+          "MaxGen":             100,    # Maximum generation.
+          "SamplingMethod":     "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
+          "FeasibleTolRate":    1.2,    # A dynamic criteria according to the best loss. Should be >= 1.
+          "FeasibleThres":      0.3,    # A fix threshold for loss value.
+          "MutProb":            0.3,    # Mutation probability.
+          "KClusterMin":        2,      # >= 1
+          "KClusterMax":        10,     # Must be smaller than PopSize/2. Otherwise, you will more likely to encounter error. 
+          "DropRecord":         True,   # Population record will be dropped. However, ALL simulated results will still be kept. 
+          "ParalCores":         2/None, # This will replace system config.
+          "AutoSave":           True,   # Automatically save a model snapshot after each generation.
+          "Printlevel":         10,     # Print out level. e.g. Every ten generations.
+          "Plot":               True    # Plot loss and cluster number selection with Printlevel frequency.
           }
 """
 
 class KGCA(object):
     def __init__(self, LossFunc, Inputs, Config, Formatter = None, ContinueFile = None, Name = "Calibration"):
-        """Diverse model calibrations (DMC) genetic algorithm (GA) object.
+        """Kmeans Genetic Calibration Algorithm (KGCA)
 
         Args:
-            LossFunc (function): Loss function => LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0.
-            Inputs (dict): Inputs dictionary, which can be generated by GA_Convertor. It contains ParName, ParBound, ParType, ParWeight, and WD.
-            Config (dict): Config dictionary, which contains NumSP, PopSize, MaxGen, SamplingMethod, Tolerance, NumEllite, MutProb, DropRecord, ParalCores (optional), AutoSave, Printlevel, and Plot.
-            Formatter (dict, optional): Formatter dictionary created by GA_Convertor. This will be further feed back to LossFunc for user to convert 1D array back to original format to run HydroCNHS. Defaults to None.
+            LossFunc (function): Loss function => LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0. SubWDInfo = (CaliWD, CurrentGen, sp, k).
+            Inputs (dict): Inputs dictionary, which can be generated by Convertor. It contains ParName, ParBound, ParType, ParWeight, and WD.
+            Config (dict): Config dictionary
+            Formatter (dict, optional): Formatter dictionary created by Convertor. This will be fed to LossFunc for users to convert 1D array (pop) back to original format to run HydroCNHS. Defaults to None.
             ContinueFile (str, optional): AutoSave.pickle directory to continue the previous run. Defaults to None.
-            Name (str, optional): Name of the DMCGA object, corresponding to the created sub-folder name. Defaults to "Calibration".
+            Name (str, optional): Name of the KGCA object. The sub-folder will be created accordingly. Defaults to "Calibration".
         """
                
         # Populate class attributions.
         self.LossFunc = LossFunc                # Loss function LossFunc(pop, Formatter, SubWDInfo = None) return loss, which has lower bound 0.
-                                                    #pop is a parameter vector. 
-                                                    #Formatter can be obtained from class GA_Convertor.
-                                                    #SubWDInfo = (CaliWD, CurrentGen, sp, k).
-                                                    #Lower bound of return value has to be 0.
+                                                    # pop is a parameter vector. 
+                                                    # Formatter can be obtained from class Convertor.
+                                                    # SubWDInfo = (CaliWD, CurrentGen, sp, k).
+                                                    # Lower bound of return value, which has to be 0.
         self.Inputs = Inputs                    # Input ductionary.
         self.Inputs["ParWeight"] = np.array(Inputs["ParWeight"])    # Make sure it is an array.
-        self.Config = Config                    # Configuration for DMCGA.
-        self.Formatter = Formatter              # Formatter is to convert 1D pop back into list of dataframe dictionaries for HydroCNHS simulation. (see class GA_Convertor) 
+        self.Config = Config                    # Configuration for KGCA.
+        self.Formatter = Formatter              # Formatter is to convert 1D pop back into list of dataframe dictionaries for HydroCNHS simulation. (see class Convertor) 
         self.SysConfig = loadConfig()           # Load system config => Config.yaml (Default parallelization setting)
         self.NumPar = len(Inputs["ParName"])    # Number of calibrated parameters.
         
@@ -90,19 +80,13 @@ class KGCA(object):
 
         #---------- Auto save section ----------
         if ContinueFile is None:
-            self.Continue = False                   # Initialization is required in "run", when self.Continue = False.
-            # Generate sub population index list for later for-loop and code readibility.
-            # For KmeansGA => Config["NumSP"] must be 0.
-            #self.SPList = ["SP0"] + ["SP"+str(i+1) for i in range(Config["NumSP"])]
-            
-            self.CurrentGen = 0     # Populate initial counter for generation.
+            self.Continue = False                   # Initialization is required in "run", when self.Continue = False.            
+            self.CurrentGen = 0                     # Populate initial counter for generation.
             
             # Initialize variables storage.
             self.Pop = {}           # Population of parameter set. Pop[gen][sp]: [k,s] (2D array); k is index of members, and s is index of parameters.
             self.PopRes = {}        # Simulation results of each members. PopRes[gen][sp][Loss/Dmin/Feasibility/SelfD]: 1D array with length of population size.
             self.KPopRes = {}       # Store Kmeans results
-            
-            #self.SPCentroid = {}    # Centroid of each SP. SPCentroid[gen][sp][Centroid/NormalizedCentroid]: 1D array with length of number of calibrated parameters.
             
             # Best loss value and index of corresponding member in Pop[gen][sp]. Best[Loss/Index][sp]: 1D array with length of MaxGen.
             self.Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
@@ -131,6 +115,7 @@ class KGCA(object):
             else:
                 logger.warning("\n[!!!Important!!!] Current calibration folder exists. Default to overwrite the folder!\n{}".format(self.CaliWD))
         #---------------------------------------
+        
     def scale(self, pop):
         """pop is 1d array (self.NumPar) or 2d array (-1,self.NumPar)."""
         pop = pop.reshape((-1,self.NumPar))
@@ -139,7 +124,7 @@ class KGCA(object):
         ScaledPop = np.multiply(pop, BoundScale)
         ScaledPop = np.add(ScaledPop, LowerBound)
         if ScaledPop.shape[0] == 1:
-            ScaledPop = ScaledPop[0]  # Back to 1d.
+            ScaledPop = ScaledPop[0]    # Back to 1D.
         return ScaledPop
         
     def MCSample(self, pop):
@@ -181,6 +166,17 @@ class KGCA(object):
         return pop 
     
     def LocalSearch(self, pop, loss, i):
+        """Local search along the axises.
+
+        Args:
+            pop (Array): Individual.
+            loss (float): Loss value of the individual.
+            i (int): Index of pop in Pop.
+
+        Returns:
+            tuple: (pop, LocalLoss)
+        """
+        # See (Poikolainen et al., 2015) DOI: 10.1016/j.ins.2014.11.026 for details.
         ita = self.ita[i]
         # Generate local search samples.
         Orgpop = pop
@@ -212,34 +208,35 @@ class KGCA(object):
                 ita = 0.5*ita
         self.ita[i] = ita
         return (pop, LocalLoss)
-
-        
+      
     def initialize(self, SamplingMethod = "LHC", InitialPop = None):
-        """Initialize population members and storage spaces (PopRes, SPCentroid) for each sub population for generation 0.
+        """Initialize population members and storage spaces (KPopRes) for generation 0.
 
         Args:
             SamplingMethod (str, optional): Selected method for generate initial population members. MC or LHC.
-            InitialPop (dict, optional): User-provided initial Pop[0]. InitialPop[sp]: [PopSize, NumPar] (2D array). Defaults to None.
+            InitialPop (dict, optional): User-provided initial Pop[0] = [PopSize, NumPar] (2D array). Note that Pop[0] has to be scaled to [0,1] Defaults to None.
         """
         PopSize = self.Config["PopSize"]
         NumPar = self.NumPar
 
-        # Initialize storage space for generation 0.
-        if InitialPop is None:      # Initialize parameters according to selected sampling method.
-            pop = np.zeros((PopSize, NumPar))  # Create 2D array population for single generation.
+        # Note Pop is a scaled values in [0, 1]
+        if InitialPop is None:      
+            # Initialize storage space for generation 0 (2D array).
+            pop = np.zeros((PopSize, NumPar))  
+            ## Initialize parameters according to selected sampling method.
             if SamplingMethod == "MC":
                 self.Pop[0] = self.MCSample(pop)
             elif SamplingMethod == "LHC":
                 self.Pop[0] = self.LatinHyperCubeSample(pop)
-        else:                       # Initialize parameters with user inputs.
-            self.Pop[0] = InitialPop    # [0, 1]
+        else:                       
+            # Initialize parameters with user inputs.
+            self.Pop[0] = InitialPop
 
-        # Initialize storage space for each SP
+        # Initialize storage space.
         self.KPopRes[0] = {}
         
     def nextGen(self):
         """Complete all simulations and generate next generation of Pop.
-        Detail procedure, please see Algorithm 1 in (Williams et al., 2020) https://doi.org/10.1016/j.envsoft.2020.104831.
         """
         LossFunc = self.LossFunc
         Formatter = self.Formatter
@@ -251,7 +248,7 @@ class KGCA(object):
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
-            ParalCores = self.SysConfig["Parallelization"]["Cores_DMCGA"]
+            ParalCores = self.SysConfig["Parallelization"]["Cores_KGCA"]
         ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
         
         #---------- Evaluation (Min) ----------
@@ -259,7 +256,7 @@ class KGCA(object):
         # In future, we can have an option for this (re-simulate ellites) to further enhance computational efficiency.
         # Evalute Loss function
         # LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0.
-        ScaledPop = self.scale(self.Pop[CurrentGen])
+        ScaledPop = self.scale(self.Pop[CurrentGen])    # Scale back to original values.
         LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
                            ( delayed(LossFunc)\
                              (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
@@ -269,9 +266,10 @@ class KGCA(object):
         #--------------------------------------
         
         #---------- Initial Local Search ----------
-        self.ita = {i: 0.2 for i in range(PopSize)}
+        self.ita = {i: self.Config["LocalSearchIta"] for i in range(PopSize)}
         if self.CurrentGen == 0:
             for iter in range(self.Config["LocalSearchIter"]):
+                logger.info("Local search iteration {}/{}.".format(iter+1, self.Config["LocalSearchIter"]))
                 Pop = self.Pop[CurrentGen]
                 Loss = self.KPopRes[CurrentGen]["Loss"]
                 LocalPopAndLoss = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
@@ -284,7 +282,6 @@ class KGCA(object):
                     self.Pop[CurrentGen][k] = np.array(LocalPopAndLoss[k][0])
                     LocalLoss.append(LocalPopAndLoss[k][1])
                 self.KPopRes[CurrentGen]["Loss"] = np.array(LocalLoss)
-                logger.info("Local search iteration {}/{}.".format(iter, self.Config["LocalSearchIter"]))
                 logger.debug("Local search Loss: \n{}".format(self.KPopRes[CurrentGen]["Loss"]))
         #------------------------------------------
         
@@ -310,6 +307,7 @@ class KGCA(object):
         Feasibility[self.KPopRes[CurrentGen]["Loss"] <= Criteria] = 1   # Only valid when lower bound is zero
         self.KPopRes[CurrentGen]["Feasibility"] = Feasibility.astype(int)
         #---------------------------------
+        
         
         #---------- Kmeans GA - Select eligible subPop & Run Kmeans clustering ----------
         Feasibility = self.KPopRes[CurrentGen]["Feasibility"]
@@ -391,7 +389,6 @@ class KGCA(object):
         self.KPopRes[CurrentGen]["Ellites"] = np.zeros((SelectedK, NumPar))
         self.KPopRes[CurrentGen]["EllitesIndex"] = np.zeros(SelectedK)
         self.KPopRes[CurrentGen]["EllitesLoss"] = np.zeros(SelectedK)
-        self.KPopRes[CurrentGen]["EllitesRank"] = np.zeros(SelectedK)
         self.KPopRes[CurrentGen]["EllitesProb"] = np.zeros(SelectedK)
         self.KIndex = {}
         for k in range(SelectedK):
@@ -413,10 +410,23 @@ class KGCA(object):
             self.KPopRes[CurrentGen]["Ellites"][k] = self.scale(Pop[int(KElliteIndex[k])])
             self.KPopRes[CurrentGen]["EllitesIndex"][k] = int(KElliteIndex[k])
             self.KPopRes[CurrentGen]["EllitesLoss"][k] = Loss[int(KElliteIndex[k])]
-        Rank = SelectedK+1 - rankdata(self.KPopRes[CurrentGen]["EllitesLoss"]) # Lower value higher rank (min = 1)
-        KProb = Rank/np.sum(Rank)
-        self.KPopRes[CurrentGen]["EllitesRank"] = Rank
+        
+        # Calculate group prob
+        ## Feasibility based EllitesProb assignment.
+        EllitesLoss = self.KPopRes[CurrentGen]["EllitesLoss"]    
+        EllitesLoss = max(EllitesLoss) - EllitesLoss +1 # To avoid dividing 0.
+        KProb = EllitesLoss/np.sum(EllitesLoss)
+        ## Assign feasible cluster with equal prob.
+        Criteria = max([Best*TolRate, Thres])
+        feasi = self.KPopRes[CurrentGen]["EllitesLoss"] <= Criteria    # Only valid when lower bound is zero
+        KProb[feasi] = np.mean(KProb[feasi])
         self.KPopRes[CurrentGen]["EllitesProb"] = KProb
+        
+        # ## Rank based EllitesProb assignment.
+        # Rank = SelectedK+1 - rankdata(self.KPopRes[CurrentGen]["EllitesLoss"]) # Lower value higher rank (min = 1)
+        # KProb = Rank/np.sum(Rank)
+        # self.KPopRes[CurrentGen]["EllitesRank"] = Rank
+        # self.KPopRes[CurrentGen]["EllitesProb"] = KProb
         
         def RouletteWheelSelection(KProb):
             rn = np.random.uniform(0,1)
@@ -426,6 +436,7 @@ class KGCA(object):
                 if rn >= acc1 and rn < acc2:
                     return i
                 acc1 += v
+                
         # Uniform crossover
         def UniformCrossover(parent1, parent2):
             child = np.zeros(NumPar)
@@ -435,10 +446,10 @@ class KGCA(object):
             return child
         
         def Mutation(child):
-                mut = np.random.binomial(n = 1, p = MutProb*MutPartition[1], size = NumPar) == 1
-                MutSample_MC = self.MCSample(np.zeros((1,NumPar)))
-                child[mut] = MutSample_MC.flatten()[mut]    # Since MutSample_MC.shape = (1, NumPar).
-                return child
+            mut = np.random.binomial(n = 1, p = MutProb*MutPartition[1], size = NumPar) == 1
+            MutSample_MC = self.MCSample(np.zeros((1,NumPar)))
+            child[mut] = MutSample_MC.flatten()[mut]    # Since MutSample_MC.shape = (1, NumPar).
+            return child
         # def Mutation(child):
         #     # Half mutate from MC sampling, half from local pertabation.
         #     rn = np.random.binomial(n = 1, p = 0.5, size = NumPar)
@@ -527,6 +538,7 @@ class KGCA(object):
         else:
             logger.info("Continue from Gen {}.".format(self.CurrentGen))
             
+            
         # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
         while self.CurrentGen <= MaxGen:
             self.nextGen()      # GA process
@@ -546,11 +558,12 @@ class KGCA(object):
             #----- Next generation
             logger.info("Complete Gen {}/{}.".format(self.CurrentGen, self.Config["MaxGen"]))
             self.CurrentGen += 1 
+                   
                             
-                
         #----- Delete Pop with gen index = (MaxGen+1 -1)
         del self.Pop[self.CurrentGen]   
         del self.KPopRes[self.CurrentGen] 
+        
         
         #----- Extract solutions
         self.Result = {}
@@ -560,15 +573,19 @@ class KGCA(object):
         self.Result["GlobalOptimum"]["Solutions"] = self.scale(self.Pop[self.CurrentGen - 1][self.Result["GlobalOptimum"]["Index"]])
         self.Result["Loss"] = self.KPopRes[self.CurrentGen - 1]["EllitesLoss"]
         self.Result["Index"] = self.KPopRes[self.CurrentGen - 1]["EllitesIndex"].astype(int)
-        self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["Ellites"] 
+        self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["Ellites"]     # Already scaled.  
         
         #----- Count duration.
         elapsed_time = time.monotonic() - start_time
         self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
         logger.info("Done! [{}]".format(self.elapsed_time))
         logger.info("Report:\n" + Dict2String(self.Result))
+        
+        #----- Output Report txt file.
         with open(os.path.join(self.CaliWD, "Report_KGCA_" + self.__name__ + ".txt"), "w") as text_file:
             text_file.write(Dict2String(self.Result))
+            text_file.write("\n=====================================================")
+            logger.info("Elapsed time:\n{}".format(self.elapsed_time))
             text_file.write("\n=====================================================")
             text_file.write("\nKGCA user input Config:\n")
             text_file.write(Dict2String(self.Config))
