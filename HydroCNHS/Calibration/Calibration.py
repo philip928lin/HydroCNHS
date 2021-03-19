@@ -5,6 +5,7 @@ from .KGCA2 import KGCA2
 class Cali():
     DMC = DMC
     KGCA = KGCA
+    KGCA2 = KGCA2
     Convertor = Convertor
     
     def __init__(self) -> None:

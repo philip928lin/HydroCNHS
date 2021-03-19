@@ -230,8 +230,10 @@ class KGCA2(object):
             pop[:,i] = temp
         return pop 
     
-    def LocalSearch(self, pop, loss, ita):
+    def LocalSearch(self, pop, loss, i):
+        ita = self.ita[i]
         # Generate local search samples.
+        Orgpop = pop
         pop = deepcopy(pop)
         NumPar = self.NumPar
         LocalLoss = loss
@@ -256,8 +258,9 @@ class KGCA2(object):
                 if localloss < LocalLoss:
                     pop = localpop
                     LocalLoss = localloss
-            elif localloss == LocalLoss:
+            if all(Orgpop == pop):
                 ita = 0.5*ita
+        self.ita[i] = ita
         return (pop, LocalLoss)
 
         
@@ -270,16 +273,14 @@ class KGCA2(object):
         """
         PopSize = self.Config["PopSize"]
         NumPar = self.NumPar
-        ParBound = self.Inputs["ParBound"]
-        ParType =  self.Inputs["ParType"]
 
         # Initialize storage space for generation 0.
         if InitialPop is None:      # Initialize parameters according to selected sampling method.
             pop = np.zeros((PopSize, NumPar))  # Create 2D array population for single generation.
             if SamplingMethod == "MC":
-                self.Pop[0] = self.MCSample(pop, ParBound, ParType)
+                self.Pop[0] = self.MCSample(pop)
             elif SamplingMethod == "LHC":
-                self.Pop[0] = self.LatinHyperCubeSample(pop, ParBound, ParType)
+                self.Pop[0] = self.LatinHyperCubeSample(pop)
         else:                       # Initialize parameters with user inputs.
             self.Pop[0] = InitialPop    # [0, 1]
 
@@ -318,12 +319,14 @@ class KGCA2(object):
         #--------------------------------------
         
         #---------- Initial Local Search ----------
-        ita = 0.1
+        self.ita = {i: 0.2 for i in range(PopSize)}
         if self.CurrentGen == 0:
             for iter in range(self.Config["LocalSearchIter"]):
+                Pop = self.Pop[CurrentGen]
+                Loss = self.KPopRes[CurrentGen]["Loss"]
                 LocalPopAndLoss = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
-                                        ( delayed(self.LocalSearch())\
-                                        (ScaledPop[k], LossParel[k], ita) \
+                                        ( delayed(self.LocalSearch)\
+                                        (Pop[k], Loss[k], k) \
                                         for k in range(PopSize) )  # Still go through entire Pop including ellites.
                 # Get results. Replace original initial Pop
                 LocalLoss = []
@@ -332,6 +335,7 @@ class KGCA2(object):
                     LocalLoss.append(LocalPopAndLoss[k][1])
                 self.KPopRes[CurrentGen]["Loss"] = np.array(LocalLoss)
                 logger.info("Local search iteration {}/{}.".format(iter, self.Config["LocalSearchIter"]))
+                print(self.KPopRes[CurrentGen]["Loss"])
         #------------------------------------------
         
         
@@ -361,13 +365,21 @@ class KGCA2(object):
         Feasibility = self.KPopRes[CurrentGen]["Feasibility"]
         Loss = self.KPopRes[CurrentGen]["Loss"]
         NumFeaSols = np.sum(Feasibility)
-        
-        # Check eligibility of KClusterMax
-        if self.Config["KClusterMax"] > NumFeaSols:
-            logger.warning("Number of feasible solutions is less than KClusterMax. We reset KClusterMax to {} for Gen {}.".format(NumFeaSols, self.Config["KClusterMax"]))
-        KClusterMax = min(self.Config["KClusterMax"], NumFeaSols)
-        
+
         # Feasible solutions' indexes.
+        # Feasibility = self.KPopRes[CurrentGen]["Feasibility"]
+        # Loss = self.KPopRes[CurrentGen]["Loss"]
+        # SubPopSizeThres = int(PopSize/2)
+        # # We set the criteria as PopSize/2 for now, which can be switch to dynamically updated according to CurrentGen.
+        # # Select subPop for clustering => Max(#Feasible Sol, PopSize/2)
+        # if np.sum(Feasibility) >= SubPopSizeThres:
+        #     KPopIndex = np.where(Feasibility == 1)[0]   # Take out 1d array of indexes.
+        # else:
+        #     KPopIndex = np.argpartition(Loss, SubPopSizeThres)[:SubPopSizeThres].astype(int)          # return n smallest Loss index.
+        # KPop = self.Pop[CurrentGen][KPopIndex, :]
+        # self.KPopRes[CurrentGen]["KPopIndex"] = KPopIndex
+        
+        
         KPopIndex = np.where(Feasibility == 1)[0]   # Take out 1d array of indexes.
         KPop = self.Pop[CurrentGen][KPopIndex, :]   # Every pop is [0, 1]
         self.KPopRes[CurrentGen]["KPopIndex"] = KPopIndex
