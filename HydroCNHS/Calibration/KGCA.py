@@ -502,8 +502,9 @@ class KGCA(object):
             self.Pop[CurrentGen+1][2*p+1] = child2
         
         for k in range(SelectedK):
-            # Replace top k pop with ellites from each cluster. 
-            self.Pop[CurrentGen+1][k] = Pop[int(KElliteIndex[k])]
+            # Replace top k pop with ellites from each cluster if it is feasible. 
+            if self.KPopRes[CurrentGen]["EllitesLoss"][k] <= Criteria:
+                self.Pop[CurrentGen+1][k] = Pop[int(KElliteIndex[k])]
         #---------------------------------------------------------------------------------------
 
         #---------- Prepare For Next Gen ----------
@@ -597,10 +598,13 @@ class KGCA(object):
         with open(os.path.join(self.CaliWD, "Report_KGCA_" + self.__name__ + ".txt"), "w") as text_file:
             text_file.write(Dict2String(self.Result))
             text_file.write("\n=====================================================")
-            logger.info("Elapsed time:\n{}".format(self.elapsed_time))
+            text_file.write("Elapsed time:\n{}".format(self.elapsed_time))
             text_file.write("\n=====================================================")
             text_file.write("\nKGCA user input Config:\n")
             text_file.write(Dict2String(self.Config))
+            
+        if AutoSave:        # If Autosave is True, a model snapshot (pickle file) will be saved at CaliWD.
+            self.autoSave()
         
     def plotProgress(self, Save = True):
         """Plot KGCA progress to visualize the convergence. 
