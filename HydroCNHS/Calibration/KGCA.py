@@ -474,6 +474,8 @@ class KGCA(object):
         
         MutProb = self.Config["MutProb"]
         MutPartition = (0.3, 0.7)
+        if SelectedK == 1:
+            MutPartition = (0, 1)   # No inter clusters mutation.
         Pop = self.Pop[CurrentGen] 
         self.Pop[CurrentGen+1] = np.zeros((PopSize, NumPar))
         for p in range(int(PopSize/2)):
