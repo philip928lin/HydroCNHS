@@ -551,12 +551,23 @@ class KGCA(object):
         else:
             logger.info("Continue from Gen {}.".format(self.CurrentGen))
             
-            
+        self.HistoryResult = {}   
         # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
         while self.CurrentGen <= MaxGen:
             self.nextGen()      # GA process
             self.dropRecord()   # Delete previou generation's Pop if DropRecord = True
             
+            #----- Extract solutions
+            self.Result = {}
+            self.Result["Gen"] = self.CurrentGen
+            self.Result["GlobalOptimum"] = {}
+            self.Result["GlobalOptimum"]["Loss"] = self.Best["Loss"][self.CurrentGen]
+            self.Result["GlobalOptimum"]["Index"] = int(self.Best["Index"][self.CurrentGen])
+            self.Result["GlobalOptimum"]["Solutions"] = self.scale(self.Pop[self.CurrentGen][self.Result["GlobalOptimum"]["Index"]])
+            self.Result["Loss"] = self.KPopRes[self.CurrentGen]["EllitesLoss"]
+            self.Result["Index"] = self.KPopRes[self.CurrentGen]["EllitesIndex"].astype(int)
+            self.Result["Solutions"] = self.KPopRes[self.CurrentGen]["Ellites"]     # Already scaled.  
+            self.HistoryResult[self.CurrentGen] = self.Result 
             #----- Auto save
             if AutoSave:        # If Autosave is True, a model snapshot (pickle file) will be saved at CaliWD.
                 self.autoSave()
@@ -568,25 +579,20 @@ class KGCA(object):
                 logger.info("{:4d}/{:4d}   |{}|.".format(self.CurrentGen, MaxGen, ProgressBar))
                 if self.Config["Plot"]:                 # Plot Loss of all SPs. To visualize the convergence.
                     self.plotProgress()
+                logger.info(Dict2String(self.Result))
             #----- Next generation
             logger.info("Complete Gen {}/{}.".format(self.CurrentGen, self.Config["MaxGen"]))
+            
             self.CurrentGen += 1 
-                   
+            
+
                             
         #----- Delete Pop with gen index = (MaxGen+1 -1)
         del self.Pop[self.CurrentGen]   
         del self.KPopRes[self.CurrentGen] 
         
         
-        #----- Extract solutions
-        self.Result = {}
-        self.Result["GlobalOptimum"] = {}
-        self.Result["GlobalOptimum"]["Loss"] = self.Best["Loss"][self.CurrentGen - 1]
-        self.Result["GlobalOptimum"]["Index"] = int(self.Best["Index"][self.CurrentGen - 1])
-        self.Result["GlobalOptimum"]["Solutions"] = self.scale(self.Pop[self.CurrentGen - 1][self.Result["GlobalOptimum"]["Index"]])
-        self.Result["Loss"] = self.KPopRes[self.CurrentGen - 1]["EllitesLoss"]
-        self.Result["Index"] = self.KPopRes[self.CurrentGen - 1]["EllitesIndex"].astype(int)
-        self.Result["Solutions"] = self.KPopRes[self.CurrentGen - 1]["Ellites"]     # Already scaled.  
+
         
         #----- Count duration.
         elapsed_time = time.monotonic() - start_time
