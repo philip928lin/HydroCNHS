@@ -165,8 +165,10 @@ class HydroCNHSModel(object):
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
         self.Agents = {}     # Here we store all agent objects with key = agent name.
         if self.ABM is not None: 
-            for agType, Ags in self.Agents.items():
+            for agType, Ags in self.ABM.items():
                 for ag, agConfig in Ags.items():
+                    if agType == "Inputs":
+                        continue
                     # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
                     try:
                         # Initialize agent object from agent-type class defined in Agent.py.

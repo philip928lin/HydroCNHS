@@ -122,11 +122,11 @@ class BasicAgent(object):
             int: Index for self.Record
         """
         if Freq == "D":
-            return int( (StartDate-EndDate)/np.timedelta64(1, 'D') ) + 1
+            return int( (EndDate - StartDate)/np.timedelta64(1, 'D') ) + 1
         if Freq == "M":
-            return int( (StartDate-EndDate)/np.timedelta64(1, 'M') ) + 1
+            return int( (EndDate - StartDate)/np.timedelta64(1, 'M') ) + 1
         if Freq == "Y":
-            return int( (StartDate-EndDate)/np.timedelta64(1, 'Y') ) + 1
+            return int( (EndDate - StartDate)/np.timedelta64(1, 'Y') ) + 1
             
 class AgType_Reservoir(BasicAgent):
     """
@@ -152,7 +152,7 @@ class AgType_Reservoir(BasicAgent):
             ModelPars = {}
             for k, v in Pars.items():
                 NumMPars = int(len(v)/NumModel)
-                ModelPars[k] = v[NumMPars*m, NumMPars*(m+1)]
+                ModelPars[k] = v[NumMPars*m: NumMPars*(m+1)]
             self.Actor_Critic[m] = Actor_Critic(self.Inputs["RL"]["ValueFunc"], 
                                                 self.Inputs["RL"]["PolicyFunc"], 
                                                 ModelPars, **self.Inputs["RL"]["kwargs"])

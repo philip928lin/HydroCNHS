@@ -249,7 +249,7 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
             temp = {}
             for par in Ind_dup:
                 if Ind_dup[par] > 0:
-                    temp[par] = list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten().item())
+                    temp[par] = list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten())
                     temp[par] = [toNativePyType(val) for val in temp[par]]
                 else:
                     temp[par] = toNativePyType(df.loc[par, [i]].values[0])
