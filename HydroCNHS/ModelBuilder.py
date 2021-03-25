@@ -10,7 +10,6 @@ which users need to manually populate values inside Model.yaml.
 After populating values inside Model.yaml, ModelBuilder provide a loadmodel() staticmethod 
 to check and parse Model.yaml, which ensure the eligibility of Model.yaml.
 """
-from os.path import split
 from .SystemConrol import loadModel, writeModel, loadDFToModelDict, writeModelToCSV
 from copy import deepcopy
 import pandas as pd
@@ -71,7 +70,8 @@ NumResModels = 5
 InputDataPath = r"C:\Users\Philip\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\YRBModel\InputData"
 ResAgent = {"Attributions": {"Capacity": "Required",
                              "ObvDfPath": {"MonthlyFlow":   os.path.join(InputDataPath, "Res_MonthlyFlow(cms).csv"),
-                                           "MonthlydPrep":  os.path.join(InputDataPath, "Res_MonthlydPrep(cm).csv")},
+                                           "MonthlydPrep":  os.path.join(InputDataPath, "Res_MonthlydPrep(cm).csv"),
+                                           "FixDailyRatio": os.path.join(InputDataPath, "Res_FixDailyRatio(cms).csv")},
                              "InitStorage": "Required",
                              "InitResRef": "Required",
                              "Scale": {"G": 1, "C1": 1, "C2": 1, "dPTolWin": 1, 
@@ -89,13 +89,14 @@ ResAgent = {"Attributions": {"Capacity": "Required",
             "Pars": {"W":       [0, 0] * NumResModels,                         
                      "Theta":   [0, 0, 0, 0, 0] * NumResModels,
                      "LR_W":    [-99, -99] * NumResModels,
-                     "LR_T":    [-99, -99, -99, -99, -99, -99] * NumResModels,
+                     "LR_T":    [-99, -99, -99, -99, -99] * NumResModels,
                      "LR_R":    [-99] * NumResModels,
                      "Sig":     [-99] * NumResModels}}  
 
 DivAgent = {"Attributions": {"Area": "Required",
                              "ObvDfPath": {"AnnualFlow":    os.path.join(InputDataPath, "Div_AnnualFlow(cms).csv"),
-                                           "AnnualdPrep":   os.path.join(InputDataPath, "Div_AnnualdPrep(cm).csv")},
+                                           "AnnualdPrep":   os.path.join(InputDataPath, "Div_AnnualdPrep(cm).csv"),
+                                           "FixDailyRatio": os.path.join(InputDataPath, "Div_FixDailyRatio(cms).csv")},
                              "InitDivRef": "Required",
                              "Scale": {"G": 1, "C1": 1, "C2": 1, "dPTolWin": 1, 
                                        "dPR1": 0.331158, "dPR2": 0.237696, "dPR3": 0.196400, 

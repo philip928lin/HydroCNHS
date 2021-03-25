@@ -197,7 +197,7 @@ class KGCA(object):
                 LocalLoss = localloss
             elif localloss > LocalLoss:
                 localpop = deepcopy(temp)
-                localpop[k] = localpop[k] +0.5 * ita
+                localpop[k] = localpop[k] + 0.5 * ita
                 if localpop[k] >=1:  localpop[k] = 1
                 if localpop[k] <=0:  localpop[k] = 0
                 Scaledlocalpop = self.scale(localpop)

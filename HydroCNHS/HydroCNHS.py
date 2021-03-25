@@ -102,9 +102,9 @@ class HydroCNHSModel(object):
             for ro in RoutingOutlets:
                 for sb in self.RR[ro]:
                     if sb in AssignedQ:
-                        self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
-                        self.SysPD["RoutingOutlets"][ro][sb]["Pars"]["GRate"] = None   # No in-grid routing.
-                        logger.info("Turn {}'s GShape and GRate in routing setting to None. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
+                        self.RR[ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
+                        self.RR[ro][sb]["Pars"]["GRate"] = None   # No in-grid routing.
+                        logger.info("Turn {}'s GShape and GRate  to None in routing setting. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
         
         # Start GWLF simulation in parallel.
         if self.LSM["Model"] == "GWLF":
@@ -166,9 +166,9 @@ class HydroCNHSModel(object):
         self.Agents = {}     # Here we store all agent objects with key = agent name.
         if self.ABM is not None: 
             for agType, Ags in self.ABM.items():
-                for ag, agConfig in Ags.items():
-                    if agType == "Inputs":
+                if agType == "Inputs":
                         continue
+                for ag, agConfig in Ags.items():
                     # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
                     try:
                         # Initialize agent object from agent-type class defined in Agent.py.

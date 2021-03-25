@@ -83,6 +83,8 @@ class Value(object):
             A = 1 - 1 / (1 + np.exp(Z))
         elif Z >= 0:
             A = 1 / (1 + np.exp(-Z))
+        else:
+            raise ValueError("Invalid Z value for Sigmoid function. Z = {}.".format(Z))
         
         if Return == "value":
             return A
@@ -215,6 +217,8 @@ class Policy(object):
             A = 1 - 1 / (1 + np.exp(Z))
         elif Z >= 0:
             A = 1 / (1 + np.exp(-Z))
+        else:
+            raise ValueError("Invalid Z value for Sigmoid function. Z = {}.".format(Z))
         
         if Return == "value":
             return A
@@ -281,6 +285,7 @@ class Policy(object):
                 sigII = [half, Theta.shape[0]]
             else:
                 FixedSig = True
+                muII = [0, int(Theta.shape[0])]
                 sig = kwargs["FixedSig"]
         else:
             muII = kwargs["muIndexInfo"]     # muIndexInfo = [StartIndex, length]
@@ -398,7 +403,8 @@ class Actor_Critic(object):
         self.AvgR = 0                           # Average rewards
         self.Z_W = np.zeros(self.W.shape)       # Eligibility trace of W
         self.Z_T = np.zeros(self.Theta.shape)   # Eligibility trace of Theta
-        self.PreX = None                        # Previous state feature vector
+        self.PreValueX = None                   # Previous state feature vector for value funciton.
+        self.PrePolicyX = None                  # Previous state feature vector for policy funciton.
         
         # Collect other kwargs
         self.kwargs = kwargs
@@ -419,11 +425,10 @@ class Actor_Critic(object):
         Theta = self.Theta
         kwargs = self.kwargs
         actionTuple = self.Policy(X, Theta, **kwargs)
-        self.PreX = X
         self.Initial = False
         return actionTuple
     
-    def updatePars(self, X_new, R, **kwargs):
+    def updatePars(self, NewX_value, NewX_action, R, **kwargs):
         """Update parameters including average reward (AvgR), eligible traces (Z_W & Z_T), and weight vectors for value and policy functions (W & Theta).
 
         Args:
@@ -443,9 +448,13 @@ class Actor_Critic(object):
             kwargs = {**self.kwargs, **kwargs}      # Merge two kwargs dictionaries.
             
             # Update parameters
-            delta = R - self.AvgR + V(X_new, W, **kwargs) - V(self.PreX, W, **kwargs)
+            delta = R - self.AvgR + V(NewX_value, W, **kwargs) - V(self.PreValueX, W, **kwargs)
             self.AvgR = self.AvgR + self.LR_R*delta
-            self.Z_W = self.Lambda_W * self.Z_W + V(self.PreX, W, "gradient", **kwargs)
-            self.Z_T = self.Lambda_T * self.Z_T + P(self.PreX, Theta, "gradient", **kwargs)
+            self.Z_W = self.Lambda_W * self.Z_W + V(self.PreValueX, W, "gradient", **kwargs)
+            self.Z_T = self.Lambda_T * self.Z_T + P(self.PrePolicyX, Theta, "gradient", **kwargs)
             self.W = W + self.LR_W * (self.Z_W * delta)
             self.Theta = Theta + self.LR_T * (self.Z_T * delta)
+            
+        # Record previos features
+        self.PreValueX = NewX_value
+        self.PrePolicyX = NewX_action

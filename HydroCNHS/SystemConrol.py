@@ -251,6 +251,7 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
                 if Ind_dup[par] > 0:
                     temp[par] = list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten())
                     temp[par] = [toNativePyType(val) for val in temp[par]]
+                    temp[par] = [val for val in temp[par] if val is not None]   # Ensure W, Theta, LR ... lists won't contain None. 
                 else:
                     temp[par] = toNativePyType(df.loc[par, [i]].values[0])
             Dict[i] = temp
@@ -272,39 +273,39 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
                     
     return modelDict
 
-def loadParsDFToModelDict(modelDict, DFList, SectionList):
-    raise ValueError("descript!")
-    def parseDFToDict(df):
-        def parse(i):
-            try:
-                return ast.literal_eval(i)
-            except:
-                return i    
+# def loadParsDFToModelDict(modelDict, DFList, SectionList):
+#     raise ValueError("descript!")
+#     def parseDFToDict(df):
+#         def parse(i):
+#             try:
+#                 return ast.literal_eval(i)
+#             except:
+#                 return i    
         
-        # Form a corresponding dictionary for Pars.
-        Col = [parse(i) for i in df.columns]
-        df.columns = Col
-        Ind = [i.split(".")[0] for i in df.index]
-        Ind_dup = {v: (Ind.count(v) if "." in df.index[i] else 0) for i, v in enumerate(Ind)}
-        Dict = {}
-        for i in Col:
-            Dict[i] = {par:(list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten()) if Ind_dup[par] > 0 else df.loc[par, [i]].values[0]) for par in Ind_dup}
-        return Dict
+#         # Form a corresponding dictionary for Pars.
+#         Col = [parse(i) for i in df.columns]
+#         df.columns = Col
+#         Ind = [i.split(".")[0] for i in df.index]
+#         Ind_dup = {v: (Ind.count(v) if "." in df.index[i] else 0) for i, v in enumerate(Ind)}
+#         Dict = {}
+#         for i in Col:
+#             Dict[i] = {par:(list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten()) if Ind_dup[par] > 0 else df.loc[par, [i]].values[0]) for par in Ind_dup}
+#         return Dict
     
-    modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
-    for i, df in enumerate(DFList):
-        Section = SectionList[i]
-        ParDict = parseDFToDict(df)
-        if Section == "LSM":
-            for sub in ParDict:
-                modelDict["LSM"][sub]["Pars"] = ParDict[sub]
-        elif Section == "Routing":
-            for roo in ParDict:
-                modelDict["Routing"][roo[1]][roo[0]]["Pars"] = ParDict[roo]
-        elif Section == "ABM":
-            for agagType in ParDict:
-                modelDict["ABM"][agagType[1]][agagType[0]]["Pars"] = ParDict[agagType]
-    return modelDict
+#     modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
+#     for i, df in enumerate(DFList):
+#         Section = SectionList[i]
+#         ParDict = parseDFToDict(df)
+#         if Section == "LSM":
+#             for sub in ParDict:
+#                 modelDict["LSM"][sub]["Pars"] = ParDict[sub]
+#         elif Section == "Routing":
+#             for roo in ParDict:
+#                 modelDict["Routing"][roo[1]][roo[0]]["Pars"] = ParDict[roo]
+#         elif Section == "ABM":
+#             for agagType in ParDict:
+#                 modelDict["ABM"][agagType[1]][agagType[0]]["Pars"] = ParDict[agagType]
+#     return modelDict
 #-----------------------------------------------
 
 

@@ -46,6 +46,10 @@ class Convertor(object):
             if FixedParList is not None:
                 FixedParValueList = []
                 for tup in FixedParList[i]:
+                    if tup[1] is ":":       # For all columns.
+                        tup = (tup[0], list(df))
+                    if tup[0] is ":":       # For all index.
+                        tup = (list(df.index), tup[1])
                     Value = df.loc[tup[0], tup[1]].to_numpy()
                     FixedParValueList.append(Value)
                     df.loc[tup[0], tup[1]] = None
@@ -173,6 +177,10 @@ class Convertor(object):
             # Add fixed values back
             if Formatter["FixedParList"] is not None:
                 for ii, tup in enumerate(Formatter["FixedParList"][i]):
+                    if tup[1] is ":":       # For all columns.
+                        tup = (tup[0], list(df))
+                    if tup[0] is ":":       # For all index.
+                        tup = (list(df.index), tup[1])
                     df.loc[tup[0], tup[1]] = Formatter["FixedParValueList"][i][ii]
             DFList.append(df)
         return DFList
