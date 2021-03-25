@@ -1,8 +1,7 @@
 #%%
-from .RL import Value, Policy, Actor_Critic   # RL module
 import pandas as pd
 import numpy as np
-from copy import deepcopy
+from .RL import Value, Policy, Actor_Critic   # RL module
 
 class BasicAgent(object):
     """This is a basic agent class, which defines the connection methods to couple with HydroCNHS and different AgType class.
@@ -84,7 +83,7 @@ class BasicAgent(object):
             elif DMFreq.count(-9) == 1:
                 if CurrentDate.month == DMFreq[1] and CurrentDate.day == DMFreq[2]:  # every year on m/d
                     self.Active = True
-        self.t_pre = deepcopy(self.t)
+        self.t_pre = int(self.t)
         return self.Active
     
     def act(self, Q_LSM, AgentDict, node, CurrentDate, t):
@@ -111,7 +110,10 @@ class BasicAgent(object):
             
         # Act
         Df = self.DecisionDF
-        Qin = deepcopy(self.Qin)                        # Make sure there are no pointer error.
+        # Qin = deepcopy(self.Qin)                        # Make sure there are no pointer error.
+        # Not necessary deepcopy. We have to update Q_LSM. However, we store the final routing result in Qt.
+        # So everything should be fine.
+        Qin = self.Qin
         Factor = self.Inputs["Links"][node]
         if isinstance(Factor, list):
             Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
@@ -248,7 +250,7 @@ class AgType_Reservoir(BasicAgent):
         Returns:
             array: [dP_forecast, dInflow_forecast, dResS%]
         """
-        CurrentDate = deepcopy(self.CurrentDate).replace(day=1) # convert to the day one of the month
+        CurrentDate = self.CurrentDate.replace(day=1) # convert to the day one of the month
         Scale = self.Attributions["Scale"]                       # Scale 
         
         # dP_forecast (Assume perfect forecast)
@@ -258,7 +260,7 @@ class AgType_Reservoir(BasicAgent):
         # dInflow_forecast (Assume perfect forecast from model simulation, not input)
         InflowOutlet = "S" + self.Name[-1]
         if self.QSMonthlyDF is None:    # Then we calculate QSMonthlyDF from Qin from LSM. (One time calculation.)
-            Qin = deepcopy(self.Qin)
+            Qin = self.Qin
             QS = Qin[InflowOutlet]
             rng = pd.date_range(start = self.StartDate, periods = self.DataLength, freq = "D") 
             df = pd.DataFrame({InflowOutlet: QS}, index=rng)
@@ -347,7 +349,7 @@ class AgType_Reservoir(BasicAgent):
         Records["Mu"][NumDM] = actionTuple[1]
         Records["Sig"][NumDM] = actionTuple[2]
         Records["MonthlyRelease"][NumDM] = ReleaseAction
-        CurrentDate = deepcopy(self.CurrentDate).replace(day=1)     # Convert to the day one of the month (making sure corresponding to the df index)
+        CurrentDate = self.CurrentDate.replace(day=1)     # Convert to the day one of the month (making sure corresponding to the df index)
         
         # Update reservoir storage
         ### cms -> km2-m
@@ -431,7 +433,7 @@ class AgType_IrrDiversion(BasicAgent):
         Returns:
             array: [dP_ResWTotal, dResS%]
         """
-        CurrentDate = deepcopy(self.CurrentDate).replace(month=3).replace(day=1) # convert to the day one of the month
+        CurrentDate = self.CurrentDate.replace(month=3).replace(day=1) # convert to the day one of the month
         Scale = self.Attributions["Scale"]                                       # Scale 
         
         # dP_ResWTotal (observation)

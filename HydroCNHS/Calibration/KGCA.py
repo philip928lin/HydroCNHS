@@ -4,7 +4,7 @@
 # The algorithm is based on the idea of (Poikolainen et al., 2015) DOI: 10.1016/j.ins.2014.11.026.
 # However, we simplify and modify the idea to fit our need for identifying equifinal model representatives (EMRs). 
 # 2021/03/13
-from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
+
 from scipy.stats import rankdata, truncnorm             # Rank data & Truncated normal distribution.
 from joblib import Parallel, delayed                    # For parallelization.
 from sklearn.cluster import KMeans                      # KMeans algorithm by sklearn.
@@ -17,6 +17,8 @@ import pickle
 import time
 import os
 logger = logging.getLogger("HydroCNHS.KGCA")            # Get logger 
+
+from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
 
 r"""
 Inputs = {"ParName":    [],     # List of parameters name.

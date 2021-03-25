@@ -2,10 +2,6 @@
 # Form the water system using a semi distribution hydrological model and agent-based model.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # 2021/02/05
-from .LSM import runGWLF, calPEt_Hamon, runHYMOD
-from .Routing import formUH_Lohmann, runTimeStep_Lohmann
-from .SystemConrol import loadConfig, loadModel
-from .Agent import *                    # AgType_Reservoir, AgType_IrrDiversion
 from joblib import Parallel, delayed    # For parallelization
 from pandas import date_range, to_datetime
 from tqdm import tqdm
@@ -15,6 +11,11 @@ import numpy as np
 import time
 import logging
 logger = logging.getLogger("HydroCNHS") # Get logger 
+
+from .LSM import runGWLF, calPEt_Hamon, runHYMOD
+from .Routing import formUH_Lohmann, runTimeStep_Lohmann
+from .SystemConrol import loadConfig, loadModel
+from .Agent import *                    # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
@@ -127,7 +128,7 @@ class HydroCNHSModel(object):
                                 for sb in Outlets ) 
                             
         # Add user assigned Q first.
-        self.Q_LSM = deepcopy(AssignedQ)      
+        self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
         # Collect QParel results
         for i, sb in enumerate(Outlets):
             self.Q_LSM[sb] = QParel[i]
@@ -152,7 +153,7 @@ class HydroCNHSModel(object):
             # Add user assigned UH first.
 
             # Form UH
-            self.UH_Lohmann = deepcopy(AssignedUH)
+            self.UH_Lohmann = deepcopy(AssignedUH)  # Necessary deepcopy!
             for i, pair in enumerate(UH_List_Lohmann):
                 self.UH_Lohmann[pair] = UHParel[i]
             logger.info("[{}] Complete forming UHs for Lohmann routing... [{}]".format(self.__name__, getElapsedTime()))

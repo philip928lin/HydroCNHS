@@ -5,7 +5,6 @@
 # However, we deactivate mutation_middle for DMC. This function helps convergence but restricts exploration in DMC case.
 # 2021/02/25
 
-from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
 from joblib import Parallel, delayed                 # For parallelization
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +14,8 @@ import logging
 import time
 from sklearn.cluster import KMeans
 logger = logging.getLogger("HydroCNHS.KGCA") # Get logger 
+
+from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
 
 r"""
 Need to be added sometime.

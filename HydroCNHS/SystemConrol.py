@@ -257,7 +257,7 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
             Dict[i] = temp
         return Dict
     
-    modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
+    #modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
     DFDict = parseDFToDict(DF)          # DF to Dict
     
     #Replace the original modelDict accordingly.
