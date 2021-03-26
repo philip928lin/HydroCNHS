@@ -144,11 +144,20 @@ def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, t):
     Qresult = 0
     Subbasin = list(Routing[ro].keys())
     for sb in Subbasin:
-        for j in range(T_IG + T_RR - 1):
-            # Sum over the flow contributed from upstream outlets.
-            if (t-j+1) >= 1:
-                Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
+        l = T_IG + T_RR - 1
+        UH = UH_Lohmann[(sb, ro)][0 : min(t + 1, l) ]   # t+1 is length, t is index.
+        Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
+        Qresult += np.sum(UH*Q_reverse)
     Qt = Qresult         # Store the result for time t
+    
+    # Original convolution. Slow since for loop.
+    # Qresult = 0
+    # Subbasin = list(Routing[ro].keys())
+    # for sb in Subbasin:    
+    #     for j in range(T_IG + T_RR - 1):
+    #         # Sum over the flow contributed from upstream outlets.
+    #         if t >= j:
+    #             Qresult = Qresult + UH_Lohmann[(sb, ro)][j]*Q[sb][t-j]
     #logger.debug("Complete {} outlet = {} simulation for routing at time step {}.".format(g, Qt[g], t))
     #logger.debug("Complete routing at time step {}.".format(t))
     return Qt
@@ -197,4 +206,3 @@ FlowLen = 11631
 UH = formUH_Lohmann(FlowLen, RoutePars)
 np.sum(UH)
 """
-# %%

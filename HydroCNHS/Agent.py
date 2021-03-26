@@ -1,7 +1,7 @@
 #%%
 import pandas as pd
 import numpy as np
-from .RL import Value, Policy, Actor_Critic   # RL module
+from .RL import Actor_Critic   # RL module
 
 class BasicAgent(object):
     """This is a basic agent class, which defines the connection methods to couple with HydroCNHS and different AgType class.
@@ -201,6 +201,16 @@ class AgType_Reservoir(BasicAgent):
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+            
+        # Pre-calculate Fixed daily ratio to save time.
+        FDR = self.ObvDf["FixDailyRatio"][self.Name]
+        FixDailyRatio = {}      # Each month
+        for m in range(12):
+            FixDailyRatio[m+1] = FDR[FDR.index.month == (m+1)].values.flatten() 
+            FixDailyRatio[m+1] = FixDailyRatio[m+1]/np.sum(FixDailyRatio[m+1])
+        FixDailyRatio["2Leap"] = FDR[FDR.index.month == 2].values.flatten()[:-1]    # Eliminate 2/29.
+        FixDailyRatio["2Leap"] = FixDailyRatio["2Leap"]/np.sum(FixDailyRatio["2Leap"])
+        self.FixDailyRatio = FixDailyRatio
         
     def getValueFeatureVector(self):
         """Value features = [dQG, dQC]
@@ -268,6 +278,7 @@ class AgType_Reservoir(BasicAgent):
             QSMonthlyDF = self.QSMonthlyDF
         else:
             QSMonthlyDF = self.QSMonthlyDF
+            
         QSMonthlyDF = QSMonthlyDF[self.StartDate:CurrentDate]
         QSMonthlyDFm = QSMonthlyDF[QSMonthlyDF.index.month == CurrentDate.month].values.flatten().tolist()
         dInflow_forecast = QSMonthlyDFm[-1] - np.mean(QSMonthlyDFm[-11:])  # Instead of QSMonthlyDFm[:-1][-10:], we take last 11 values including current value to avoid initial value erroe.
@@ -292,20 +303,13 @@ class AgType_Reservoir(BasicAgent):
     
     def actionToDailyOutput(self, ReleaseAction):
         # ReleaseAction = Total monthly release (cms).
-        # Note ReleaseAction here is not the action directly from actionTuple.
+        # Note ReleaseAction here is not the action directly from actionTuple.    
         
-        # Take out FixDailyRatio for specific month.
-        # Note that Feb = 29 days as default.
-        FixDailyRatio = self.ObvDf["FixDailyRatio"][self.Name]
-        FixDailyRatio = FixDailyRatio[FixDailyRatio.index.month == self.CurrentDate.month].values.flatten() 
-        
-        # Non-leap year
         if self.CurrentDate.year%4 != 0 and self.CurrentDate.month == 2:
-            FixDailyRatio = FixDailyRatio[:-1]                      # Eliminate 2/29.
-        
-        # Rescale
-        FixDailyRatio = FixDailyRatio/np.sum(FixDailyRatio)     
-        
+            FixDailyRatio = self.FixDailyRatio["2Leap"]
+        else:
+            FixDailyRatio = self.FixDailyRatio[self.CurrentDate.month]
+            
         # Distribute
         Release = ReleaseAction*len(FixDailyRatio)*FixDailyRatio            # cms
         rng = pd.date_range(start = self.CurrentDate, periods = len(FixDailyRatio), freq = "D")
@@ -400,7 +404,20 @@ class AgType_IrrDiversion(BasicAgent):
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
-            
+        
+        # Pre-calculate Fixed daily ratio to save time.
+        FixDailyRatio = {}
+        FDR = self.ObvDf["FixDailyRatio"]
+        if FDR.index[0].year != 2000:
+            FDR.index = [date.replace(year=2000) for date in FDR.index]
+        FixDailyRatio["Leap"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-29"]])
+        FixDailyRatio["Leap"] = FixDailyRatio["Leap"][self.Name].values.flatten() 
+        FixDailyRatio["Leap"] = FixDailyRatio["Leap"]/np.sum(FixDailyRatio["Leap"])  
+        FixDailyRatio["Normal"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-28"]])
+        FixDailyRatio["Normal"] = FixDailyRatio["Normal"][self.Name].values.flatten() 
+        FixDailyRatio["Normal"] = FixDailyRatio["Normal"]/np.sum(FixDailyRatio["Normal"])  
+        self.FixDailyRatio = FixDailyRatio
+        
         # Assign initial DM (before first 3/1)
         DivDf = self.actionToDailyOutput(DivAction = 1, Initial = True)
         self.DecisionDF = DivDf         # DivDf has datetime index single column.    
@@ -462,22 +479,16 @@ class AgType_IrrDiversion(BasicAgent):
         
         # Since the decision is made on 3/1, we idenfy leap year for current year + 1.
         # Note that the FixDailyRatio should start at 3/1
-        FixDailyRatio = self.ObvDf["FixDailyRatio"]
-        if FixDailyRatio.index[0].year != 2000:
-            FixDailyRatio.index = [date.replace(year=2000) for date in FixDailyRatio.index]
-        
         CurrentDate = self.CurrentDate
         if Initial is False:
             if (self.CurrentDate.year + 1)%4 != 0:
-                FixDailyRatio = pd.concat([FixDailyRatio["2000-3-1":], FixDailyRatio[:"2000-2-28"]])
+                FixDailyRatio = self.FixDailyRatio["Normal"] 
             else:
-                FixDailyRatio = pd.concat([FixDailyRatio["2000-3-1":], FixDailyRatio[:"2000-2-29"]])
-            FixDailyRatio = FixDailyRatio[self.Name].values.flatten() 
-            # Rescale
-            FixDailyRatio = FixDailyRatio/np.sum(FixDailyRatio)     
+                FixDailyRatio = self.FixDailyRatio["Leap"]   
             # Distribute
             Div = DivAction*len(FixDailyRatio)*FixDailyRatio            # cms
         else:       # For temp initial DM
+            FixDailyRatio = self.ObvDf["FixDailyRatio"]
             Div = FixDailyRatio[self.Name].values.flatten() 
             CurrentDate = self.StartDate
             
