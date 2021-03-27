@@ -32,13 +32,15 @@ GWLF = {"Inputs": {"Area":      "Required",
                  "Kc":      -99}}
 
 HYMOD = {"Inputs": {"Area":      "Required",
-                    "SnowS":     "Required"},
+                    "Latitude":  "Required",
+                    "SnowS":     "Required",
+                    "Slow":      "Required",
+                    "Fast":      ["Required","Required","Required"]},
         "Pars": {"Cmax":    -99,
                  "Bexp":    -99,
                  "Alpha":   -99,
                  "Kq":      -99,
                  "Ks":      -99,
-                 "Beta":    -99,
                  "Df":      -99}}
 
 Lohmann = {"Inputs": {"FlowLength":        "Required",

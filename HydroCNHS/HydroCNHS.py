@@ -117,16 +117,16 @@ class HydroCNHSModel(object):
                                 (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
                             
-        # Start GWLF simulation in parallel.
+        # Start HYMOD simulation in parallel.
         if self.LSM["Model"] == "HYMOD":
             logger.info("[{}] Start HYMOD for {} sub-basins. [{}]".format(self.__name__, len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets)    
             QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
                             ( delayed(runHYMOD)\
-                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
+                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["P"][sb], self.Weather["T"][sb], self.Weather["PE"][sb], self.WS["DataLength"], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
-                            
+
         # Add user assigned Q first.
         self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
         # Collect QParel results

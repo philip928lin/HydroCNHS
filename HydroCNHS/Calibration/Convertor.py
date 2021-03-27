@@ -54,6 +54,7 @@ class Convertor(object):
                     df.loc[tup[0], tup[1]] = None
                 Formatter["FixedParValueList"].append(FixedParValueList)
             # Convert to 1d array
+            df = df.replace({None: np.nan})     # Ensure when None occur in df, it will be replace by np.nan.
             VarArray = VarArray + list(df.to_numpy().flatten("C"))    # [Row1, Row2, .....
             # Add Index (where it ends in the 1D array)
             Formatter["Index"].append(len(VarArray))

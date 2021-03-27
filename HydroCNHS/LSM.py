@@ -20,16 +20,19 @@ Weather:
 Inputs:
     Area:                                     # [ha] Sub-basin area.
     SnowS:  5                                 # [cm] Snow storage.
+    Latitude:                                 # [Degree] PET by Hamon.
+    Slow: 0                                   # [cm] Initial slow tank soil moisture.
+    Fast: [0,0,0]                             # [cm] Initial fast tanks soil moisture.
 HYMODPars:                                    ## For HYMOD, we have 6 parameters.
     Cmax:                                     # [cm] Maximum storage capacity. [1, 10]
     Bexp:                                     # Degree of spatial variability of the soil moisture capacity. [0, 2]
     Alpha:                                    # Factor distributing the flow between slow and quick release reservoirs. [0.2, 0.99]
-    Kq:                                       # Residence time of the slow release reservoir. [0.5, 0.2]
+    Kq:                                       # Residence time of the slow release reservoir. [0.5, 1.2]
     Ks:                                       # Residence time of the quick release reservoirs. [0.01, 0.5]
     Df:                                       # [cm] Snow storage.
 """
 
-def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
+def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
     """HYMOD for rainfall runoff simulation with additional snow module.
         Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
     Args:
@@ -39,64 +42,34 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
         Tt (Array): [degC] Daily mean temperature.
         PEt (Array): [cm] Daily potential evaportranspiration.
         DataLength (int): Total data length.
-        InitFlow (bool, optional): Whether to calculate initial flow. Defaults to True.
-
+        
     Returns:
         [Array]: [cms] CMS (Qt)
     """
-    Cmax = HYMODPars["Cmax"]
-    Bexp = HYMODPars["Bexp"]
-    Alpha = HYMODPars["Alpha"]
-    Kq = HYMODPars["Kq"]
-    Ks = HYMODPars["Ks"]
-    Df = HYMODPars["Df"]
-    SnowSt = Inputs["SnowS"]            # [cm] Initial snow storage.
+    Cmax = HYMODPars["Cmax"]*10         # [cm to mm] Upper limit of ET resistance parameter
+    Bexp = HYMODPars["Bexp"]            # Distribution function shape parameter
+    Alpha = HYMODPars["Alpha"]          # Quick-slow split parameter
+    Kq = HYMODPars["Kq"]                # Quick flow routing tanks rate parameter
+    Ks = HYMODPars["Ks"]                # Slow flow routing tanks rate parameter
+    Df = HYMODPars["Df"]                # Snow melt coef.
+    SnowSt = Inputs["SnowS"]*10         # [cm to mm] Initial snow storage.
     
-    Pt = np.array(Pt)                   # [cm] Daily precipitation.
+    Pt = np.array(Pt)*10                # [cm to mm] Daily precipitation.
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
-    PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
+    PEt = np.array(PEt)*10              # [cm to mm] Daily potential evapotranspiration.
     
+    Smax = Cmax / (1. + Bexp)
+    error = 0
     # Initialize slow tank state
     # value of 0 init flow works ok if calibration data starts with low discharge
-    x_slow = 2.3503 / (Ks * 22.5) if InitFlow else 0
+    x_slow = Inputs["Slow"]*10              # cm to mm
     
     # Initialize state(s) of quick tank(s)
-    x_quick = np.zeros(3)
+    x_quick = np.array(Inputs["Fast"])*10   # cm to mm
     CMS = np.zeros(DataLength) # Create a 1D array to store results
     
-    def calExcess(x_loss, Cmax, Bexp, p, pet):
-        
-        def power(X,Y):
-            X=abs(X)    # Needed to capture invalid overflow with netgative values
-            return X**Y
-        
-        # This function calculates excess precipitation and evaporation
-        xn_prev = x_loss
-        ct_prev = Cmax * (1 - power( (1 - ((Bexp + 1) * (xn_prev) / Cmax)), (1 / (Bexp + 1)) ))
-        
-        # Calculate Effective rainfall 1
-        ER1 = max((p - Cmax + ct_prev), 0.0)
-        p = p - ER1
-        dummy = min(((ct_prev + p) / Cmax), 1)
-        xn = (Cmax / (Bexp + 1)) * (1 - power((1 - dummy), (Bexp + 1)))
-
-        # Calculate Effective rainfall 2
-        ER2 = max(p - (xn - xn_prev), 0)
-
-        # Alternative approach
-        evap = (1 - (((Cmax / (Bexp + 1)) - xn) / (Cmax / (Bexp + 1)))) * pet  # actual ET is linearly related to the soil moisture state
-        xn = max(xn - evap, 0)  # update state
-        return ER1, ER2, xn
-    
-    def calLinearReservoir(x, inflow, Rs):
-        # Linear reservoir
-        x = (1 - Rs) * x + (1 - Rs) * inflow
-        outflow = (Rs / (1 - Rs)) * x
-        return x, outflow
-    
-    x_loss = 0.0
     #----- START PROGRAMMING LOOP WITH DETERMINING RAINFALL - RUNOFF AMOUNTS
-    for t in range(DataLength): 
+    for i in range(DataLength): 
         
         # Snow module
         # Determine rainfall, snowfall and snow accumulation
@@ -114,23 +87,33 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength, InitFlow = True):
         
         
         # Compute excess precipitation and evaporation
-        ER1, ER2, x_loss = calExcess(x_loss, Cmax, Bexp, Rt+Mt, PEt[t])
+        ##ER1, ER2, x_loss = calExcess(x_loss, Cmax, Bexp, Rt+Mt, PEt[i])
+        
+        if s > Smax:
+            error += s - 0.999 * Smax
+            s = 0.999 * Smax
+        cprev = Cmax * (1 - np.power((1-((Bexp+1)*s/Cmax)), (1/(Bexp+1))))
+        P = Rt + Mt
+        ER1 = np.maximum(P + cprev - Cmax, 0.0) # effective rainfal part 1
+        P -= ER1
+        dummy = np.minimum(((cprev + P)/Cmax), 1)
+        s1 = (Cmax/(Bexp+1)) * (1 - np.power((1-dummy), (Bexp+1))) # new state
+        ER2 = np.maximum(P-(s1-s), 0) # effective rainfall part 2
+        evap = np.minimum(s1, s1/Smax * PEt[i]) # actual ET is linearly related to the soil moisture state
+        s = s1-evap # update state
+
         # Calculate total effective rainfall
-        ERT = ER1 + ER2
-        #  Now partition ER between quick and slow flow reservoirs
-        UQ = Alpha * ERT
-        US = (1 - Alpha) * ERT
-        # Route slow flow component with single linear reservoir
-        x_slow, QS = calLinearReservoir(x_slow, US, Ks)
-        # Route quick flow component with linear reservoirs
-        inflow = UQ
+        UQ = ER1 + Alpha * ER2 # quickflow contribution
+        US = (1 - Alpha) * ER2 # slowflow contribution
         for i in range(3):
-            # Linear reservoir
-            x_quick[i], outflow = calLinearReservoir(x_quick[i], inflow, Kq)
-            inflow = outflow
-        QQ = outflow
-        # Compute total flow and convert cm to cms.
-        CMS[t] = ((QS + QQ) * 0.01 * Inputs["Area"] * 10000) / 86400
+            x_quick[i] = (1-Kq) * x_quick[i] + (1-Kq) * UQ # forecast step
+            UQ = (Kq/(1-Kq)) * x_quick[i]
+        x_slow = (1-Ks) * x_slow + (1-Ks) * US
+        US = (Ks/(1-Ks)) * x_slow
+        Q = UQ + US
+        
+        # Compute total flow and convert mm to cms.
+        CMS[i] = (Q * 0.001 * Inputs["Area"] * 10000) / 86400
     return CMS
 
 
