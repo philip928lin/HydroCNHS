@@ -21,6 +21,7 @@ Inputs:
     Area:                                     # [ha] Sub-basin area.
     SnowS:  5                                 # [cm] Snow storage.
     Latitude:                                 # [Degree] PET by Hamon.
+    s:                                        # [cm] Initial soil moisture.
     Slow: 0                                   # [cm] Initial slow tank soil moisture.
     Fast: [0,0,0]                             # [cm] Initial fast tanks soil moisture.
 HYMODPars:                                    ## For HYMOD, we have 6 parameters.
@@ -35,6 +36,7 @@ HYMODPars:                                    ## For HYMOD, we have 6 parameters
 def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
     """HYMOD for rainfall runoff simulation with additional snow module.
         Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
+        Code: https://github.com/bartnijssen/pythonlib/blob/master/hymod.py
     Args:
         HYMODPars (dict): [description]
         Inputs (dict): [description]
@@ -58,6 +60,7 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
     PEt = np.array(PEt)*10              # [cm to mm] Daily potential evapotranspiration.
     
+    s = Inputs["s"]*10                  # cm to mm
     Smax = Cmax / (1. + Bexp)
     error = 0
     # Initialize slow tank state
