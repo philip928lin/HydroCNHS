@@ -124,7 +124,7 @@ class HydroCNHSModel(object):
             self.loadWeatherData(T, P, PE, Outlets)    
             QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
                             ( delayed(runHYMOD)\
-                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["P"][sb], self.Weather["T"][sb], self.Weather["PE"][sb], self.WS["DataLength"], self.WS["DataLength"]) \
+                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["P"][sb], self.Weather["T"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
 
         # Add user assigned Q first.
