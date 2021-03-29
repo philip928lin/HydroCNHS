@@ -95,8 +95,9 @@ class Convertor(object):
             ColNameList_d = Formatter["ColNameList"][i]
             IndexNameList_d = Formatter["IndexNameList"][i]
             # Make sure index and column is callable and identical to DFList.
-            ParTypeDFList[i].index = IndexNameList_d
-            ParTypeDFList[i].columns = ColNameList_d
+            if isinstance(ParTypeDFList[i], str) is False and ParTypeDFList[i] != "real":
+                ParTypeDFList[i].index = IndexNameList_d
+                ParTypeDFList[i].columns = ColNameList_d
             ParBoundDFList[i].index = IndexNameList_d
             ParBoundDFList[i].columns = ColNameList_d
             if ParWeightDFList is not None:
@@ -107,7 +108,10 @@ class Convertor(object):
             for par in IndexNameList_d:
                 for c in ColNameList_d:
                     ParName.append(str(par)+"|"+str(c))
-                    ParType.append(ParTypeDFList[i].loc[par,c])
+                    if isinstance(ParTypeDFList[i], str) is False and ParTypeDFList[i] != "real":
+                        ParType.append(ParTypeDFList[i].loc[par,c])
+                    else:
+                        ParType.append(ParTypeDFList[i])
                     ParBound.append(parse(ParBoundDFList[i].loc[par,c]))
                     if ParWeightDFList is None:
                         ParWeight.append(1)
