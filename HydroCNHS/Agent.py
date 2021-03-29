@@ -29,7 +29,9 @@ class BasicAgent(object):
         self.Pars = Config["Pars"]
         
         self.PlanedDMDF = None              # Results of DMFunc. DF has datetime index and single column.
-        self.ActualBehavior = []            # Store actual behavior. (inclucde some phisycal constraints.)
+        self.ActualBehavior = {}
+        for node in self.Inputs["Links"]:
+            self.ActualBehavior[node] = np.zeros(DataLength)  # Store actual behavior. (inclucde some phisycal constraints.)
         
         self.Active = None                  # Indicator for checking whether its agent's decision-making time step, which DMFunc() will be called.
         self.AssignValue = False            # Values for fixed DM, which are assigned by users. Note self.Inputs["DMFreq"] has to be None.
@@ -48,7 +50,7 @@ class BasicAgent(object):
                         raise ValueError("The StartDate has to be prior to all decision in the first year.")
         else:                   # Deterministic decision (input data)
             self.AssignValue = True
-            self.ActualBehavior = self.Attributions["ObvDfPath"]["ActualBehavior"]      # Expect to be a df.
+            
             
     def checkActiveness(self, CurrentDate):
         """checking whether its agent's decision-making time step.
@@ -111,8 +113,9 @@ class BasicAgent(object):
         
         if self.AssignValue:
             #--- User input. No DM process.
-            Qin[node][self.t] = self.ActualBehavior.loc[CurrentDate, list(self.ActualBehavior)[0]]
-            self.Qout = Qin
+            Qin[node][self.t] = self.ActualBehavior.loc[CurrentDate, self.Name]
+            #self.Qout = Qin
+            return Qin
         else:
             #--- Will have DM process
             
@@ -122,20 +125,28 @@ class BasicAgent(object):
                 self.DMFunc()
             
             #--- Act
-            Df = self.PlanedDMDF
             Factor = self.Inputs["Links"][node]
+            
             if isinstance(Factor, list):
                 Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
+                DM = self.UpdatedDM
+            else:
+                DM = self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]]
             # Hard physical constraint that the streamflow must above or equal to 0.
             # In future, minimum natural flow constraints can be plugged into here.
             # Res release constraints are implemented in its agent class.
-            Qt = max(Qin[node][self.t] + Factor * Df.loc[self.CurrentDate, list(Df)[0]], 0)
-            self.ActualBehavior.append(Qt - Qin[node][self.t])
+            Qorg = Qin[node][self.t]
+            Qt = max(Qorg + Factor * DM, 0)
+            self.ActualBehavior[node][self.t] = Qt - Qorg
+            # if Factor > 0:  # Update for the return flow     !!!!!!!!!!! This take so much time!!!
+            #    self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]] = self.ActualBehavior[node][self.t]
+            self.UpdatedDM = self.ActualBehavior[node][self.t]      # To replace above two lines to speed up.
             Qin[node][self.t] = Qt
-            self.Qout = Qin
+            return Qin
+            #self.Qout = Qin
                 
         # return the adjusted outlets' flows for routing.
-        return self.Qout
+        #return self.Qout
     
     def countNumDM(self, StartDate, EndDate, Freq):
         """Return index with corresponding Freq for self.Record.
@@ -171,57 +182,62 @@ class AgType_Reservoir(BasicAgent):
     """
     def __init__(self, Name, Config, StartDate, DataLength):
         super().__init__(Name, Config, StartDate, DataLength)
-        #--- Initialize Actor_Critic for different group!
-        ModelAssignList = self.Inputs["ModelAssignList"]      # 0~...
-        Pars = self.Pars
-        NumModel = len(set(ModelAssignList))               # Total number of different RL models.
-        self.Actor_Critic = {}
-        for m in range(NumModel):
-            ModelPars = {}
-            for k, v in Pars.items():
-                NumMPars = int(len(v)/NumModel)
-                ModelPars[k] = v[NumMPars*m: NumMPars*(m+1)]
-            self.Actor_Critic[m] = Actor_Critic(self.Inputs["RL"]["ValueFunc"], 
-                                                self.Inputs["RL"]["PolicyFunc"], 
-                                                ModelPars, **self.Inputs["RL"]["kwargs"])
-        
-        #--- Initialize Record with proper index.
-        NumDM = self.countNumDM(StartDate, StartDate + pd.DateOffset(days=self.DataLength), "M")
-        # NumDM already include the initial. countNumDM == +1
-        self.Records = {"Actions":              [None]*(NumDM),     #
-                        "MonthlyRelease":       [None]*(NumDM),
-                        "MonthlyStorage":       [None]*(NumDM),
-                        "MonthlyStoragePercent":[None]*(NumDM),
-                        "Mu":                   [None]*(NumDM),
-                        "Sig":                  [None]*(NumDM)}
-        # Assign initial values
-        self.Records["MonthlyStorage"][0] = self.Attributions["InitStorage"]
-        self.Records["MonthlyStoragePercent"][0] = self.Attributions["InitStorage"]/self.Attributions["Capacity"]*100
-        
-        #--- Dynamic release reference 10 yr moving average for each month. 
-        self.ResRef = np.zeros((10 ,12))                    # Each column store one month data and each row is one year.
-        self.ResRef[:] = np.nan 
-        self.ResRef[0,:] = self.Attributions["InitResRef"]  # A list with size 12 (month)
-        
-        # Will only count QSMonthlyDF at the first DM and store it for later usage, since the inflow will not be updated in YRB case study.
-        self.QSMonthlyDF = None         # Monthly inflow from simulation.
-        
-        self.actionTuple = None
         
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+        if self.AssignValue:
+            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
             
-        #--- Pre-calculate Fixed daily ratio to save time.
-        FDR = self.ObvDf["FixDailyRatio"][self.Name]
-        FixDailyRatio = {}      # Each month
-        for m in range(12):
-            FixDailyRatio[m+1] = FDR[FDR.index.month == (m+1)].values.flatten() 
-            FixDailyRatio[m+1] = FixDailyRatio[m+1]/np.sum(FixDailyRatio[m+1])
-        FixDailyRatio["2Leap"] = FDR[FDR.index.month == 2].values.flatten()[:-1]    # Eliminate 2/29.
-        FixDailyRatio["2Leap"] = FixDailyRatio["2Leap"]/np.sum(FixDailyRatio["2Leap"])
-        self.FixDailyRatio = FixDailyRatio
+        #--- Initialize agent DM.
+        if self.AssignValue is not True:
+            #--- Initialize Actor_Critic for different group!
+            ModelAssignList = self.Inputs["ModelAssignList"]      # 0~...
+            Pars = self.Pars
+            NumModel = len(set(ModelAssignList))               # Total number of different RL models.
+            self.Actor_Critic = {}
+            for m in range(NumModel):
+                ModelPars = {}
+                for k, v in Pars.items():
+                    NumMPars = int(len(v)/NumModel)
+                    ModelPars[k] = v[NumMPars*m: NumMPars*(m+1)]
+                self.Actor_Critic[m] = Actor_Critic(self.Inputs["RL"]["ValueFunc"], 
+                                                    self.Inputs["RL"]["PolicyFunc"], 
+                                                    ModelPars, **self.Inputs["RL"]["kwargs"])
+            
+            #--- Initialize Record with proper index.
+            NumDM = self.countNumDM(StartDate, StartDate + pd.DateOffset(days=self.DataLength), "M")
+            # NumDM already include the initial. countNumDM == +1
+            self.Records = {"Actions":              [None]*(NumDM),     #
+                            "MonthlyRelease":       [None]*(NumDM),
+                            "MonthlyStorage":       [None]*(NumDM),
+                            "MonthlyStoragePercent":[None]*(NumDM),
+                            "Mu":                   [None]*(NumDM),
+                            "Sig":                  [None]*(NumDM)}
+            # Assign initial values
+            self.Records["MonthlyStorage"][0] = self.Attributions["InitStorage"]
+            self.Records["MonthlyStoragePercent"][0] = self.Attributions["InitStorage"]/self.Attributions["Capacity"]*100
+            
+            #--- Dynamic release reference 10 yr moving average for each month. 
+            self.ResRef = np.zeros((10 ,12))                    # Each column store one month data and each row is one year.
+            self.ResRef[:] = np.nan 
+            self.ResRef[0,:] = self.Attributions["InitResRef"]  # A list with size 12 (month)
+            
+            # Will only count QSMonthlyDF at the first DM and store it for later usage, since the inflow will not be updated in YRB case study.
+            self.QSMonthlyDF = None         # Monthly inflow from simulation.
+            
+            self.actionTuple = None
+            
+            #--- Pre-calculate Fixed daily ratio to save time.
+            FDR = self.ObvDf["FixDailyRatio"][self.Name]
+            FixDailyRatio = {}      # Each month
+            for m in range(12):
+                FixDailyRatio[m+1] = FDR[FDR.index.month == (m+1)].values.flatten() 
+                FixDailyRatio[m+1] = FixDailyRatio[m+1]/np.sum(FixDailyRatio[m+1])
+            FixDailyRatio["2Leap"] = FDR[FDR.index.month == 2].values.flatten()[:-1]    # Eliminate 2/29.
+            FixDailyRatio["2Leap"] = FixDailyRatio["2Leap"]/np.sum(FixDailyRatio["2Leap"])
+            self.FixDailyRatio = FixDailyRatio
         
     def getValueFeatureVector(self):
         """Value features = [dQG, dQC]
@@ -274,11 +290,11 @@ class AgType_Reservoir(BasicAgent):
         CurrentDate = self.CurrentDate.replace(day=1) # convert to the day one of the month
         Scale = self.Attributions["Scale"]                       # Scale 
         
-        # dP_forecast (Assume perfect forecast)
+        #--- dP_forecast (Assume perfect forecast)
         dP_forecast = self.ObvDf["MonthlydPrep"].loc[CurrentDate, self.Name]
         dP_forecast = dP_forecast / Scale["dP"+self.Name]
         
-        # dInflow_forecast (Assume perfect forecast from model simulation, not input)
+        #--- dInflow_forecast (Assume perfect forecast from model simulation, not input)
         InflowOutlet = "S" + self.Name[-1]
         if self.QSMonthlyDF is None:    # Then we calculate QSMonthlyDF from Qin from LSM. (One time calculation.)
             Qin = self.Qin
@@ -295,7 +311,7 @@ class AgType_Reservoir(BasicAgent):
         dInflow_forecast = QSMonthlyDFm[-1] - np.mean(QSMonthlyDFm[-11:])  # Instead of QSMonthlyDFm[:-1][-10:], we take last 11 values including current value to avoid initial value erroe.
         dInflow_forecast = dInflow_forecast / Scale["d"+InflowOutlet]
         
-        # dResS% at last month
+        #--- dResS% at last month
         LastMonth = CurrentDate.month-1
         if LastMonth == 0: LastMonth = 12
         NumDM = self.countNumDM(self.StartDate, self.CurrentDate, "M")
@@ -398,47 +414,51 @@ class AgType_IrrDiversion(BasicAgent):
     """    
     def __init__(self, Name, Config, StartDate, DataLength):
         super().__init__(Name, Config, StartDate, DataLength)
-        #--- Initialize Actor_Critic!
-        self.Actor_Critic = Actor_Critic(self.Inputs["RL"]["ValueFunc"], 
-                                         self.Inputs["RL"]["PolicyFunc"], 
-                                         self.Pars, **self.Inputs["RL"]["kwargs"])
-        
-        #---- Initialize Record with proper index.
-        NumDM = self.countNumDM(StartDate, StartDate + pd.DateOffset(days=self.DataLength), "Y")
-        # NumDM already include the initial. countNumDM == +1
-        self.Records = {"Actions":              [None]*(NumDM),
-                        "AnnualDiv":            [None]*(NumDM),
-                        "Mu":                   [None]*(NumDM),
-                        "Sig":                  [None]*(NumDM)}
-        self.Records["AnnualDiv"][0] = self.Attributions["InitDivRef"]
-        
-        #--- Dynamic diversion reference 10 yr moving average. 
-        self.DivRef = [self.Attributions["InitDivRef"]]
-
-        self.actionTuple = None
-        
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
-        
-        #--- Pre-calculate Fixed daily ratio to save time.
-        FixDailyRatio = {}
-        FDR = self.ObvDf["FixDailyRatio"]
-        if FDR.index[0].year != 2000:
-            FDR.index = [date.replace(year=2000) for date in FDR.index]
-        FixDailyRatio["Leap"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-29"]])
-        FixDailyRatio["Leap"] = FixDailyRatio["Leap"][self.Name].values.flatten() 
-        FixDailyRatio["Leap"] = FixDailyRatio["Leap"]/np.sum(FixDailyRatio["Leap"])  
-        FixDailyRatio["Normal"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-28"]])
-        FixDailyRatio["Normal"] = FixDailyRatio["Normal"][self.Name].values.flatten() 
-        FixDailyRatio["Normal"] = FixDailyRatio["Normal"]/np.sum(FixDailyRatio["Normal"])  
-        self.FixDailyRatio = FixDailyRatio
-        
-        #--- Assign initial DM (before first 3/1)
-        DivDf = self.actionToDailyOutput(DivAction = 1, Initial = True)
-        self.PlanedDMDF = DivDf         # DivDf has datetime index single column.    
-        
+        if self.AssignValue:
+            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
+            
+        #--- Initialize agent DM.
+        if self.AssignValue is not True:
+            #--- Initialize Actor_Critic!
+            self.Actor_Critic = Actor_Critic(self.Inputs["RL"]["ValueFunc"], 
+                                            self.Inputs["RL"]["PolicyFunc"], 
+                                            self.Pars, **self.Inputs["RL"]["kwargs"])
+            
+            #---- Initialize Record with proper index.
+            NumDM = self.countNumDM(StartDate, StartDate + pd.DateOffset(days=self.DataLength), "Y")
+            # NumDM already include the initial. countNumDM == +1
+            self.Records = {"Actions":              [None]*(NumDM),
+                            "AnnualDiv":            [None]*(NumDM),
+                            "Mu":                   [None]*(NumDM),
+                            "Sig":                  [None]*(NumDM)}
+            self.Records["AnnualDiv"][0] = self.Attributions["InitDivRef"]
+            
+            #--- Dynamic diversion reference 10 yr moving average. 
+            self.DivRef = [self.Attributions["InitDivRef"]]
+
+            self.actionTuple = None
+            
+            #--- Pre-calculate Fixed daily ratio to save time.
+            FixDailyRatio = {}
+            FDR = self.ObvDf["FixDailyRatio"]
+            if FDR.index[0].year != 2000:
+                FDR.index = [date.replace(year=2000) for date in FDR.index]
+            FixDailyRatio["Leap"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-29"]])
+            FixDailyRatio["Leap"] = FixDailyRatio["Leap"][self.Name].values.flatten() 
+            FixDailyRatio["Leap"] = FixDailyRatio["Leap"]/np.sum(FixDailyRatio["Leap"])  
+            FixDailyRatio["Normal"] = pd.concat([FDR["2000-3-1":], FDR[:"2000-2-28"]])
+            FixDailyRatio["Normal"] = FixDailyRatio["Normal"][self.Name].values.flatten() 
+            FixDailyRatio["Normal"] = FixDailyRatio["Normal"]/np.sum(FixDailyRatio["Normal"])  
+            self.FixDailyRatio = FixDailyRatio
+            
+            #--- Assign initial DM (before first 3/1)
+            DivDf = self.actionToDailyOutput(DivAction = 1, Initial = True)
+            self.PlanedDMDF = DivDf         # DivDf has datetime index single column.    
+            
     def getValueFeatureVector(self):
         """Value features = [dQG]
             dQG     (annually):  self.ObvDf["AnnualFlow"].loc[LastYearDate, "G"] (Datetime index).
@@ -532,7 +552,7 @@ class AgType_IrrDiversion(BasicAgent):
         
         #--- Calculate annual divertion and update DivRef (list, keep last ten year).
         DivRef = np.mean(self.DivRef)
-        DivAction = DivRef + actionTuple[0]             # DivRef + dDiv
+        DivAction = max(DivRef + actionTuple[0], 0)      # max(DivRef + dDiv, 0) => cannot have negetive value.
         self.DivRef = self.DivRef[-9:] + [DivAction]
         
         #--- Disaggregate and store DivDF to self.PlanedDMDF.
@@ -547,42 +567,3 @@ class AgType_IrrDiversion(BasicAgent):
         Records["Sig"][NumDM] = actionTuple[2]
         Records["AnnualDiv"][NumDM] = DivAction
         self.Records = Records
-
-
-
-#%%
-# Ag1 = {
-#     "Inputs":{
-#         "Piority": 1,
-#         "DMFreq": [-9, 1, 1]},
-#     "Links":{  
-#         "S1": -1,                                  # Add to Q of outlet "A" by -1*Action
-#         "S2": 0.2},                                # Add to Q of outlet "B" by 0.2*Action
-#     "Pars":{                                    
-#         "LearnRate":  0.1,                         # RL
-#         "W":      [0.5,0.5],                       # RL
-#         "Theta":  [0.5,0.5]}}
-# ag = AgType_IrrDiversion("Ag1", Ag1, "1010")
-# ag.act(PlusOrMinus, Q_LSM, DMInfo, CurrentDate, t)
-# %%
-# def MinusFunc(self, node):
-#     """This function will be run at each t if the agent was called.
-#     """
-#     print("Here is MinusFunc")
-#     DivDf = self.PlanedDMDF
-#     Qin = deepcopy(self.Qin)        # Make sure there are no pointer error.
-#     Factor = self.Inputs["Links"][node]
-#     Qin[node][self.t] = Qin[node][self.t] + Factor * DivDf.loc[self.CurrentDate, list(DivDf)[0]]
-#     self.Qout = Qin
-    
-# def PlusFunc(self, node):
-#     """This function will be run at each t if the agent was called.
-#     """
-#     print("Here is PlusFunc")
-#     DivDf = self.PlanedDMDF
-#     Qin = deepcopy(self.Qin)        # Make sure there are no pointer error.
-#     Factor = self.Inputs["Links"][node]
-#     if isinstance(Factor, list):
-#         Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
-#     Qin[node][self.t] = Qin[node][self.t] + Factor * DivDf.loc[self.CurrentDate, list(DivDf)[0]]
-#     self.Qout = Qin
