@@ -93,14 +93,20 @@ class Plot():
                 
         fig, ax = plt.subplots()
         if isinstance(x_obv, pd.DataFrame):
-            for c in list(x_obv):
-                ax.plot(xticks, x_obv[c], label = x_label +"_"+ str(c), **kwargs)
+            for i, c in enumerate(list(x_obv)):
+                ax.plot(xticks, x_obv[c], 
+                        label = x_label +"_"+ str(c), 
+                        color = "C{}".format(i%10), 
+                        **kwargs)
         else:
             ax.plot(xticks, x_obv, label = x_label, **kwargs)
             
         if isinstance(y_sim, pd.DataFrame):
-            for c in list(y_sim):
-                ax.plot(xticks, y_sim[c], linestyle='dashed', label = y_label + "_"+ str(c), **kwargs)
+            for i, c in enumerate(list(y_sim)):
+                ax.plot(xticks, y_sim[c], linestyle='dashed', 
+                        label = y_label + "_"+ str(c), 
+                        color = "C{}".format(i%10), alpha = 0.5,
+                        **kwargs)
         else:
             ax.plot(xticks, y_sim, linestyle='dashed', label = y_label, **kwargs)
         #ax.bar(x, np.nan_to_num(y_obv-y_sim), label = "Hydromet - YAKRW", color = "red")
