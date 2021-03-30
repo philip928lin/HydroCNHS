@@ -111,27 +111,27 @@ class BasicAgent(object):
         self.t = t
         Qin = self.Qin
         
-        if self.AssignValue:
-            #--- User input. No DM process.
-            Qin[node][self.t] = self.ActualBehavior.loc[CurrentDate, self.Name]
-            #self.Qout = Qin
-            return Qin
+        # if self.AssignValue:
+        #     #--- User input. No DM process.
+        #     Qin[node][self.t] = self.ActualBehavior.loc[CurrentDate, self.Name]
+        #     #self.Qout = Qin
+        #     return Qin
+        # else:
+        #--- Will have DM process
+        
+        # If agent is active, then use RL to make decision and temporally store results in self.PlanedDMDF. 
+        # Permanent records are store in Records defined in each agent type.
+        if self.checkActiveness(CurrentDate) and self.AssignValue is False:
+            self.DMFunc()
+        
+        #--- Act
+        Factor = self.Inputs["Links"][node]
+        
+        if isinstance(Factor, list):
+            Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
+            DM = self.UpdatedDM                         # Since we need to use most updated diversion to calculate return flow.
         else:
-            #--- Will have DM process
-            
-            # If agent is active, then use RL to make decision and temporally store results in self.PlanedDMDF. 
-            # Permanent records are store in Records defined in each agent type.
-            if self.checkActiveness(CurrentDate):
-                self.DMFunc()
-            
-            #--- Act
-            Factor = self.Inputs["Links"][node]
-            
-            if isinstance(Factor, list):
-                Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
-                DM = self.UpdatedDM
-            else:
-                DM = self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]]
+            DM = self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]]
             # Hard physical constraint that the streamflow must above or equal to 0.
             # In future, minimum natural flow constraints can be plugged into here.
             # Res release constraints are implemented in its agent class.
@@ -141,9 +141,9 @@ class BasicAgent(object):
             # if Factor > 0:  # Update for the return flow     !!!!!!!!!!! This take so much time!!!
             #    self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]] = self.ActualBehavior[node][self.t]
             self.UpdatedDM = self.ActualBehavior[node][self.t]      # To replace above two lines to speed up.
-            Qin[node][self.t] = Qt
-            return Qin
-            #self.Qout = Qin
+        Qin[node][self.t] = Qt
+        return Qin
+        #self.Qout = Qin
                 
         # return the adjusted outlets' flows for routing.
         #return self.Qout
