@@ -117,3 +117,36 @@ class Plot():
         #ax.set_xticks(pd.date_range(start='1/1/1966', end='12/31/2005'))
         plt.show()
         return ax
+    
+    @staticmethod
+    def SimpleTSPlot(df, Title = None, xyLabal = None, Dot = True, **kwargs):
+        if Title is None:
+            Title = "" 
+        else:
+            Title = Title
+        
+        if xyLabal is None:
+            x_label = "Time"; y_label = "Value"
+        else:
+            x_label = xyLabal[0]; y_label = xyLabal[1]
+            
+        # Create figure
+        fig, ax = plt.subplots()
+        ax.set_title(Title)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        
+        # Regression calculation and plot
+        x = np.arange(1, len(df)+1)
+        for i, v in enumerate(df):
+            mask = ~np.isnan(df[v])  # Mask to ignore nan
+            slope, intercept, r_value, p_value, std_err = stats.linregress(x[mask], df[v][mask]) # Calculate the regression line
+            line = slope*x+intercept                # For plotting regression line
+            ax.plot(df.index, line, color = "C{}".format(i%10), label='y={:.2f}x+{:.2f}'.format(slope, intercept), linestyle = "dashed", **kwargs)
+            if Dot:
+                df[[v]].plot(ax=ax, marker='o', ls='', color = "C{}".format(i%10), ms=2, alpha = 0.6)
+            else:
+                df[[v]].plot(ax=ax, color = "C{}".format(i%10), alpha = 0.5)
+        ax.legend()     
+        plt.show()
+        return ax

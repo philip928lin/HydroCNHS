@@ -572,3 +572,15 @@ class AgType_IrrDiversion(BasicAgent):
         Records["Sig"][NumDM] = actionTuple[2]
         Records["AnnualDiv"][NumDM] = DivAction
         self.Records = Records
+
+class AgType_OtherDiv(BasicAgent):
+    def __init__(self, Name, Config, StartDate, DataLength):
+        super().__init__(Name, Config, StartDate, DataLength)
+        #--- Load ObvDf from ObvDfPath.
+        self.ObvDf = {}
+        for k, v in self.Attributions["ObvDfPath"].items():
+            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+        if self.AssignValue:
+            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
+            
+        
