@@ -139,6 +139,8 @@ def writeModelToDF(modelDict, KeyOption = ["Pars"], Prefix = ""):
     def mergeDicts(DictList):
         DictList = list(filter(None, DictList))     # Remove None
         Len = len(DictList)
+        if Len == 0:
+            return {}
         ResDict = deepcopy(DictList[0])             # !! So we won't modify original dict. 
         if Len > 1:
             for d in range(1,Len):
