@@ -532,7 +532,7 @@ class KGCA(object):
         """Auto save a snapshot of current KGCA process in case any model break down.
         """
         CaliWD = self.CaliWD
-        Snapshot = self.__dict__.copy()
+        Snapshot = self.__dict__
         with open(os.path.join(CaliWD, "AutoSave.pickle"), 'wb') as outfile:
             pickle.dump(Snapshot, outfile)#, protocol=pickle.HIGHEST_PROTOCOL)
             # About protocol: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice

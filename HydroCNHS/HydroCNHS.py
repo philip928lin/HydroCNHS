@@ -109,6 +109,7 @@ class HydroCNHSModel(object):
         
         # Start GWLF simulation in parallel.
         if self.LSM["Model"] == "GWLF":
+            self.Q_GWLF = {}
             logger.info("[{}] Start GWLF for {} sub-basins. [{}]".format(self.__name__, len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets)    
@@ -132,6 +133,8 @@ class HydroCNHSModel(object):
         # Collect QParel results
         for i, sb in enumerate(Outlets):
             self.Q_LSM[sb] = QParel[i]
+            if self.LSM["Model"] == "GWLF":
+                self.Q_GWLF[sb] = QParel[i]
         logger.info("[{}] Complete GWLF... [{}]".format(self.__name__, getElapsedTime()))
         # ---------------------------------------------------------------------    
     
@@ -230,3 +233,6 @@ class HydroCNHSModel(object):
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow outlets of in-stream agents).
         # For other variables users need to extract them manually from this class.
         return self.Q   
+    
+    def getModelObject(self):
+        return self.__dict__
