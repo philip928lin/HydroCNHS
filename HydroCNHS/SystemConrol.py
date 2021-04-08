@@ -437,9 +437,11 @@ def parseSimulationSeqence(Model):
                         BackTrackingDict[end].append(start)
     
     # Add in-stream agents connectinons if ABM sections exists.     
+    InstreamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
+                         Model["ABM"]["Inputs"]["DamDivAgentTypes"]
     if Model.get("ABM") is not None:
         ABM = Model["ABM"]
-        for agType in ["ResDamAgentTypes", "DamDivAgentTypes"]:
+        for agType in InstreamAgentTypes:
             for end in ABM[agType]:
                 Links = ABM[agType][end]["Inputs"]["Links"]
                 # Since InStreamAgents will completely redefine the streamflow, the inflow factor is defined to be -1.
@@ -591,8 +593,8 @@ def parseSimulationSeqence(Model):
                 for m in Minus:
                     # ro = searchRoutingOutlet(m)  
                     ro = m      # RiverDivAgents diverted outlets should belong to one routing outlet.
-                    createEmptyList(AgSimSeq["AgSimMinus"][ag], "RiverDivAgents")
-                    createEmptyList(Piority["AgSimMinus"][ag], "RiverDivAgents")
+                    createEmptyList(AgSimSeq["AgSimMinus"][ro], "RiverDivAgents")
+                    createEmptyList(Piority["AgSimMinus"][ro], "RiverDivAgents")
                     AgSimSeq["AgSimMinus"][ro]["RiverDivAgents"].append(ag)
                     Piority["AgSimMinus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
 
