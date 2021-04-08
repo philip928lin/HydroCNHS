@@ -121,7 +121,7 @@ def formUH_Lohmann(Inputs, RoutePars):
     #logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
     return UH_direct
 
-def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, t):
+def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, Q_LSM, t):
     """Calculate a single time step routing for the entire basin.
     Args:
         Routing (dict): Sub-model dictionary from your model.yaml file.
@@ -146,7 +146,10 @@ def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, t):
     for sb in Subbasin:
         l = T_IG + T_RR - 1
         UH = UH_Lohmann[(sb, ro)][0 : min(t + 1, l) ]   # t+1 is length, t is index.
-        Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
+        if ro == sb:    # Q[ro] is routed Q. We need to use unrouted Q (Q_LSM) to run the routing.
+            Q_reverse = np.flip(Q_LSM[sb][ max(t-(l-1), 0) : t+1])
+        else:
+            Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
         Qresult += np.sum(UH*Q_reverse)
     Qt = Qresult         # Store the result for time t
     

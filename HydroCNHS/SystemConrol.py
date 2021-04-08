@@ -175,7 +175,10 @@ def writeModelToDF(modelDict, KeyOption = ["Pars"], Prefix = ""):
         elif s == "ABM":
             DFName.append(Prefix + "ABM")
             df = pd.DataFrame()
-            AgTypes = modelDict[s]["Inputs"]["InStreamAgentTypes"]+modelDict[s]["Inputs"]["DiversionAgentTypes"]
+            AgTypes = modelDict[s]["Inputs"]["ResDamAgentTypes"]+ \
+                      modelDict[s]["Inputs"]["RiverDivAgentTypes"]+ \
+                      modelDict[s]["Inputs"]["DamDivAgentTypes"]+ \
+                      modelDict[s]["Inputs"]["InsituDivAgentTypes"]
             for agtype in AgTypes:
                 for ag in modelDict[s][agtype]:
                     DictList = [modelDict[s][agtype][ag].get(i) for i in KeyOption]
@@ -275,40 +278,6 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
                     
     return modelDict
 
-# def loadParsDFToModelDict(modelDict, DFList, SectionList):
-#     raise ValueError("descript!")
-#     def parseDFToDict(df):
-#         def parse(i):
-#             try:
-#                 return ast.literal_eval(i)
-#             except:
-#                 return i    
-        
-#         # Form a corresponding dictionary for Pars.
-#         Col = [parse(i) for i in df.columns]
-#         df.columns = Col
-#         Ind = [i.split(".")[0] for i in df.index]
-#         Ind_dup = {v: (Ind.count(v) if "." in df.index[i] else 0) for i, v in enumerate(Ind)}
-#         Dict = {}
-#         for i in Col:
-#             Dict[i] = {par:(list(df.loc[[par+"."+str(k) for k in range(Ind_dup[par])] ,[i]].to_numpy().flatten()) if Ind_dup[par] > 0 else df.loc[par, [i]].values[0]) for par in Ind_dup}
-#         return Dict
-    
-#     modelDict = deepcopy(modelDict)     # So we don't modify original Model dict.
-#     for i, df in enumerate(DFList):
-#         Section = SectionList[i]
-#         ParDict = parseDFToDict(df)
-#         if Section == "LSM":
-#             for sub in ParDict:
-#                 modelDict["LSM"][sub]["Pars"] = ParDict[sub]
-#         elif Section == "Routing":
-#             for roo in ParDict:
-#                 modelDict["Routing"][roo[1]][roo[0]]["Pars"] = ParDict[roo]
-#         elif Section == "ABM":
-#             for agagType in ParDict:
-#                 modelDict["ABM"][agagType[1]][agagType[0]]["Pars"] = ParDict[agagType]
-#     return modelDict
-#-----------------------------------------------
 
 
 #-----------------------------------------
@@ -374,52 +343,67 @@ def checkInStreamAgentInRouting(Model):
     # Untest yet
     Routing = Model["Routing"]
     
-    # Add InStreamAgents for routing model check if ABM and Routing exists.
-    InStreamAgentInflows = []        # In-stream agents
-    InStreamAgentTypes = Model["ABM"]["Inputs"]["InStreamAgentTypes"]
-    for ISagType in InStreamAgentTypes:
+    # Add NeedRoutingAgents for routing model check if ABM and Routing exists.
+    ## Note that NeedRoutingAgents include ResDamAgentTypes, RiverDivAgentTypes, and DamDivAgentTypes but not InsituDivAgentTypes.
+    NeedRoutingAgentInflows = []        # In-stream agents
+    NeedRoutingAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
+                            Model["ABM"]["Inputs"]["RiverDivAgentTypes"]+ \
+                            Model["ABM"]["Inputs"]["DamDivAgentTypes"]
+    for ISagType in NeedRoutingAgentTypes:
         for ag in Model["ABM"][ISagType]:
             Links = Model["ABM"][ISagType][ag]["Inputs"]["Links"]
-            InStreamAgentInflows += [outlet for outlet in Links if Links[outlet] == -1]
-    InStreamAgentInflows = list(set(InStreamAgentInflows))        # Eliminate duplicates.
+            NeedRoutingAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
+    NeedRoutingAgentInflows = list(set(NeedRoutingAgentInflows))        # Eliminate duplicates.
     #Model["SystemParsedData"]["InStreamAgentInflows"] = InStreamAgentInflows   # Add to system parsed data.
 
     # Check InStreamAgents' inflow outlets are in RoutingOutlets
     RoutingOutlets = list(Routing.keys())
     RoutingOutlets.remove('Model')  
-    for vro in InStreamAgentInflows:
+    for vro in NeedRoutingAgentInflows:
         if vro not in RoutingOutlets:
             logger.error("[Check model failed] Cannot find in-stream agent's inflow outlets in the Routing section. Routing outlets should include {}.".format(vro))
             return False
-    else:
-        for end in InStreamAgentInflows:
-            for start in Routing[end]:
+        else:
+            for start in Routing[vro]:
                 # Check if start belong to others RoutingOutlets' starts.
                 for ro in RoutingOutlets:
-                    if ro != end:
+                    if ro != vro:
                         if any( start in others for others in Routing[ro] ):
-                            if ro in Routing[end]:  # If it is in the upstream of VirROutlet, it is fine.
+                            if ro in Routing[vro]:  # If it is in the upstream of VirROutlet, it is fine.
                                 pass
                             else:
-                                logging.error("[Check model failed] {} sub-basin outlet shouldn't be in {}'s (routing outlet) catchment outlets due to the seperation of in-stream control agents.".format(start, end, ro))
-                                return False
-        return True
+                                logging.error("[Check model failed] {} sub-basin outlet shouldn't be in {}'s (routing outlet) catchment outlets due to the seperation of in-stream control agents.".format(start, vro, ro))
+                                return False           
+    return True
 
 def parseSimulationSeqence(Model):
-    SystemParsedData = Model["SystemParsedData"]
-    SystemParsedData["SimSeq"] = None
-    SystemParsedData["AgSimSeq"] = None
-    SystemParsedData["RoutingOutlets"] = None
-    SystemParsedData["InStreamAgents"] = None
+    Model["SystemParsedData"]["SimSeq"] = None
+    Model["SystemParsedData"]["AgSimSeq"] = None
+    Model["SystemParsedData"]["RoutingOutlets"] = None
+    Model["SystemParsedData"]["ResDamAgents"] = None
+    Model["SystemParsedData"]["DamDivAgents"] = None
+    Model["SystemParsedData"]["RiverDivAgents"] = None
+    Model["SystemParsedData"]["InStreamAgents"] = None
+    Model["SystemParsedData"]["BackTrackingDict"] = None
+    Model["SystemParsedData"]["Edges"] = None
     
     #----- Collect in-stream agents
-    InStreamAgents = []
+    ## In-stream agents here mean, those agents will redefine the streamflow completely.
+    ## which RiverDivAgentTypes, in our definition, only modify the streamflow.
+    
+    InStreamAgents = []     # Contain only "ResDamAgentTypes" and "DamDivAgentTypes".
     if Model.get("ABM") is not None:
         ABM = Model["ABM"]
-        for agType in ABM["Inputs"]["InStreamAgentTypes"]:
-            for end in ABM[agType]:
-                InStreamAgents.append(end)
-        Model["SystemParsedData"]["InStreamAgents"] = InStreamAgents
+        for AgTypes in ["ResDamAgentTypes", "DamDivAgentTypes", "RiverDivAgentTypes"]:    
+            Agents = []
+            for agType in Model["ABM"]["Inputs"][AgTypes]:
+                for end in ABM[agType]:
+                    if AgTypes != "RiverDivAgentTypes":     # "RiverDivAgentTypes" since we can multiple ag divert from the same gauge. We modify streamflow directly.
+                        InStreamAgents.append(end)
+                    Agents.append(end)
+            Model["SystemParsedData"][AgTypes[:-5] + "s"] = Agents
+    Model["SystemParsedData"]["InStreamAgents"] = InStreamAgents    # Always have InStreamAgents no matter whether ABM section exists.
+
         
     #----- Step1: Form the simulation sequence of routing outlets and in-stream control agents -----
     # Collected edges and track-back dictionary. 
@@ -433,7 +417,8 @@ def parseSimulationSeqence(Model):
             if start == end:
                 pass   # We don't add self edge. 
             else:
-                if start in RoutingOutlets+InStreamAgents: # Eliminate only-sub-basin outlets. If need full stream node sequence, remove this.
+                # Eliminate only-sub-basin outlets. If need full stream node sequence, remove this.
+                if start in RoutingOutlets + InStreamAgents: 
                     Edges.append((start, end))
                     if BackTrackingDict.get(end) is None:
                         BackTrackingDict[end] = [start]
@@ -443,16 +428,23 @@ def parseSimulationSeqence(Model):
     # Add in-stream agents connectinons if ABM sections exists.     
     if Model.get("ABM") is not None:
         ABM = Model["ABM"]
-        for agType in ABM["Inputs"]["InStreamAgentTypes"]:
+        for agType in Model["SystemParsedData"]["InStreamAgents"]:
             for end in ABM[agType]:
                 Links = ABM[agType][end]["Inputs"]["Links"]
-                InflowNodes = [ node for node in Links if Links[node] == -1] 
+                # Since InStreamAgents will completely redefine the streamflow, the inflow factor is defined to be -1.
+                # Note that we will not use this factor anywhere in the simulation.
+                # end != node condition is designed for DamDivAgentTypes, where its DM is diversion that has factor equal to -1 or < 0 as well.
+                # We don't want those edges (e.g. (end, end)) to ruin the simulation sequence formation.
+                InflowNodes = [ node for node in Links if Links[node] == -1 and end != node] 
                 for start in InflowNodes:
                     Edges.append((start, end))
                     if BackTrackingDict.get(end) is None:
                         BackTrackingDict[end] = [start]
                     else:
                         BackTrackingDict[end].append(start)
+    Model["SystemParsedData"]["BackTrackingDict"] = BackTrackingDict
+    Model["SystemParsedData"]["Edges"] = Edges
+    
     
     # Back tracking to form simulation sequence.        
     def formSimSeq(Node, BackTrackingDict, RoutingOutlets):
@@ -513,19 +505,22 @@ def parseSimulationSeqence(Model):
     if BackTrackingDict == {}:      # If there is only a single outlet!
         SimSeq = RoutingOutlets
     else:
+        # end nodes - start nodes = last node. 
         LastNode = list(set(BackTrackingDict.keys()) - set([i[0] for i in Edges]))[0]   
         SimSeq = formSimSeq(LastNode, BackTrackingDict, RoutingOutlets)
-    SystemParsedData["SimSeq"] = SimSeq
-    # Sort RoutingOutlets to SimSeq
-    SystemParsedData["RoutingOutlets"] = [ro for ro in SimSeq if ro in RoutingOutlets] 
+    Model["SystemParsedData"]["SimSeq"] = SimSeq
+    # Sort RoutingOutlets based on SimSeq
+    Model["SystemParsedData"]["RoutingOutlets"] = [ro for ro in SimSeq if ro in RoutingOutlets] 
     #-----------------------------------------------------------------------------------------------
     
     #----- Step2: Form AgSim dictionary -----
     # Aggregate to only SimSeq's node. 
     if Model.get("ABM") is not None:
-        InStreamAgentTypes = Model["ABM"]["Inputs"]["InStreamAgentTypes"]
-        DiversionAgentTypes = Model["ABM"]["Inputs"]["DiversionAgentTypes"]
-        RoutingOutlets = SystemParsedData["RoutingOutlets"]     # Ordered
+        ResDamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]
+        RiverDivAgentTypes = Model["ABM"]["Inputs"]["RiverDivAgentTypes"]
+        DamDivAgentTypes = Model["ABM"]["Inputs"]["DamDivAgentTypes"]
+        InsituDivAgentTypes = Model["ABM"]["Inputs"]["InsituDivAgentTypes"]
+        RoutingOutlets = Model["SystemParsedData"]["RoutingOutlets"]     # Ordered
         
         def searchRoutingOutlet(agQ):
             """Find in which routing outlet first need agQ to adjust original Q. (from upstream).
@@ -539,21 +534,36 @@ def parseSimulationSeqence(Model):
             for ro in RoutingOutlets:
                 if agQ in Routing[ro]:
                     return ro
-
+        def createEmptyList(Dict, key):
+            if Dict.get(key) is None:
+                Dict[key] = []
+                
         AgSimSeq = {}              ; Piority = {}
         AgSimSeq["AgSimMinus"] = {}; Piority["AgSimMinus"] = {}
         AgSimSeq["AgSimPlus"] = {} ; Piority["AgSimPlus"] = {}
         for ss in SimSeq:
-            AgSimSeq["AgSimMinus"][ss] = []; Piority["AgSimMinus"][ss] = []
-            AgSimSeq["AgSimPlus"][ss] = [] ; Piority["AgSimPlus"][ss] = []
+            AgSimSeq["AgSimMinus"][ss] = {}; Piority["AgSimMinus"][ss] = {}
+            AgSimSeq["AgSimPlus"][ss] = {} ; Piority["AgSimPlus"][ss] = {}
         
-        for agType in InStreamAgentTypes:
+        for agType in ResDamAgentTypes:
+            # Note that in-stream agent (ag) will be in SimSeq
             for ag in Model["ABM"][agType]:
+                createEmptyList(AgSimSeq["AgSimPlus"][ag], "ResDamAgents")
+                createEmptyList(Piority["AgSimPlus"][ag], "ResDamAgents")
                 # No AgSimMinus is needed since in-stream agents replace original streamflow.
-                AgSimSeq["AgSimPlus"][ag].append(ag)
-                Piority["AgSimPlus"][ag].append(0)  # In-stream agent always has piority 0.
+                AgSimSeq["AgSimPlus"][ag]["ResDamAgents"].append(ag)
+                Piority["AgSimPlus"][ag]["ResDamAgents"].append(0)  # In-stream agent always has piority 0.
                 
-        for agType in DiversionAgentTypes:
+        for agType in DamDivAgentTypes:
+            # Note that in-stream agent (ag) will be in SimSeq
+            for ag in Model["ABM"][agType]:
+                createEmptyList(AgSimSeq["AgSimPlus"][ag], "DamDivAgents")
+                createEmptyList(Piority["AgSimPlus"][ag], "DamDivAgents")
+                # No AgSimMinus is needed since in-stream agents replace original streamflow.
+                AgSimSeq["AgSimPlus"][ag]["DamDivAgents"].append(ag)
+                Piority["AgSimPlus"][ag]["DamDivAgents"].append(0)  # In-stream agent always has piority 0.
+        
+        for agType in RiverDivAgentTypes:
             for ag in Model["ABM"][agType]:
                 Links = Model["ABM"][agType][ag]["Inputs"]["Links"]
                 # "list" is our special offer to calibrate return flow factor (Inputs).
@@ -562,26 +572,50 @@ def parseSimulationSeqence(Model):
                 Plus = list(filter(None, Plus))         # Drop None in a list.
                 Minus = list(filter(None, Minus))       # Drop None in a list.
                 for p in Plus:
-                    ro = searchRoutingOutlet(p)
-                    AgSimSeq["AgSimPlus"][ro].append(ag)
-                    Piority["AgSimPlus"][ro].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    ro = searchRoutingOutlet(p)     # Return flow can be added to non-routing outlets. So we need to find the associate routing outlet in the SimSeq.
+                    createEmptyList(AgSimSeq["AgSimPlus"][ro], "RiverDivAgents")
+                    createEmptyList(Piority["AgSimPlus"][ro], "RiverDivAgents")
+                    AgSimSeq["AgSimPlus"][ro]["RiverDivAgents"].append(ag)
+                    Piority["AgSimPlus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
                 for m in Minus:
-                    ro = searchRoutingOutlet(m)
-                    AgSimSeq["AgSimMinus"][ro].append(ag)
-                    Piority["AgSimMinus"][ro].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    # ro = searchRoutingOutlet(m)  
+                    ro = m      # RiverDivAgents diverted outlets should belong to one routing outlet.
+                    createEmptyList(AgSimSeq["AgSimMinus"][ag], "RiverDivAgents")
+                    createEmptyList(Piority["AgSimMinus"][ag], "RiverDivAgents")
+                    AgSimSeq["AgSimMinus"][ro]["RiverDivAgents"].append(ag)
+                    Piority["AgSimMinus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
 
+        for agType in InsituDivAgentTypes:
+            # InsituDivAgentTypes is a simple diversion agent type, which only divert water from a single sub-basin.
+            # Runoff of the max(sub-basin - InsituDiv, 0)
+            # Note that it divert from runoff of a single sub-basin not river and no return flow option.
+            for ag in Model["ABM"][agType]:
+                Links = Model["ABM"][agType][ag]["Inputs"]["Links"]
+                # No special "list"offer to calibrate return flow factor (Inputs).
+                # No return flow option. 
+                Minus = [p for p in Links if Links[p] <= 0]
+                for m in Minus:
+                    ro = searchRoutingOutlet(m)  
+                    createEmptyList(AgSimSeq["AgSimMinus"][ro], "InsituDivAgents")
+                    createEmptyList(Piority["AgSimMinus"][ro], "InsituDivAgents")
+                    AgSimSeq["AgSimMinus"][ro]["InsituDivAgents"].append(ag)
+                    Piority["AgSimMinus"][ro]["InsituDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    
         # Sort agents based on their piorities               
         for pm in AgSimSeq:
-            for ro in AgSimSeq[pm]:
-                Agents = AgSimSeq[pm][ro]
-                Piorities = Piority[pm][ro]
-                Agents = [ag for _,ag in sorted(zip(Piorities,Agents))]
-                AgSimSeq[pm][ro] = list(set(Agents))    # Remove duplicated ags.
+            for AgTypes in AgSimSeq[pm]:
+                for ro in AgSimSeq[pm][AgTypes]:
+                    Agents = AgSimSeq[pm][AgTypes][ro]
+                    Piorities = Piority[pm][AgTypes][ro]
+                    Agents = [ag for _,ag in sorted(zip(Piorities,Agents))]
+                    AgSimSeq[pm][AgTypes][ro] = list(set(Agents))    # Remove duplicated ags.
 
-        SystemParsedData["AgSimSeq"] = AgSimSeq    
+        Model["SystemParsedData"]["AgSimSeq"] = AgSimSeq    
         #----------------------------------------
-    Model["SystemParsedData"] = SystemParsedData
-    ParsedModelSummary = Dict2String(SystemParsedData, Indentor = "  ")
+    SummaryDict = {}
+    for i in ["SimSeq","RoutingOutlets","ResDamAgents","DamDivAgents","RiverDivAgents","InStreamAgents","AgSimSeq"]:
+        SummaryDict[i] = Model["SystemParsedData"][i]
+    ParsedModelSummary = Dict2String(SummaryDict, Indentor = "  ")
     logger.info("Parsed model data summary:\n" + ParsedModelSummary)
     return Model
 #-------------------------------------

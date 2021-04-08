@@ -14,29 +14,31 @@ class BasicAgent(object):
             Name (str): Agent name.
             Config (dict): Model setting dictionary for specific agent.
             StartDate (datetime): Start date of the HydroCNHS simulation.
+            DataLength (int): Simulation data length.
         """
         self.Name = Name                    # Agent name.   
-        self.Qin = None                     # Input outlets' flows.
-        self.Qout = None                    # Updated outlets' flows.
-        self.DMInfo = None                  # Whatever infomation in a dictionary could be used by agent to make decision.
         self.StartDate = StartDate          # Datetime object.
         self.CurrentDate = None             # Datetime object.
         self.t = None                       # Current time step index.
         self.t_pre = None                   # Record last t that "act()" is called, which make sure DMFunc() will only be called once in a single time step.
+        self.Q = None                     # Input outlets' flows.
+        self.Qout = None                    # Updated outlets' flows.
+        self.DMInfo = None                  # Whatever infomation in a dictionary could be used by agent to make decision.
         self.DataLength = DataLength
         self.Inputs = Config["Inputs"]
         self.Attributions = Config.get("Attributions")
         self.Pars = Config["Pars"]
         
         self.PlanedDMDF = None              # Results of DMFunc. DF has datetime index and single column.
-        self.ActualBehavior = {}
+        self.AssignedBehavior = None        # For assigned DM, self.AssignedBehavior.loc[CurrentDate, self.Name].
+        self.ActualBehavior = {}            # ActualBehavior records the actual behavior considerring the physical constraints.    
         for node in self.Inputs["Links"]:
             self.ActualBehavior[node] = np.zeros(DataLength)  # Store actual behavior. (inclucde some phisycal constraints.)
         
         self.Active = None                  # Indicator for checking whether its agent's decision-making time step, which DMFunc() will be called.
         self.AssignValue = False            # Values for fixed DM, which are assigned by users. Note self.Inputs["DMFreq"] has to be None.
         
-        # Raise error (Now the StartDate has to be prior to all decision in the first year).
+        # Raise error (Now, the StartDate has to be prior to all decision in the first year).
         DMFreq = self.Inputs["DMFreq"]
         if DMFreq is not None:  # If the agent is alive.
             if DMFreq.count(None) == 0:
@@ -92,40 +94,38 @@ class BasicAgent(object):
         self.t_pre = int(self.t)
         return self.Active
     
-    def act(self, Q_LSM, AgentDict, node, CurrentDate, t):
+    def act(self, Q, AgentDict, node, CurrentDate, t):
         """For agent to update outlet flows.
 
         Args:
-            PlusOrMinus (str): "Plus" or "Minus".
-            Q_LSM (array): Input outlets' flows.
-            DMInfo (dict): Whatever infomation that will be used by agent to make decision.
+            Q (array): Input outlets' flows.
+            AgentDict (dict): Contain all agents' information.
             CurrentDate (datetime): Current date.
             t (int): Time step index.
 
         Returns:
-            array: Adjusted outlets' flows for routing.
+            array: Updated Q.
         """
-        self.Qin = Q_LSM
+        self.Q = Q
         self.AgentDict = AgentDict
         self.CurrentDate = CurrentDate
         self.t = t
-        Qin = self.Qin
+        Q = self.Q
         
         if self.AssignValue:
             #--- User input. No DM process.
             Factor = self.Inputs["Links"][node]
-            if isinstance(Factor, list):
+            if isinstance(Factor, list):    # For parameterized (for calibration) return flow factor.
                 Factor = self.Pars[Factor[0]][Factor[1]]
-            DM = self.ActualBehavior.loc[CurrentDate, self.Name]
-            Qorg = Qin[node][self.t]
+            DM = self.AssignedBehavior.loc[CurrentDate, self.Name]
+            Qorg = Q[node][self.t]
             Qt = max(Qorg + Factor * DM, 0)
-            # self.ActualBehavior[node][self.t] = Qt - Qorg
+            self.ActualBehavior[node][self.t] = Qt - Qorg
             # self.UpdatedDM = self.ActualBehavior[node][self.t]      # Don't update if DM is given
-            Qin[node][self.t] = Qt
-            return Qin
+            Q[node][self.t] = Qt
+            return Q
         else:
             #--- Will have DM process
-            
             # If agent is active, then use RL to make decision and temporally store results in self.PlanedDMDF. 
             # Permanent records are store in Records defined in each agent type.
             if self.checkActiveness(CurrentDate):
@@ -133,26 +133,23 @@ class BasicAgent(object):
             
             #--- Act
             Factor = self.Inputs["Links"][node]
-            
             if isinstance(Factor, list):
                 Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
                 DM = self.UpdatedDM                         # Since we need to use most updated diversion to calculate return flow.
             else:
                 DM = self.PlanedDMDF.loc[self.CurrentDate, list(self.PlanedDMDF)[0]]
-            # Hard physical constraint that the streamflow must above or equal to 0.
+                
+            # Hard physical constraint (minimum flow) that the streamflow must above or equal to 0.
             # In future, minimum natural flow constraints can be plugged into here.
             # Res release constraints are implemented in its agent class.
-            Qorg = Qin[node][self.t]
+            Qorg = Q[node][self.t]
             Qt = max(Qorg + Factor * DM, 0)
             self.ActualBehavior[node][self.t] = Qt - Qorg
-            self.UpdatedDM = self.ActualBehavior[node][self.t]      # To replace above two lines to speed up.
-            Qin[node][self.t] = Qt
-            return Qin
-            #self.Qout = Qin
-                
-        # return the adjusted outlets' flows for routing.
-        #return self.Qout
-    
+            self.UpdatedDM = self.ActualBehavior[node][self.t]      # Save for ruturn flow.
+            Q[node][self.t] = Qt
+            
+            return Q
+
     def countNumDM(self, StartDate, EndDate, Freq):
         """Return index with corresponding Freq for self.Record.
             We deal the initial value in agents init when the first DM in a year is before the StartDate.
@@ -191,9 +188,9 @@ class AgType_Reservoir(BasicAgent):
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
-            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
         if self.AssignValue:
-            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
+            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]      # Expect to be a df.
             
         #--- Initialize agent DM.
         if self.AssignValue is not True:
@@ -251,7 +248,7 @@ class AgType_Reservoir(BasicAgent):
         Returns:
             array: [dQG, dQC]
         """
-        Qin = self.Qin
+        Q = self.Q
         LastMonthDate = self.CurrentDate - pd.DateOffset(months=1)
         Scale = self.Attributions["Scale"]                              
         
@@ -261,7 +258,7 @@ class AgType_Reservoir(BasicAgent):
                 dQC = 0
             else:
                 C_obv = self.ObvDf["MonthlyFlow"].loc[LastMonthDate, "C1"]          # cms (average)
-                C = np.mean(Qin["C1"][:self.t-1][-LastMonthDate.daysinmonth:])  # cms (average)
+                C = np.mean(Q["C1"][:self.t-1][-LastMonthDate.daysinmonth:])  # cms (average)
                 dQC = (C - C_obv) / Scale["C1"]
         elif self.Name == "R2" or self.Name == "R3":
             
@@ -269,7 +266,7 @@ class AgType_Reservoir(BasicAgent):
                 dQC = 0
             else:
                 C_obv = self.ObvDf["MonthlyFlow"].loc[LastMonthDate, "C2"]          # cms (average)
-                C = np.mean(Qin["C2"][:self.t-1][-LastMonthDate.daysinmonth:]) 
+                C = np.mean(Q["C2"][:self.t-1][-LastMonthDate.daysinmonth:]) 
                 dQC = (C - C_obv) / Scale["C2"]
         
         #--- dQG    
@@ -277,7 +274,7 @@ class AgType_Reservoir(BasicAgent):
             dQG = 0
         else:   
             G_obv = self.ObvDf["MonthlyFlow"].loc[LastMonthDate, "G"]               # cms (average)  
-            G = np.mean(Qin["G"][:self.t-1][-LastMonthDate.daysinmonth:])           # cms (average) 
+            G = np.mean(Q["G"][:self.t-1][-LastMonthDate.daysinmonth:])           # cms (average) 
             dQG = (G - G_obv) / Scale["G"]
         
         X_value = np.array( [dQG, dQC] ).reshape((-1,1))    # Ensure a proper dimension for RL
@@ -286,7 +283,7 @@ class AgType_Reservoir(BasicAgent):
     def getPolicyFeatureVector(self):
         """Policy features = [dP_forecast, dInflow_forecast, dResS%]
             dP_forecast         (monthly):  self.ObvDf["MonthlydPrep"] at CurrentDate (month).
-            dInflow_forecast    (monthly):  self.Qin (daily to monthly) at CurrentDate (month).
+            dInflow_forecast    (monthly):  self.Q (daily to monthly) at CurrentDate (month).
             dResS%              (monthly):  self.AgentDict[r].Records["MonthlyStoragePercent"][self.t - 1] (previous day).
                                             ResRef: self.AgentDict[r].ResRef (list of 12 ref ResS% for each month)
         Returns:
@@ -301,9 +298,9 @@ class AgType_Reservoir(BasicAgent):
         
         #--- dInflow_forecast (Assume perfect forecast from model simulation, not input)
         InflowOutlet = "S" + self.Name[-1]
-        if self.QSMonthlyDF is None:    # Then we calculate QSMonthlyDF from Qin from LSM. (One time calculation.)
-            Qin = self.Qin
-            QS = Qin[InflowOutlet]
+        if self.QSMonthlyDF is None:    # Then we calculate QSMonthlyDF from Q from LSM. (One time calculation.)
+            Q = self.Q
+            QS = Q[InflowOutlet]
             rng = pd.date_range(start = self.StartDate, periods = self.DataLength, freq = "D") 
             df = pd.DataFrame({InflowOutlet: QS}, index=rng)
             self.QSMonthlyDF = df.resample("MS").mean()
@@ -422,9 +419,9 @@ class AgType_IrrDiversion(BasicAgent):
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
-            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
         if self.AssignValue:
-            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
+            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]      # Expect to be a df.
             
         #--- Initialize agent DM.
         if self.AssignValue is not True:
@@ -471,14 +468,14 @@ class AgType_IrrDiversion(BasicAgent):
             array: [dQG]
         """
         Scale = self.Attributions["Scale"]   
-        Qin = self.Qin
+        Q = self.Q
         LastYearDate = (self.CurrentDate - pd.DateOffset(years=1)).replace(month=3).replace(day=1)
 
         if self.countNumDM(self.StartDate, self.CurrentDate, "Y") == 1: # Assume the first DM has no 0 value feature.
             dQG = 0
         else:    
             G_obv = self.ObvDf["AnnualFlow"].loc[LastYearDate, "G"]     # cms (average)
-            G = np.mean(Qin["G"][:self.t-1][-365:])                     # cms (average) Ignore leap year thing.
+            G = np.mean(Q["G"][:self.t-1][-365:])                     # cms (average) Ignore leap year thing.
             dQG = (G - G_obv) / Scale["G"]
         
         X_value = np.array( [dQG] ).reshape((-1,1))    # Ensure a proper dimension for RL
@@ -579,8 +576,8 @@ class AgType_OtherDiv(BasicAgent):
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
-            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0)
+            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
         if self.AssignValue:
-            self.ActualBehavior = self.ObvDf["ActualBehavior"]      # Expect to be a df.
+            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]      # Expect to be a df.
             
         

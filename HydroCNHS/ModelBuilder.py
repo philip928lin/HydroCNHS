@@ -170,7 +170,7 @@ class ModelBuilder(object):
 
         Args:
             GaugedOutletsDict (dict): {Gauged outlet: A list of outlets of streamflow contributors.}
-            InstreamControls (list, optional): A list of instream controls' name. Defaults to [].
+            InstreamControls (list, optional): A list of instream controls' name (ResDamAgentTypes & DamDivAgentTypes). Defaults to [].
             model (str, optional): Routing model. Defaults to "Lohmann".
         """
         if self.Model.get("LSM") is None:
@@ -209,17 +209,19 @@ class ModelBuilder(object):
             self.Model["Routing"][o][o]["Pars"]["Velo"] = None
             self.Model["Routing"][o][o]["Pars"]["Diff"] = None
         
-    def addInStreamAgents(self, AgentDict, Templete = None):
-        """Add instream agents (controls).
+    def addResDamAgents(self, AgentDict, Templete = None):
+        """Add ResDamAgents
 
         Args:
             AgentDict (dict): {AgType: A list of agent name.}
             Templete (dict, optional): Templete dictionary. Defaults to None.
         """
         if self.Model.get("ABM") is None:
-            self.Model["ABM"] = {"Inputs": {"InStreamAgentTypes":  [],     
-                                            "DiversionAgentTypes": []}}
-        self.Model["ABM"]["Inputs"]["InStreamAgentTypes"] = list(AgentDict.keys())
+            self.Model["ABM"] = {"Inputs": {"ResDamAgentTypes":  [],     
+                                            "RiverDivAgentTypes": [],
+                                            "DamDivAgentTypes": [],
+                                            "InsituDivAgentTypes": []}}
+        self.Model["ABM"]["Inputs"]["ResDamAgentTypes"] = list(AgentDict.keys())
         
         if Templete is None:
             Agent_templete = ResAgent   # Customize for YRB.
@@ -237,12 +239,76 @@ class ModelBuilder(object):
             if agType != "Inputs":
                 count += len(agList)
         self.Model["WaterSystem"]["NumAgents"] = count
-    
-    def addInDiversionAgents(self, AgentDict, Templete = None):
+
+    def addRiverDivAgents(self, AgentDict, Templete = None):
+        """Add RiverDivAgents
+
+        Args:
+            AgentDict (dict): {AgType: A list of agent name.}
+            Templete (dict, optional): Templete dictionary. Defaults to None.
+        """
         if self.Model.get("ABM") is None:
-            self.Model["ABM"] = {"Inputs": {"InStreamAgentTypes":  [],     
-                                            "DiversionAgentTypes": []}}
-        self.Model["ABM"]["Inputs"]["DiversionAgentTypes"] = list(AgentDict.keys())
+            self.Model["ABM"] = {"Inputs": {"ResDamAgentTypes":  [],     
+                                            "RiverDivAgentTypes": [],
+                                            "DamDivAgentTypes": [],
+                                            "InsituDivAgentTypes": []}}
+        self.Model["ABM"]["Inputs"]["RiverDivAgentTypes"] = list(AgentDict.keys())
+        
+        if Templete is None:
+            Agent_templete = ResAgent   # Customize for YRB.
+        else:
+            Agent_templete = Templete
+        
+        for agType, agList in AgentDict.items():
+            self.Model["ABM"][agType] = {}
+            for ag in agList:
+                self.Model["ABM"][agType][ag] = deepcopy(Agent_templete)
+
+        # Update WaterSyetem 
+        count = 0
+        for agType, agList in self.Model["ABM"].items():
+            if agType != "Inputs":
+                count += len(agList)
+        self.Model["WaterSystem"]["NumAgents"] = count
+        
+    def addDamDivAgents(self, AgentDict, Templete = None):
+        """Add DamDivAgents
+
+        Args:
+            AgentDict (dict): {AgType: A list of agent name.}
+            Templete (dict, optional): Templete dictionary. Defaults to None.
+        """
+        if self.Model.get("ABM") is None:
+            self.Model["ABM"] = {"Inputs": {"ResDamAgentTypes":  [],     
+                                            "RiverDivAgentTypes": [],
+                                            "DamDivAgentTypes": [],
+                                            "InsituDivAgentTypes": []}}
+        self.Model["ABM"]["Inputs"]["DamDivAgentTypes"] = list(AgentDict.keys())
+        
+        if Templete is None:
+            Agent_templete = ResAgent   # Customize for YRB.
+        else:
+            Agent_templete = Templete
+        
+        for agType, agList in AgentDict.items():
+            self.Model["ABM"][agType] = {}
+            for ag in agList:
+                self.Model["ABM"][agType][ag] = deepcopy(Agent_templete)
+
+        # Update WaterSyetem 
+        count = 0
+        for agType, agList in self.Model["ABM"].items():
+            if agType != "Inputs":
+                count += len(agList)
+        self.Model["WaterSystem"]["NumAgents"] = count
+        
+    def addInsituDivAgents(self, AgentDict, Templete = None):
+        if self.Model.get("ABM") is None:
+            self.Model["ABM"] = {"Inputs": {"ResDamAgentTypes":  [],     
+                                            "RiverDivAgentTypes": [],
+                                            "DamDivAgentTypes": [],
+                                            "InsituDivAgentTypes": []}}
+        self.Model["ABM"]["Inputs"]["InsituDivAgentTypes"] = list(AgentDict.keys())
         
         if Templete is None:
             Agent_templete = DivAgent
