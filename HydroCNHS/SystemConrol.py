@@ -340,26 +340,23 @@ def parseModel(Model):
 def checkInStreamAgentInRouting(Model):
     """To make sure InStreamAgentInflows outlets are assigned in the routing section.
     """
-    # Untest yet
     Routing = Model["Routing"]
     
-    # Add NeedRoutingAgents for routing model check if ABM and Routing exists.
-    ## Note that NeedRoutingAgents include ResDamAgentTypes, RiverDivAgentTypes, and DamDivAgentTypes but not InsituDivAgentTypes.
-    NeedRoutingAgentInflows = []        # In-stream agents
-    NeedRoutingAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
-                            Model["ABM"]["Inputs"]["RiverDivAgentTypes"]+ \
-                            Model["ABM"]["Inputs"]["DamDivAgentTypes"]
-    for ISagType in NeedRoutingAgentTypes:
+    #--- Check In-stream agents:  ResDamAgentTypes & DamDivAgentTypes are eligble in the routing setting. These two types of agents will completely split the system into half.
+    InstreamAgentInflows = []        
+    InstreamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
+                         Model["ABM"]["Inputs"]["DamDivAgentTypes"]
+    for ISagType in InstreamAgentTypes:
         for ag in Model["ABM"][ISagType]:
             Links = Model["ABM"][ISagType][ag]["Inputs"]["Links"]
-            NeedRoutingAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
-    NeedRoutingAgentInflows = list(set(NeedRoutingAgentInflows))        # Eliminate duplicates.
+            InstreamAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
+    InstreamAgentInflows = list(set(InstreamAgentInflows))        # Eliminate duplicates.
     #Model["SystemParsedData"]["InStreamAgentInflows"] = InStreamAgentInflows   # Add to system parsed data.
 
-    # Check InStreamAgents' inflow outlets are in RoutingOutlets
+    #--- Check InStreamAgents' inflow outlets are in RoutingOutlets.
     RoutingOutlets = list(Routing.keys())
     RoutingOutlets.remove('Model')  
-    for vro in NeedRoutingAgentInflows:
+    for vro in InstreamAgentInflows:
         if vro not in RoutingOutlets:
             logger.error("[Check model failed] Cannot find in-stream agent's inflow outlets in the Routing section. Routing outlets should include {}.".format(vro))
             return False
@@ -373,7 +370,21 @@ def checkInStreamAgentInRouting(Model):
                                 pass
                             else:
                                 logging.error("[Check model failed] {} sub-basin outlet shouldn't be in {}'s (routing outlet) catchment outlets due to the seperation of in-stream control agents.".format(start, vro, ro))
-                                return False           
+                                return False 
+    #--- RiverDivAgentTypes will not add a new routing outlet (agent itself) like ResDamAgentTypes & DamDivAgentTypes do to split the system into half but their diverting outlet must be in  routing outlets.
+    RiverDivAgentInflows = []
+    for RiverDivType in Model["ABM"]["Inputs"]["RiverDivAgentTypes"]:
+        for ag in Model["ABM"][RiverDivType]:
+            Links = Model["ABM"][RiverDivType][ag]["Inputs"]["Links"]
+            RiverDivAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
+    RiverDivAgentInflows = list(set(RiverDivAgentInflows))        # Eliminate duplicates.
+    
+    #--- Check RiverDivAgents' diverting outlets are in RoutingOutlets.
+    for vro in RiverDivAgentInflows:
+        if vro not in RoutingOutlets:
+            logger.error("[Check model failed] Cannot find RiverDivAgent diverting outlets in the Routing section. Routing outlets should include {}.".format(vro))
+            return False    
+              
     return True
 
 def parseSimulationSeqence(Model):
