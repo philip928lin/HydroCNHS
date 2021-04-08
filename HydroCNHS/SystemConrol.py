@@ -439,7 +439,7 @@ def parseSimulationSeqence(Model):
     # Add in-stream agents connectinons if ABM sections exists.     
     if Model.get("ABM") is not None:
         ABM = Model["ABM"]
-        for agType in Model["SystemParsedData"]["InStreamAgents"]:
+        for agType in ["ResDamAgentTypes", "DamDivAgentTypes"]:
             for end in ABM[agType]:
                 Links = ABM[agType][end]["Inputs"]["Links"]
                 # Since InStreamAgents will completely redefine the streamflow, the inflow factor is defined to be -1.
