@@ -215,15 +215,17 @@ class HydroCNHSModel(object):
                     That means return flow will join the in grid-routing!!
                     Therefore, we feed in both self.Q_routed and self.Q_LSM
                     """
-                    for ag in InsituDivAgents_Minus:
-                        self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        # self.Q_LSM - Div
-                        self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        
-                    for ag in RiverDivAgents_Plus:
-                        self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
-                        self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                    if InsituDivAgents_Minus is not None:
+                        for ag in InsituDivAgents_Minus:
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            # self.Q_LSM - Div
+                            self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            
+                    if RiverDivAgents_Plus is not None:    
+                        for ag in RiverDivAgents_Plus:
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
+                            self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                         
                     #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
                     if self.RR["Model"] == "Lohmann":
