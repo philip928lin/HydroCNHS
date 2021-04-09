@@ -541,7 +541,7 @@ class KGCA(object):
     def run(self, InitialPop = None):
         logger.info("Start KGCA......")
         #----- Setting timer
-        start_time = time.monotonic()
+        self.start_time = time.monotonic()
         self.elapsed_time = 0
         
         SamplingMethod = self.Config["SamplingMethod"]
@@ -599,7 +599,7 @@ class KGCA(object):
 
         
         #----- Count duration.
-        elapsed_time = time.monotonic() - start_time
+        elapsed_time = time.monotonic() - self.start_time
         self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
         logger.info("Done! [{}]".format(self.elapsed_time))
         logger.info("Report:\n" + Dict2String(self.Result))
@@ -618,7 +618,10 @@ class KGCA(object):
         
     def plotProgress(self, Save = True):
         """Plot KGCA progress to visualize the convergence. 
-        """
+        """        
+        elapsed_time = time.monotonic() - self.start_time
+        self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+        
         fig, ax = plt.subplots()
         # Plot scatter points for ellites in each cluster.
         for gen in range(self.CurrentGen+1):
@@ -627,7 +630,7 @@ class KGCA(object):
         # Plot global optimum.     
         x = np.arange(0, self.CurrentGen+1)   
         loss = self.Best["Loss"][:self.CurrentGen+1]
-        ax.plot(x, loss, label = "Best", linewidth = 2, color = "black")        
+        ax.plot(x, loss, label = "Best \n Elapsed_time: [{}]".format(self.elapsed_time), linewidth = 2, color = "black")        
         ax.set_title(self.__name__)
         ax.set_xlim([0, self.Config["MaxGen"]])
         ax.set_ylim([0, loss[0]*1.1])

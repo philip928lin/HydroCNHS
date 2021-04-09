@@ -110,7 +110,6 @@ class BasicAgent(object):
         self.AgentDict = AgentDict
         self.CurrentDate = CurrentDate
         self.t = t
-        Q = self.Q
         
         if self.AssignValue:
             #--- User input. No DM process.
@@ -118,12 +117,12 @@ class BasicAgent(object):
             if isinstance(Factor, list):    # For parameterized (for calibration) return flow factor.
                 Factor = self.Pars[Factor[0]][Factor[1]]
             DM = self.AssignedBehavior.loc[CurrentDate, self.Name]
-            Qorg = Q[node][self.t]
+            Qorg = self.Q[node][self.t]
             Qt = max(Qorg + Factor * DM, 0)
             self.ActualBehavior[node][self.t] = Qt - Qorg
             # self.UpdatedDM = self.ActualBehavior[node][self.t]      # Don't update if DM is given
-            Q[node][self.t] = Qt
-            return Q
+            self.Q[node][self.t] = Qt
+            return self.Q
         else:
             #--- Will have DM process
             # If agent is active, then use RL to make decision and temporally store results in self.PlanedDMDF. 
@@ -133,6 +132,7 @@ class BasicAgent(object):
             
             #--- Act
             Factor = self.Inputs["Links"][node]
+            #!!!!!!!!!!!!!!!!!!!!!!!!!!!!! only work when return is a list!!!
             if isinstance(Factor, list):
                 Factor = self.Pars[Factor[0]][Factor[1]]    # e.g. Pars["ReturnFlowFactor"][0]  
                 DM = self.UpdatedDM                         # Since we need to use most updated diversion to calculate return flow.
@@ -142,11 +142,11 @@ class BasicAgent(object):
             # Hard physical constraint (minimum flow) that the streamflow must above or equal to 0.
             # In future, minimum natural flow constraints can be plugged into here.
             # Res release constraints are implemented in its agent class.
-            Qorg = Q[node][self.t]
+            Qorg = self.Q[node][self.t]
             Qt = max(Qorg + Factor * DM, 0)
             self.ActualBehavior[node][self.t] = Qt - Qorg
             self.UpdatedDM = self.ActualBehavior[node][self.t]      # Save for ruturn flow.
-            Q[node][self.t] = Qt
+            self.Q[node][self.t] = Qt
             
             return Q
 
