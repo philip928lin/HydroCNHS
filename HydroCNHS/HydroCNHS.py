@@ -226,14 +226,8 @@ class HydroCNHSModel(object):
                             self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                             # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
                             self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        
-                    #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
-                    if self.RR["Model"] == "Lohmann":
-                        Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_routed, self.Q_LSM, t)
-                    #----- Store Qt to final output.
-                    self.Q_routed[node][t] = Qt 
                 
-                if ResDamAgents_Plus is not None:
+                elif ResDamAgents_Plus is not None:
                     r"""
                     For ResDamAgents, we simply add the release water to self.Q_routed[isag].
                     No minus action is needed.
@@ -241,7 +235,7 @@ class HydroCNHSModel(object):
                     for ag in ResDamAgents_Plus:
                         self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                 
-                if DamDivAgents_Plus is not None:
+                elif DamDivAgents_Plus is not None:
                     r"""
                     For DamDivAgents_Plus, we simply add the release water to self.Q_routed[isag].
                     No minus action is needed.
@@ -249,6 +243,14 @@ class HydroCNHSModel(object):
                     """
                     for ag in DamDivAgents_Plus:
                         self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                
+                if node in RoutingOutlets:
+                    #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
+                    if self.RR["Model"] == "Lohmann":
+                        Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_routed, self.Q_LSM, t)
+                    #----- Store Qt to final output.
+                    self.Q_routed[node][t] = Qt 
+                    
                 
                 if RiverDivAgents_Minus is not None:
                     r"""
