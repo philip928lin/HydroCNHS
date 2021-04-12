@@ -437,9 +437,9 @@ def parseSimulationSeqence(Model):
                         BackTrackingDict[end].append(start)
     
     # Add in-stream agents connectinons if ABM sections exists.     
-    InstreamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
-                         Model["ABM"]["Inputs"]["DamDivAgentTypes"]
     if Model.get("ABM") is not None:
+        InstreamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
+                             Model["ABM"]["Inputs"]["DamDivAgentTypes"]
         ABM = Model["ABM"]
         for agType in InstreamAgentTypes:
             for end in ABM[agType]:
