@@ -118,7 +118,7 @@ class BasicAgent(object):
                 Factor = self.Pars[Factor[0]][Factor[1]]
             DM = self.AssignedBehavior.loc[CurrentDate, self.Name]
             Qorg = self.Q[node][self.t]
-            Qt = max(Qorg + Factor * DM, 0)
+            Qt = max(Qorg + Factor * DM, 1)
             self.ActualBehavior[node][self.t] = Qt - Qorg
             # self.UpdatedDM = self.ActualBehavior[node][self.t]      # Don't update if DM is given
             self.Q[node][self.t] = Qt
@@ -143,7 +143,7 @@ class BasicAgent(object):
             # In future, minimum natural flow constraints can be plugged into here.
             # Res release constraints are implemented in its agent class.
             Qorg = self.Q[node][self.t]
-            Qt = max(Qorg + Factor * DM, 0)
+            Qt = max(Qorg + Factor * DM, 1)
             self.ActualBehavior[node][self.t] = Qt - Qorg
             self.UpdatedDM = self.ActualBehavior[node][self.t]      # Save for ruturn flow.
             self.Q[node][self.t] = Qt
