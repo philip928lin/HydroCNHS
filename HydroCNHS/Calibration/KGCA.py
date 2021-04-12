@@ -129,7 +129,19 @@ class KGCA(object):
         if ScaledPop.shape[0] == 1:
             ScaledPop = ScaledPop[0]    # Back to 1D.
         return ScaledPop
+    
+    def descale(self, pop):
+        """pop is 1d array (self.NumPar) or 2d array (-1,self.NumPar)."""
+        pop = pop.reshape((-1,self.NumPar))
+        BoundScale = self.BoundScale    # (-1,self.NumPar)
+        LowerBound = self.LowerBound    # (-1,self.NumPar)
+        deScaledPop = np.subtract(pop, LowerBound)
+        deScaledPop = np.divide(deScaledPop, BoundScale)
         
+        if deScaledPop.shape[0] == 1:
+            deScaledPop = deScaledPop[0]    # Back to 1D.
+        return deScaledPop
+    
     def MCSample(self, pop):
         """Generate samples using Monte Carlo method. Only real par type.
 
@@ -217,7 +229,7 @@ class KGCA(object):
 
         Args:
             SamplingMethod (str, optional): Selected method for generate initial population members. MC or LHC.
-            InitialPop (dict, optional): User-provided initial Pop[0] = [PopSize, NumPar] (2D array). Note that Pop[0] has to be scaled to [0,1] Defaults to None.
+            InitialPop (dict, optional): User-provided initial Pop[0] = [-1, NumPar] (2D array). Note that InitialPop will be descaled to [0,1] Defaults to None.
         """
         PopSize = self.Config["PopSize"]
         NumPar = self.NumPar
@@ -232,8 +244,20 @@ class KGCA(object):
             elif SamplingMethod == "LHC":
                 self.Pop[0] = self.LatinHyperCubeSample(pop)
         else:                       
-            # Initialize parameters with user inputs.
-            self.Pop[0] = InitialPop
+            if PopSize == InitialPop.shape[0] and NumPar == InitialPop.shape[1]:
+                self.Pop[0] = self.descale(InitialPop)  # to [0,1]
+            else:   
+                # Initialize storage space for generation 0 (2D array) and assign InitialPop.
+                InitialPop = self.descale(InitialPop)   # to [0,1]
+                self.Pop[0] = np.zeros((PopSize, NumPar)) 
+                self.Pop[0][0:InitialPop[0], :] = InitialPop
+                # Sample the rest of the pop
+                pop_s = np.zeros((PopSize-InitialPop.shape[0], NumPar))  
+                ## Initialize parameters according to selected sampling method.
+                if SamplingMethod == "MC":
+                    self.Pop[0][InitialPop[0]:, :] = self.MCSample(pop_s)
+                elif SamplingMethod == "LHC":
+                    self.Pop[0][InitialPop[0]:, :] = self.LatinHyperCubeSample(pop_s)
 
         # Initialize storage space.
         self.KPopRes[0] = {}

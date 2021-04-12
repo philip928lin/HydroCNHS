@@ -32,13 +32,6 @@ class Plot():
         ax.plot(x_obv, line, 'r', label='y={:.2f}x+{:.2f}'.format(slope, intercept))
         # end
         
-        # # Indicator calculation
-        r = np.corrcoef(x_obv[mask], y_sim[mask])[0,1]
-        r2 = r**2
-        rmse = np.nanmean((x_obv[mask]-y_sim[mask])**2)**0.5
-        CE = 1 - np.nansum((x_obv[mask]-y_sim[mask])**2)/np.nansum((x_obv[mask]-np.nanmean(x_obv[mask]))**2) # Nash
-        CP = 1 - np.nansum((x_obv[1:]-y_sim[1:])**2)/np.nansum((x_obv[1:]-x_obv[:-1])**2)
-        
         # Plot data point
         ax.scatter(x_obv, y_sim, color="k", s=3.5)
         ax.legend(fontsize=9, loc = 'upper right')
@@ -46,7 +39,12 @@ class Plot():
             Max = max([np.nanmax(x_obv),np.nanmax(y_sim)]); Min = min([np.nanmin(x_obv),np.nanmin(y_sim)])
             ax.set_xlim(Min,Max)
             ax.set_ylim(Min,Max)
-            
+            # Add 45 degree line
+            interval = (Max-Min)/10
+            Diagonal = np.arange(Min,Max+interval,interval)
+            ax.plot(Diagonal, Diagonal, "b", linestyle='dashed', lw = 1)
+        
+        
         # PLot indicators
         Name = {"r": "$r$",
                 "r2":"$r^2$",
