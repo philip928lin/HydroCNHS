@@ -578,6 +578,20 @@ class KGCA(object):
             self.initialize(SamplingMethod, InitialPop)
         else:
             logger.info("Continue from Gen {}.".format(self.CurrentGen))
+            print("Do you want to extend the MaxGen {}? [y/n/exit]".format(MaxGen))
+            ans1 = input()
+            if ans1 == "y":
+                print("Enter the new MaxGen.")
+                ans2 = int(input())
+                self.Config["MaxGen"] = ans2
+                MaxGen = self.Config["MaxGen"]
+                if self.CurrentGen > MaxGen:
+                    self.Pop[self.CurrentGen] = self.ForExtendRun["Pop"]
+                    self.KPopRes[self.CurrentGen] = self.ForExtendRun["KPopRes"]
+                elif ans1 == "exit":
+                    print("Press to exit.")
+                    input()
+                    quit()
             
         self.HistoryResult = {}   
         # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
@@ -612,15 +626,11 @@ class KGCA(object):
             logger.info("Complete Gen {}/{}.".format(self.CurrentGen, self.Config["MaxGen"]))
             
             self.CurrentGen += 1 
-            
-
-                            
+                   
         #----- Delete Pop with gen index = (MaxGen+1 -1)
+        self.ForExtendRun = {"Pop": self.Pop[self.CurrentGen], "KPopRes": self.KPopRes[self.CurrentGen] }
         del self.Pop[self.CurrentGen]   
         del self.KPopRes[self.CurrentGen] 
-        
-        
-
         
         #----- Count duration.
         elapsed_time = time.monotonic() - self.start_time
