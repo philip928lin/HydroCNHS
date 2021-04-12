@@ -360,8 +360,9 @@ class KGCA(object):
         # self.KPopRes[CurrentGen]["KPopIndex"] = KPopIndex
         
         #----- Kmeans clustering
+        # !!!!!!!  Wait I need to check kmeans effect first. Let's use runned YRB to test this!
         ## Check eligibility of KClusterMax
-        if CurrentGen%self.Config["KInterval"] == 0 or CurrentGen == self.Config["MaxGen"]:
+        if CurrentGen != 0 and (CurrentGen%self.Config["KInterval"] == 0 or CurrentGen == self.Config["MaxGen"]):
             if self.Config["KClusterMax"] > NumFeaSols:
                 logger.warning("Number of feasible solutions is less than KClusterMax. We reset KClusterMax to {} for Gen {}.".format(NumFeaSols, self.Config["KClusterMax"]))
             KClusterMax = int(min(self.Config["KClusterMax"], len(KPop)/2))
