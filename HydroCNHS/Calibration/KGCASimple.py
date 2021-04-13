@@ -28,18 +28,18 @@ Inputs = {"ParName":    [],     # List of parameters name.
           "WD":         r""}    # Working directory. (Can be same as HydroCNHS model.)   
 # Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
 
-Config = {"PopSize":            30,     # Population size. Must be even.
+Config = {"PopSize":            100,     # Population size. Must be even.
           "ParantProportion":   0.3,
           "NumEllites":         1,
           "CrossProb":          0.5,
+          "MutProb":            0.1,    # Mutation probability.
           "Stochastic":         False,
           "MaxGen":             100,    # Maximum generation.
           "SamplingMethod":     "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "MutProb":            0.3,    # Mutation probability.
-          "DropRecord":         True,   # Population record will be dropped. However, ALL simulated results will still be kept. 
-          "ParalCores":         2/None, # This will replace system config.
+          "DropRecord":         False,   # Population record will be dropped. However, ALL simulated results will still be kept. 
+          "ParalCores":         -2/None, # This will replace system config.
           "AutoSave":           True,   # Automatically save a model snapshot after each generation.
-          "Printlevel":         10,     # Print out level. e.g. Every ten generations.
+          "Printlevel":         1,     # Print out level. e.g. Every ten generations.
           "Plot":               True    # Plot loss and cluster number selection with Printlevel frequency.
           }
 """
@@ -69,8 +69,8 @@ class KGCASimple(object):
         self.Formatter = Formatter              # Formatter is to convert 1D pop back into list of dataframe dictionaries for HydroCNHS simulation. (see class Convertor) 
         self.SysConfig = loadConfig()           # Load system config => Config.yaml (Default parallelization setting)
         self.NumPar = len(Inputs["ParName"])    # Number of calibrated parameters.
-        self.ParantSize = self.Config["ParantProportion"]*self.Config["PopSize"]
-        trl = self.par['PopSize'] - self.ParantSize
+        self.ParantSize = int(self.Config["ParantProportion"]*self.Config["PopSize"])
+        trl = self.Config["PopSize"] - self.ParantSize
         if trl % 2 != 0: 
             self.ParantSize -= 1  # To guarentee even number 
     
@@ -249,15 +249,15 @@ class KGCASimple(object):
             Loss = np.array(LossParel[0:PopSize])
             self.KPopRes[CurrentGen]["Loss"] = Loss
         else:
-            NumEffParents = self.NumEffParents
+            ParantSize = self.ParantSize
             LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
                             ( delayed(LossFunc)\
                                 (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
-                                for k in range(NumEffParents, PopSize) )  # Still go through entire Pop including ellites.
+                                for k in range(ParantSize, PopSize) )  # Still go through entire Pop including ellites.
             # Get loss results
             Loss = np.empty(PopSize)
-            Loss[0:NumEffParents] = self.EffLoss    # Add previous losses.
-            Loss[NumEffParents:PopSize] = np.array(LossParel[0:PopSize-NumEffParents])
+            Loss[0:ParantSize] = self.ParentsLoss    # Add previous losses.
+            Loss[ParantSize:PopSize] = np.array(LossParel[0:PopSize-ParantSize])
             self.KPopRes[CurrentGen]["Loss"] = Loss
             
         # Record the current global optimum. 
@@ -270,7 +270,8 @@ class KGCASimple(object):
         NumEllites = self.Config["NumEllites"]
         EllitesIndex = np.argpartition(Loss, NumEllites)[0:NumEllites].astype(int)
         self.KPopRes[CurrentGen]["EllitesIndex"] = EllitesIndex
-        
+        self.KPopRes[CurrentGen]["EllitesLoss"] = Loss[EllitesIndex]
+        self.KPopRes[CurrentGen]["Ellites"] = ScaledPop[EllitesIndex,:]
         #---------- Fitness Calculation ----------
         # Calculate fitness probability for Roulette Wheel Selection.
         
@@ -290,6 +291,10 @@ class KGCASimple(object):
         for k in range(NumEllites, ParantSize):
             ParentsIndex[k] = np.searchsorted(cumprob,np.random.random())
         ## From the selected parents, we further randomly choose those who actually reproduce offsprings
+        ParentsIndex = ParentsIndex.astype(int)
+        Parents = self.Pop[CurrentGen][ParentsIndex,:]
+        self.ParentsLoss = Loss[ParentsIndex]    # Record this so we don't re-evaluate them again for deterministic mode.
+        
         ef_par_list = np.array([False]*ParantSize)
         NumEffParents = 0
         while NumEffParents == 0:   # has to at least 1 parents to be selected
@@ -298,10 +303,9 @@ class KGCASimple(object):
                     ef_par_list[k] = True
                     NumEffParents += 1
         ## Effective parents
-        EffParentsIndex = ParentsIndex[ef_par_list] 
+        EffParentsIndex = ParentsIndex[ef_par_list].astype(int)
         EffParents = self.Pop[CurrentGen][EffParentsIndex,:]
-        self.EffLoss = Loss[EffParentsIndex]    # Record this so we don't re-evaluate them again for deterministic mode.
-        self.NumEffParents = NumEffParents
+        
         
         #---------- Children Formation ----------
         # Uniform crossover
@@ -336,7 +340,7 @@ class KGCASimple(object):
         # New generation
         PopNew = np.empty((PopSize, self.NumPar))
         ## First, fill with those selected parents without any modification
-        PopNew[:ParantSize,:] = EffParents
+        PopNew[:ParantSize,:] = Parents
         ## Then, fill the rest with crossover and mutation process
         for k in range(ParantSize, PopSize, 2):
             rn1 = np.random.randint(0, NumEffParents)
@@ -346,7 +350,7 @@ class KGCASimple(object):
             child1 = UniformCrossover(parent1, parent2)
             child2 = UniformCrossover(parent1, parent2)
             child1 = Mutation(child1)
-            child2 = Mutation_Middle(child2)
+            child2 = Mutation_Middle(child2, parent1, parent2)
             PopNew[k,:] = child1
             PopNew[k+1,:] = child2
             
@@ -381,7 +385,7 @@ class KGCASimple(object):
         return None
     
     def run(self, InitialPop = None):
-        logger.info("Start KGCA......")
+        logger.info("Start GA......")
         #----- Setting timer
         self.start_time = time.monotonic()
         self.elapsed_time = 0
