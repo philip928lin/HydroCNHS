@@ -8,5 +8,5 @@ Parallelization:
   Cores_formUH_Lohmann: 1 
   Cores_runGWLF: 1
   Cores_DMCGA: 1
-  Cores_KGCA: 1
+  Cores_KGCA: -2
 

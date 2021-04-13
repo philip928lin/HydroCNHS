@@ -5,12 +5,8 @@
 # However, we simplify and modify the idea to fit our need for identifying equifinal model representatives (EMRs). 
 # 2021/03/13
 
-from scipy.stats import rankdata, truncnorm             # Rank data & Truncated normal distribution.
 from joblib import Parallel, delayed                    # For parallelization.
-from sklearn.cluster import KMeans                      # KMeans algorithm by sklearn.
-from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
-from copy import deepcopy
 import numpy as np
 import logging
 import pickle
@@ -45,7 +41,39 @@ Config = {"PopSize":            100,     # Population size. Must be even.
 """
 
 class KGCASimple(object):
-    def __init__(self, LossFunc, Inputs, Config, Formatter = None, ContinueFile = None, Name = "Calibration"):
+    def __init__(self):
+        print("1. set or load (Autosave file).\n2. run.")
+        
+    def load(self, ContinueFile):
+        """Load AutoSave.pickle file to continue the run.
+
+        Args:
+            ContinueFile (str): AutoSave.pickle file path.
+        """
+        # If ContinueFile is given, load auto-saved pickle file.
+        with open(ContinueFile, "rb") as f:     # Load autoSave pickle file!
+            Snapshot = pickle.load(f)
+        for key in Snapshot:                    # Load back all the previous class attributions.
+            setattr(self, key, Snapshot[key])
+        self.Continue = True                    # No initialization is needed in "run", when self.Continue = True.
+        
+        if self.CurrentGen > self.Config["MaxGen"]:
+            self.Pop[self.CurrentGen] = self.ForExtendRun["Pop"]
+            self.KPopRes[self.CurrentGen] = self.ForExtendRun["KPopRes"]
+            
+        # Ask for extension.            
+        print("Enter the new MaxGen (original MaxGen = {}) or Press Enter to continue.".format(self.Config["MaxGen"]))
+        ans1 = input()
+        if ans1 != "":
+            ans2 = int(ans1)
+            if ans2 <= self.Config["MaxGen"]:
+                print("Fail to update MaxGen. Note that new MaxGen must be larger than original MaxGen.")
+            self.Config["MaxGen"] = ans2
+            MaxGen = self.Config["MaxGen"]
+        
+
+                    
+    def set(self, LossFunc, Inputs, Config, Formatter = None, Name = "Calibration"):
         """Kmeans Genetic Calibration Algorithm (KGCA)
 
         Args:
@@ -73,51 +101,42 @@ class KGCASimple(object):
         trl = self.Config["PopSize"] - self.ParantSize
         if trl % 2 != 0: 
             self.ParantSize -= 1  # To guarentee even number 
-    
-        # If ContinueFile is given, load auto-saved pickle file.
-        if ContinueFile is not None:
-            with open(ContinueFile, "rb") as f:     # Load autoSave pickle file!
-                Snapshot = pickle.load(f)
-            for key in Snapshot:                    # Load back all the previous class attributions.
-                setattr(self, key, Snapshot[key])
-            self.Continue = True                    # No initialization is needed in "run", when self.Continue = True.
-
+        
         #---------- Auto save section ----------
-        if ContinueFile is None:
-            self.Continue = False                   # Initialization is required in "run", when self.Continue = False.            
-            self.CurrentGen = 0                     # Populate initial counter for generation.
-            
-            # Initialize variables storage.
-            self.Pop = {}           # Population of parameter set. Pop[gen][sp]: [k,s] (2D array); k is index of members, and s is index of parameters.
-            self.PopRes = {}        # Simulation results of each members. PopRes[gen][sp][Loss/Dmin/Feasibility/SelfD]: 1D array with length of population size.
-            self.KPopRes = {}       # Store Kmeans results
-            
-            # Best loss value and index of corresponding member in Pop[gen][sp]. Best[Loss/Index][sp]: 1D array with length of MaxGen.
-            self.Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
-                         "Index": np.empty(self.Config["MaxGen"]+1)}
-            
-            # Calculate scales for parameter normalization.
-            # We assume categorical type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
-            self.BoundScale = []
-            self.LowerBound = []
-            for i, ty in enumerate(Inputs["ParType"]):
-                if ty == "real":
-                    self.BoundScale.append(Inputs["ParBound"][i][1] - Inputs["ParBound"][i][0])
-                    self.LowerBound.append(Inputs["ParBound"][i][0])
-                # elif ty == "categorical":
-                #     self.BoundScale.append(np.max(Inputs["ParBound"][i]) - np.min(Inputs["ParBound"][i]))
-                #     self.LowerBound.append(Inputs["ParBound"][i][0])
-            self.BoundScale = np.array(self.BoundScale).reshape((-1,self.NumPar))     # Store in an array type. 
-            self.LowerBound = np.array(self.LowerBound).reshape((-1,self.NumPar))
-            
-            # Create calibration folder under WD
-            self.__name__ = Name
-            self.CaliWD = os.path.join(Inputs["WD"], self.__name__)
-            # Create CaliWD directory
-            if os.path.isdir(self.CaliWD) is not True:
-                os.mkdir(self.CaliWD)
-            else:
-                logger.warning("\n[!!!Important!!!] Current calibration folder exists. Default to overwrite the folder!\n{}".format(self.CaliWD))
+        self.Continue = False                   # Initialization is required in "run", when self.Continue = False.            
+        self.CurrentGen = 0                     # Populate initial counter for generation.
+        
+        # Initialize variables storage.
+        self.Pop = {}           # Population of parameter set. Pop[gen][sp]: [k,s] (2D array); k is index of members, and s is index of parameters.
+        self.PopRes = {}        # Simulation results of each members. PopRes[gen][sp][Loss/Dmin/Feasibility/SelfD]: 1D array with length of population size.
+        self.KPopRes = {}       # Store Kmeans results
+        
+        # Best loss value and index of corresponding member in Pop[gen][sp]. Best[Loss/Index][sp]: 1D array with length of MaxGen.
+        self.Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
+                        "Index": np.empty(self.Config["MaxGen"]+1)}
+        
+        # Calculate scales for parameter normalization.
+        # We assume categorical type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
+        self.BoundScale = []
+        self.LowerBound = []
+        for i, ty in enumerate(Inputs["ParType"]):
+            if ty == "real":
+                self.BoundScale.append(Inputs["ParBound"][i][1] - Inputs["ParBound"][i][0])
+                self.LowerBound.append(Inputs["ParBound"][i][0])
+            # elif ty == "categorical":
+            #     self.BoundScale.append(np.max(Inputs["ParBound"][i]) - np.min(Inputs["ParBound"][i]))
+            #     self.LowerBound.append(Inputs["ParBound"][i][0])
+        self.BoundScale = np.array(self.BoundScale).reshape((-1,self.NumPar))     # Store in an array type. 
+        self.LowerBound = np.array(self.LowerBound).reshape((-1,self.NumPar))
+        
+        # Create calibration folder under WD
+        self.__name__ = Name
+        self.CaliWD = os.path.join(Inputs["WD"], self.__name__)
+        # Create CaliWD directory
+        if os.path.isdir(self.CaliWD) is not True:
+            os.mkdir(self.CaliWD)
+        else:
+            logger.warning("Current calibration folder exists. Default to overwrite the folder!\n{}".format(self.CaliWD))
         #---------------------------------------
         
     def scale(self, pop):
@@ -232,6 +251,7 @@ class KGCASimple(object):
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
             ParalCores = self.SysConfig["Parallelization"]["Cores_KGCA"]
+            logger.info("ParalCores is not detected. Default value is applied. ParalCores = {}.".format(ParalCores))
         ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
         
         #---------- Evaluation (Min) ----------
@@ -400,20 +420,6 @@ class KGCASimple(object):
             self.initialize(SamplingMethod, InitialPop)
         else:
             logger.info("Continue from Gen {}.".format(self.CurrentGen))
-            print("Do you want to extend the MaxGen {}? [y/n/exit]".format(MaxGen))
-            ans1 = input()
-            if ans1 == "y":
-                print("Enter the new MaxGen.")
-                ans2 = int(input())
-                self.Config["MaxGen"] = ans2
-                MaxGen = self.Config["MaxGen"]
-                if self.CurrentGen > MaxGen:
-                    self.Pop[self.CurrentGen] = self.ForExtendRun["Pop"]
-                    self.KPopRes[self.CurrentGen] = self.ForExtendRun["KPopRes"]
-                elif ans1 == "exit":
-                    print("Press to exit.")
-                    input()
-                    quit()
             
         self.HistoryResult = {}   
         # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
