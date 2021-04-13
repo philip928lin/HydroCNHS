@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import numpy as np
 import pandas as pd
+from sklearn.cluster import KMeans
 from .Indicators import Indicator
 
 class Plot():
@@ -148,3 +149,67 @@ class Plot():
         ax.legend()     
         plt.show()
         return ax
+    
+    @staticmethod
+    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01):
+        KPopResult = Caliobj.KPopRes
+        MaxGen = Caliobj.Config["MaxGen"]
+        PopSize = Caliobj.Config["PopSize"]
+        NumPar = Caliobj.NumPar
+        Pop = Caliobj.Pop
+        ParName = Caliobj.Inputs["ParName"]
+        Loss = np.zeros((MaxGen+1, PopSize))
+        Bound = Caliobj.Inputs["ParBound"]
+        if SelectedPar is None:
+            SelectedPar = ParName
+        
+        # Get feasible loss
+        for i in range(MaxGen+1):
+            Loss[i,:] = KPopResult[i]["Loss"]
+        Loss_q = np.quantile(Loss, q)
+        FeasibleIndex = np.argwhere(Loss<=Loss_q)
+        
+        # Get feasible pop
+        FeasiblePop = np.empty((FeasibleIndex.shape[0], NumPar))
+        FeasibleLoss = []
+        for i, v in enumerate(FeasibleIndex):
+            FeasiblePop[i] = Pop[v[0]][v[1]]
+            FeasibleLoss = Loss[v[0]][v[1]]
+        df = pd.DataFrame(FeasiblePop, columns = ParName)
+        df["Loss"] = FeasibleLoss
+        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        df = df[SelectedPar + ["Loss"]]
+
+        # Get best
+        Bestpop = Caliobj.descale(Caliobj.Result["GlobalOptimum"]["Solutions"])
+        
+        # Run Kmeans
+        ParWeight = Caliobj.Inputs["ParWeight"]
+        km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
+        df["Label"] = km.labels_
+        
+        # Plot
+        fig, ax = plt.subplots()
+        
+        dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
+        dfBound = dfBound.loc[SelectedPar,:]
+        
+        
+        for i in range(k):
+            df_k = df[df["Label"] == i][SelectedPar].T
+            #df_k = df_k[SelectedPar + ["Loss"]]
+            df_k.plot(lw = 0.3, color = "C{}".format(i%10), alpha = 0.3, legend = False, ax=ax)
+            
+        ax.plot(Bestpop,lw = 0.5, color = "red", linestyle = "--")
+        ax.set_xticks(np.arange(len(SelectedPar))) 
+        ax.set_xticklabels(SelectedPar, fontsize=10)
+        ax.set_yticks([])
+        ax.tick_params(axis='x', rotation=30, labelsize = 8)
+        ax.axhline(0, color = "black", lw = 0.5)
+        ax.axhline(1, color = "black", lw = 0.5)
+        ax.set_ylim([-0.1,1.1])
+        ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(Loss_q,3)))
+        for x in range(len(SelectedPar)):
+            ax.text(x, -0.05, dfBound["LB"][x], horizontalalignment='center', fontsize=6)
+            ax.text(x, 1.05, dfBound["UB"][x], horizontalalignment='center', fontsize=6)
+            ax.axvline(x, color = "grey", lw = 0.1)
