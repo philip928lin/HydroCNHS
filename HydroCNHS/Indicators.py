@@ -35,7 +35,7 @@ class Indicator():
                 "iKGE": Indicator.iKGE(xObv, ySim),
                 "CP"  : Indicator.CP(xObv, ySim),
                 "RSR" : Indicator.RSR(xObv, ySim)}
-        DF = pd.DataFrame(Dict)
+        DF = pd.DataFrame(Dict, index = ["Value"])
         if IndicatorsList is None:
             return DF
         else:
