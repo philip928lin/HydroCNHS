@@ -9,6 +9,7 @@ class Indicator():
     CP  : Correlation of persistence
     RSR : RMSE-observations standard deviation ratio 
     KGE : Kling–Gupta efficiency
+    iKGE: Inverse Kling–Gupta efficiency
     """
     # r = r
     # r2 = r2
@@ -112,6 +113,26 @@ class Indicator():
         Returns:
             float
         """
+        mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
+        sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
+        return 1 - ((Indicator.r(xObv, ySim)-1)**2 + (sig_ySim/sig_xObv - 1)**2 + (mu_ySim/mu_xObv - 1)**2)**0.5
+    
+    @staticmethod
+    def iKGE(xObv, ySim):
+        """Kling–Gupta efficiency
+
+        Args:
+            xObv (Array): x or obv
+            ySim (Array): y or sim
+
+        Returns:
+            float
+        """
+        # Prevent dividing zero.
+        xObv[xObv == 0] = 0.0001
+        ySim[ySim == 0] = 0.0001
+        xObv = 1/xObv
+        ySim = 1/ySim
         mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
         sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
         return 1 - ((Indicator.r(xObv, ySim)-1)**2 + (sig_ySim/sig_xObv - 1)**2 + (mu_ySim/mu_xObv - 1)**2)**0.5
