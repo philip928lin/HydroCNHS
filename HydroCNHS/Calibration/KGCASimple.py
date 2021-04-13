@@ -29,16 +29,13 @@ Inputs = {"ParName":    [],     # List of parameters name.
 # Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
 
 Config = {"PopSize":            30,     # Population size. Must be even.
-          "LocalSearchIter":    5,      # Number of iterations for each individual for its local search.
-          "LocalSearchIta":     0.2,    # Initial local search initial step size. 
+          "ParantProportion":   0.3,
+          "NumEllites":         1,
+          "CrossProb":          0.5,
+          "Stochastic":         False,
           "MaxGen":             100,    # Maximum generation.
           "SamplingMethod":     "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "FeasibleTolRate":    1.2,    # A dynamic criteria according to the best loss. Should be >= 1.
-          "FeasibleThres":      0.3,    # A fix threshold for loss value.
           "MutProb":            0.3,    # Mutation probability.
-          "KClusterMin":        2,      # >= 1
-          "KClusterMax":        10,     # Must be smaller than PopSize/2. Otherwise, you will more likely to encounter error. 
-          "KInterval":          10,     # An interval to rerun Kmeans clustering.
           "DropRecord":         True,   # Population record will be dropped. However, ALL simulated results will still be kept. 
           "ParalCores":         2/None, # This will replace system config.
           "AutoSave":           True,   # Automatically save a model snapshot after each generation.
@@ -47,7 +44,7 @@ Config = {"PopSize":            30,     # Population size. Must be even.
           }
 """
 
-class KGCA(object):
+class KGCASimple(object):
     def __init__(self, LossFunc, Inputs, Config, Formatter = None, ContinueFile = None, Name = "Calibration"):
         """Kmeans Genetic Calibration Algorithm (KGCA)
 
@@ -72,7 +69,11 @@ class KGCA(object):
         self.Formatter = Formatter              # Formatter is to convert 1D pop back into list of dataframe dictionaries for HydroCNHS simulation. (see class Convertor) 
         self.SysConfig = loadConfig()           # Load system config => Config.yaml (Default parallelization setting)
         self.NumPar = len(Inputs["ParName"])    # Number of calibrated parameters.
-        
+        self.ParantSize = self.Config["ParantProportion"]*self.Config["PopSize"]
+        trl = self.par['PopSize'] - self.ParantSize
+        if trl % 2 != 0: 
+            self.ParantSize -= 1  # To guarentee even number 
+    
         # If ContinueFile is given, load auto-saved pickle file.
         if ContinueFile is not None:
             with open(ContinueFile, "rb") as f:     # Load autoSave pickle file!
@@ -179,50 +180,6 @@ class KGCA(object):
             # Scale [0,1] to its bound.
             pop[:,i] = temp
         return pop 
-    
-    def LocalSearch(self, pop, loss, i):
-        """Local search along the axises.
-
-        Args:
-            pop (Array): Individual.
-            loss (float): Loss value of the individual.
-            i (int): Index of pop in Pop.
-
-        Returns:
-            tuple: (pop, LocalLoss)
-        """
-        # See (Poikolainen et al., 2015) DOI: 10.1016/j.ins.2014.11.026 for details.
-        ita = self.ita[i]
-        # Generate local search samples.
-        Orgpop = pop
-        pop = deepcopy(pop)
-        NumPar = self.NumPar
-        LocalLoss = loss
-        for k in range(NumPar):
-            temp = deepcopy(pop)
-            localpop = deepcopy(temp)
-            localpop[k] = localpop[k] - ita
-            if localpop[k] >=1:  localpop[k] = 1
-            if localpop[k] <=0:  localpop[k] = 0
-            Scaledlocalpop = self.scale(localpop)
-            localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", i))
-            if localloss < LocalLoss:
-                pop = localpop
-                LocalLoss = localloss
-            elif localloss > LocalLoss:
-                localpop = deepcopy(temp)
-                localpop[k] = localpop[k] + 0.5 * ita
-                if localpop[k] >=1:  localpop[k] = 1
-                if localpop[k] <=0:  localpop[k] = 0
-                Scaledlocalpop = self.scale(localpop)
-                localloss = self.LossFunc(Scaledlocalpop, self.Formatter, (self.CaliWD, self.CurrentGen, "", i))
-                if localloss < LocalLoss:
-                    pop = localpop
-                    LocalLoss = localloss
-            if all(Orgpop == pop):
-                ita = 0.5*ita
-        self.ita[i] = ita
-        return (pop, LocalLoss)
       
     def initialize(self, SamplingMethod = "LHC", InitialPop = None):
         """Initialize population members and storage spaces (KPopRes) for generation 0.
@@ -271,7 +228,6 @@ class KGCA(object):
         PopSize = self.Config["PopSize"]
         NumPar = self.NumPar
 
-        
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
@@ -284,197 +240,70 @@ class KGCA(object):
         # Evalute Loss function
         # LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0.
         ScaledPop = self.scale(self.Pop[CurrentGen])    # Scale back to original values.
-        LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
-                           ( delayed(LossFunc)\
-                             (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
-                              for k in range(PopSize) )  # Still go through entire Pop including ellites.
-        # Get results
-        self.KPopRes[CurrentGen]["Loss"] = np.array(LossParel[0:PopSize])
-        #--------------------------------------
-        
-        #---------- Initial Local Search ----------
-        self.ita = {i: self.Config["LocalSearchIta"] for i in range(PopSize)}
-        if self.CurrentGen == 0:
-            for iter in range(self.Config["LocalSearchIter"]):
-                logger.info("Local search iteration {}/{}.".format(iter+1, self.Config["LocalSearchIter"]))
-                Pop = self.Pop[CurrentGen]
-                Loss = self.KPopRes[CurrentGen]["Loss"]
-                LocalPopAndLoss = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
-                                        ( delayed(self.LocalSearch)\
-                                        (Pop[k], Loss[k], k) \
-                                        for k in range(PopSize) )  # Still go through entire Pop including ellites.
-                # Get results. Replace original initial Pop
-                LocalLoss = []
-                for k in range(PopSize):
-                    self.Pop[CurrentGen][k] = np.array(LocalPopAndLoss[k][0])
-                    LocalLoss.append(LocalPopAndLoss[k][1])
-                self.KPopRes[CurrentGen]["Loss"] = np.array(LocalLoss)
-                logger.debug("Local search Loss: \n{}".format(self.KPopRes[CurrentGen]["Loss"]))
-        #------------------------------------------
-        
-        
-        #---------- Feasibility ----------
-        # We define 1: feasible sol and 0: infeasible sol.
-
+        if self.Config["Stochastic"] or CurrentGen == 0:
+            LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
+                            ( delayed(LossFunc)\
+                                (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
+                                for k in range(PopSize) )  # Still go through entire Pop including ellites.
+            # Get loss results
+            Loss = np.array(LossParel[0:PopSize])
+            self.KPopRes[CurrentGen]["Loss"] = Loss
+        else:
+            NumEffParents = self.NumEffParents
+            LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
+                            ( delayed(LossFunc)\
+                                (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
+                                for k in range(NumEffParents, PopSize) )  # Still go through entire Pop including ellites.
+            # Get loss results
+            Loss = np.empty(PopSize)
+            Loss[0:NumEffParents] = self.EffLoss    # Add previous losses.
+            Loss[NumEffParents:PopSize] = np.array(LossParel[0:PopSize-NumEffParents])
+            self.KPopRes[CurrentGen]["Loss"] = Loss
+            
         # Record the current global optimum. 
         BestIndex = np.argmin(self.KPopRes[CurrentGen]["Loss"])
         Best = self.KPopRes[CurrentGen]["Loss"][BestIndex]
         self.Best["Loss"][CurrentGen] = Best            # Array
         self.Best["Index"][CurrentGen] = BestIndex      # Array
         
+        # Add ellites
+        NumEllites = self.Config["NumEllites"]
+        EllitesIndex = np.argpartition(Loss, NumEllites)[0:NumEllites].astype(int)
+        self.KPopRes[CurrentGen]["EllitesIndex"] = EllitesIndex
         
-        # Determine the feasibility.
-        TolRate = self.Config["FeasibleTolRate"]        # Should be >= 1
-        try:
-            Thres = self.Config["FeasibleThres"]     
-        except:
-            Thres = 0   # Calibration minimum.         
-        Feasibility = np.zeros(PopSize)
-        Criteria = max([Best*TolRate, Thres])
-        Feasibility[self.KPopRes[CurrentGen]["Loss"] <= Criteria] = 1   # Only valid when lower bound is zero
-        self.KPopRes[CurrentGen]["Feasibility"] = Feasibility.astype(int)
-        #---------------------------------
+        #---------- Fitness Calculation ----------
+        # Calculate fitness probability for Roulette Wheel Selection.
         
+        maxnorm = np.amax(Loss)
+        normobj = maxnorm-Loss + 1     # The lowest obj has highest fitness. +1 to avoid 0.
+        prob = normobj/np.sum(normobj)
+        self.KPopRes[CurrentGen]["Prob"] = prob
+        cumprob = np.cumsum(prob)
+        #--------------------------------------
         
-        #---------- Kmeans GA - Select eligible subPop & Run Kmeans clustering ----------
-        Feasibility = self.KPopRes[CurrentGen]["Feasibility"]
-        Loss = self.KPopRes[CurrentGen]["Loss"]
-        NumFeaSols = np.sum(Feasibility)
-
-        #Feasible solutions' indexes.
-        Feasibility = self.KPopRes[CurrentGen]["Feasibility"]
-        Loss = self.KPopRes[CurrentGen]["Loss"]
-        SubPopSizeThres = int(PopSize/2)
-        # We set the criteria as PopSize/2 for now, which can be switch to dynamically updated according to CurrentGen.
-        # Select subPop for clustering => Max(#Feasible Sol, PopSize/2)
-        if np.sum(Feasibility) >= SubPopSizeThres:
-            KPopIndex = np.where(Feasibility == 1)[0]   # Take out 1d array of indexes.
-        else:
-            KPopIndex = np.argpartition(Loss, SubPopSizeThres)[:SubPopSizeThres].astype(int)          # return n smallest Loss index.
-        KPop = self.Pop[CurrentGen][KPopIndex, :]
-        self.KPopRes[CurrentGen]["KPopIndex"] = KPopIndex
+        #---------- Parents Selection ----------
+        ParantSize = self.ParantSize
+        ParentsIndex = np.empty(ParantSize)  # Create empty parents
+        # Fill with ellite first.
+        ParentsIndex[0:NumEllites] = EllitesIndex
+        ## Then fill the rest by wheel withdrawing.
+        for k in range(NumEllites, ParantSize):
+            ParentsIndex[k] = np.searchsorted(cumprob,np.random.random())
+        ## From the selected parents, we further randomly choose those who actually reproduce offsprings
+        ef_par_list = np.array([False]*ParantSize)
+        NumEffParents = 0
+        while NumEffParents == 0:   # has to at least 1 parents to be selected
+            for k in range(0, ParantSize):
+                if np.random.random() <= self.Config["CrossProb"]:
+                    ef_par_list[k] = True
+                    NumEffParents += 1
+        ## Effective parents
+        EffParentsIndex = ParentsIndex[ef_par_list] 
+        EffParents = self.Pop[CurrentGen][EffParentsIndex,:]
+        self.EffLoss = Loss[EffParentsIndex]    # Record this so we don't re-evaluate them again for deterministic mode.
+        self.NumEffParents = NumEffParents
         
-        
-        # KPopIndex = np.where(Feasibility == 1)[0]   # Take out 1d array of indexes.
-        # KPop = self.Pop[CurrentGen][KPopIndex, :]   # Every pop is [0, 1]
-        # self.KPopRes[CurrentGen]["KPopIndex"] = KPopIndex
-        
-        #----- Kmeans clustering
-        # !!!!!!!  Wait I need to check kmeans effect first. Let's use runned YRB to test this!
-        ## Check eligibility of KClusterMax CurrentGen != 0 and 
-        if (CurrentGen%self.Config["KInterval"] == 0 or CurrentGen == self.Config["MaxGen"]):
-            if self.Config["KClusterMax"] > NumFeaSols:
-                logger.warning("Number of feasible solutions is less than KClusterMax. We reset KClusterMax to {} for Gen {}.".format(NumFeaSols, self.Config["KClusterMax"]))
-            KClusterMax = int(min(self.Config["KClusterMax"], len(KPop)/2))
-            KClusterMin = self.Config["KClusterMin"]
-            ParWeight = self.Inputs.get("ParWeight")     # Weights for each parameter. Default None. 
-            
-            KmeansModel = {}
-            KDistortions = []
-            KExplainedVar = []
-            SilhouetteAvg = []
-            SSE = np.sum(np.var(KPop, axis = 0))*KPop.shape[0]
-            for k in range(KClusterMin, KClusterMax+1):
-                km = KMeans(n_clusters = k, random_state=0).fit(KPop, ParWeight)
-                KmeansModel[k] = km
-                # Calculate some indicators for kmeans
-                ## inertia_: Sum of squared distances of samples to their closest cluster center.
-                KDistortions.append(km.inertia_)
-                KExplainedVar.append((SSE - KDistortions[-1])/SSE)
-                ## The silhouette_score gives the average value for all the samples.
-                ## This gives a perspective into the density and separation of the formed clusters
-                ## The coefficient varies between -1 and 1. A value close to 1 implies that the instance is close to its cluster is a part of the right cluster. 
-                cluster_labels = km.labels_
-                if k == 1:  # If given k == 1, then assign the worst value.
-                    SilhouetteAvg.append(-1) 
-                else:
-                    silhouette_avg = silhouette_score(KPop, cluster_labels)
-                    SilhouetteAvg.append(silhouette_avg)
-
-            # Store records.
-            MaxSilhouetteAvg = max(SilhouetteAvg)
-            self.KPopRes[CurrentGen]["SelectedK"] = SilhouetteAvg.index(MaxSilhouetteAvg) + KClusterMin
-            self.KPopRes[CurrentGen]["SilhouetteAvg"] = SilhouetteAvg
-            self.KPopRes[CurrentGen]["KDistortions"] = KDistortions
-            self.KPopRes[CurrentGen]["KExplainedVar"] = KExplainedVar
-            KM = KmeansModel[self.KPopRes[CurrentGen]["SelectedK"]]
-            self.KM = KM
-            self.KPopRes[CurrentGen]["Centers"] = self.scale(KM.cluster_centers_)
-        else:
-            # Retrieve data from last generation.
-            self.KPopRes[CurrentGen]["SelectedK"] = self.KPopRes[CurrentGen-1]["SelectedK"]
-            self.KPopRes[CurrentGen]["SilhouetteAvg"] = self.KPopRes[CurrentGen-1]["SilhouetteAvg"]
-            self.KPopRes[CurrentGen]["KDistortions"] = self.KPopRes[CurrentGen-1]["KDistortions"]
-            self.KPopRes[CurrentGen]["KExplainedVar"] = self.KPopRes[CurrentGen-1]["KExplainedVar"]
-            KM = self.KM
-            self.KPopRes[CurrentGen]["Centers"] = self.KPopRes[CurrentGen-1]["Centers"]
-        
-        # Assign all pop according to KM model. Therefore those infeasible solutions will still participate in the tournament.
-        self.KPopRes[CurrentGen]["PopLabels"] = KM.fit_predict(self.Pop[CurrentGen])
-        if self.Config["Plot"] and self.CurrentGen%self.Config["Printlevel"] == 0:
-            self.plotElbow()
-            self.plotSilhouetteAvg()
-        #---------------------------------------------------------------------------------
-        
-        #---------- Kmeans GA - Select parents and Generate children for each cluster ----------
-        Loss = self.KPopRes[CurrentGen]["Loss"]
-        KLabels = self.KPopRes[CurrentGen]["PopLabels"]
-        Pop = self.Pop[CurrentGen]
-        SelectedK = self.KPopRes[CurrentGen]["SelectedK"]
-        
-        # Select ellite and calculate rank of each cluster according to the best fitness individual in the cluster.
-        KElliteIndex = {}
-        self.KPopRes[CurrentGen]["Ellites"] = np.zeros((SelectedK, NumPar))
-        self.KPopRes[CurrentGen]["EllitesIndex"] = np.zeros(SelectedK)
-        self.KPopRes[CurrentGen]["EllitesLoss"] = np.zeros(SelectedK)
-        self.KPopRes[CurrentGen]["EllitesProb"] = np.zeros(SelectedK)
-        self.KIndex = {}
-        for k in range(SelectedK):
-            KIndex = np.where(KLabels == k)[0]
-            self.KIndex[k] = KIndex
-            Loss_k = Loss[KIndex]
-            KElliteNum = 1  # We only take 1 ellite for each cluster.
-            if len(Loss_k) <= KElliteNum:     # If we only have 1 choice.
-                try:
-                    KElliteIndex[k] = KIndex[0]
-                except:
-                    logger.error("Some clusters have no assigned members. Try to lower KClusterMin or higher KLeastImproveRate.")
-                    raise ValueError("Empty list.")
-            else: 
-                # return 1 smallest Loss.
-                KElliteIndex[k] = KIndex[np.argpartition(Loss_k, KElliteNum)[0].astype(int)] 
-        
-            # Store ellite of each cluster.
-            self.KPopRes[CurrentGen]["Ellites"][k] = self.scale(Pop[int(KElliteIndex[k])])
-            self.KPopRes[CurrentGen]["EllitesIndex"][k] = int(KElliteIndex[k])
-            self.KPopRes[CurrentGen]["EllitesLoss"][k] = Loss[int(KElliteIndex[k])]
-        
-        # Calculate group prob
-        ## Feasibility based EllitesProb assignment.
-        EllitesLoss = self.KPopRes[CurrentGen]["EllitesLoss"]    
-        EllitesLoss = max(EllitesLoss) - EllitesLoss +1 # To avoid dividing 0.
-        KProb = EllitesLoss/np.sum(EllitesLoss)
-        ## Assign feasible cluster with equal prob.
-        Criteria = max([Best*TolRate, Thres])
-        feasi = self.KPopRes[CurrentGen]["EllitesLoss"] <= Criteria    # Only valid when lower bound is zero
-        KProb[feasi] = np.mean(KProb[feasi])
-        self.KPopRes[CurrentGen]["EllitesProb"] = KProb
-        
-        # ## Rank based EllitesProb assignment.
-        # Rank = SelectedK+1 - rankdata(self.KPopRes[CurrentGen]["EllitesLoss"]) # Lower value higher rank (min = 1)
-        # KProb = Rank/np.sum(Rank)
-        # self.KPopRes[CurrentGen]["EllitesRank"] = Rank
-        # self.KPopRes[CurrentGen]["EllitesProb"] = KProb
-        
-        def RouletteWheelSelection(KProb):
-            rn = np.random.uniform(0,1)
-            acc1 = 0; acc2 = 0
-            for i, v in enumerate(KProb):
-                acc2 += v
-                if rn >= acc1 and rn < acc2:
-                    return i
-                acc1 += v
-                
+        #---------- Children Formation ----------
         # Uniform crossover
         def UniformCrossover(parent1, parent2):
             child = np.zeros(NumPar)
@@ -484,56 +313,44 @@ class KGCA(object):
             return child
         
         def Mutation(child):
-            mut = np.random.binomial(n = 1, p = MutProb*MutPartition[1], size = NumPar) == 1
+            MutProb = self.Config["MutProb"]
+            mut = np.random.binomial(n = 1, p = MutProb, size = NumPar) == 1
             MutSample_MC = self.MCSample(np.zeros((1,NumPar)))
             child[mut] = MutSample_MC.flatten()[mut]    # Since MutSample_MC.shape = (1, NumPar).
             return child
-        # def Mutation(child):
-        #     # Half mutate from MC sampling, half from local pertabation.
-        #     rn = np.random.binomial(n = 1, p = 0.5, size = NumPar)
-        #     mut1 = np.random.binomial(n = 1, p = MutProb*MutPartition[1], size = NumPar)*rn == 1
-        #     mut2 = np.random.binomial(n = 1, p = MutProb*MutPartition[1], size = NumPar)*(1-rn) == 1
-        #     MutSample_MC = self.MCSample(np.zeros((1,NumPar)))
-        #     WithinGroup = np.array(  [truncnorm.rvs(0,1, loc=m, scale=0.1) for m in child]  )
-        #     child[mut1] = MutSample_MC.flatten()[mut1]    
-        #     child[mut2] = WithinGroup.flatten()[mut2]    
-        #     return child
         
-        MutProb = self.Config["MutProb"]
-        MutPartition = (0.3, 0.7)
-        if SelectedK == 1:
-            MutPartition = (0, 1)   # No inter clusters mutation.
-        Pop = self.Pop[CurrentGen] 
-        self.Pop[CurrentGen+1] = np.zeros((PopSize, NumPar))
-        for p in range(int(PopSize/2)):
-            k = RouletteWheelSelection(KProb)
-            MutRn = np.random.uniform(0,1)
-            if MutRn <= MutProb*MutPartition[0]:
-                # Mutation form 1 self sampling => reinforce local area & cross cluster.
-                BestpopInK = Pop[int(KElliteIndex[k])]
-                # Use truncated normal to sample around in-cluster best solution.
-                child1 = np.array(  [truncnorm.rvs(0,1, loc=m, scale=0.1) for m in BestpopInK]  )
-                # Crossover with other ellite in other group.
-                k2 = np.random.choice( [j for j in range(SelectedK) if j != k] )
-                parent2 = Pop[int(KElliteIndex[k2])]
-                child2 = UniformCrossover(BestpopInK, parent2)[0]
-            else:
-                KIndex = self.KIndex[k]
-                pair1 = [np.random.choice(KIndex), np.random.choice(KIndex)]
-                parent1 = Pop[ pair1[  np.argmin( [Loss[pair1[0]], Loss[pair1[1]]] )  ]]
-                pair2 = [np.random.choice(KIndex), np.random.choice(KIndex)]
-                parent2 = Pop[ pair2[  np.argmin( [Loss[pair2[0]], Loss[pair2[1]]] )  ]]
-                child1 = UniformCrossover(parent1, parent2)
-                child2 = UniformCrossover(parent1, parent2)
-                child1 = Mutation(child1)
-                child2 = Mutation(child2)
-            self.Pop[CurrentGen+1][2*p] = child1
-            self.Pop[CurrentGen+1][2*p+1] = child2
+        def Mutation_Middle(child, p1, p2):
+            MutProb = self.Config["MutProb"]
+            MutSample_MC = self.MCSample(np.zeros((1,NumPar))).flatten() # Since MutSample_MC.shape = (1, NumPar).
+            for i in range(self.NumPar):                           
+                rnd = np.random.random()
+                if rnd < MutProb:   
+                    if p1[i] < p2[i]:
+                        child[i] = p1[i]+np.random.random()*(p2[i] - p1[i])  
+                    elif p1[i] > p2[i]:
+                        child[i] = p2[i] + np.random.random()*(p1[i] - p2[i])
+                    else:
+                        child[i] = MutSample_MC[i] 
+            return child
         
-        for k in range(SelectedK):
-            # Replace top k pop with ellites from each cluster if it is feasible. 
-            if self.KPopRes[CurrentGen]["EllitesLoss"][k] <= Criteria:
-                self.Pop[CurrentGen+1][k] = Pop[int(KElliteIndex[k])]
+        # New generation
+        PopNew = np.empty((PopSize, self.NumPar))
+        ## First, fill with those selected parents without any modification
+        PopNew[:ParantSize,:] = EffParents
+        ## Then, fill the rest with crossover and mutation process
+        for k in range(ParantSize, PopSize, 2):
+            rn1 = np.random.randint(0, NumEffParents)
+            rn2 = np.random.randint(0, NumEffParents)
+            parent1 = EffParents[rn1]
+            parent2 = EffParents[rn2]
+            child1 = UniformCrossover(parent1, parent2)
+            child2 = UniformCrossover(parent1, parent2)
+            child1 = Mutation(child1)
+            child2 = Mutation_Middle(child2)
+            PopNew[k,:] = child1
+            PopNew[k+1,:] = child2
+            
+        self.Pop[CurrentGen+1] = PopNew
         #---------------------------------------------------------------------------------------
 
         #---------- Prepare For Next Gen ----------
