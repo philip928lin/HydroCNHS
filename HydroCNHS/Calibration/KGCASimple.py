@@ -482,7 +482,7 @@ class KGCASimple(object):
         # Plot global optimum.     
         x = np.arange(0, self.CurrentGen+1)   
         loss = self.Best["Loss"][:self.CurrentGen+1]
-        ax.plot(x, loss, label = "Best \n Elapsed_time: [{}]".format(self.elapsed_time), linewidth = 2, color = "black")        
+        ax.plot(x, loss, label = "Best\nElapsed_time: [{}]".format(self.elapsed_time), linewidth = 2, color = "black")        
         ax.set_title(self.__name__)
         ax.set_xlim([0, self.Config["MaxGen"]])
         ax.set_ylim([0, loss[0]*1.1])
@@ -494,55 +494,3 @@ class KGCASimple(object):
             fig.savefig(filename)
         plt.show()
         
-    def plotElbow(self):
-        CurrentGen = self.CurrentGen
-        KClusterMin = self.Config["KClusterMin"] #- 1 # See #-----Kmeans
-        KClusterMax = self.Config["KClusterMax"]
-        KDistortions = self.KPopRes[CurrentGen]["KDistortions"]
-        KExplainedVar = self.KPopRes[CurrentGen]["KExplainedVar"]
-        # KLeastImproveRate = self.Config["KLeastImproveRate"]
-        # KExplainedVarThres = self.Config["KExplainedVarThres"]
-        SelectedK = self.KPopRes[CurrentGen]["SelectedK"]
-        # Kby = self.KPopRes[CurrentGen]["Kby"]
-        # Elbow plot
-        fig, ax = plt.subplots()
-        ax2 = ax.twinx()
-        ax.plot(range(KClusterMin, KClusterMin+len(KDistortions)), KDistortions, marker='o', markersize=5, c = "blue")
-        ax2.plot(range(KClusterMin, KClusterMin+len(KDistortions)), KExplainedVar, marker='o', markersize=5, c = "orange")
-        ax.set_title(self.__name__ + " (Gen {})".format(CurrentGen))
-        ax.axvline(x=SelectedK, color = "red")
-        # if Kby == "ImproveRate":
-        #     ax.scatter(SelectedK, KDistortions[-2], s=100, 
-        #             facecolors='none', edgecolors='r', label = "  Selected K \n(Rate = {})".format(KLeastImproveRate))
-        #     ax.legend(loc = "center right")
-        # elif Kby == "ExplainedVar":
-        #     ax2.scatter(SelectedK, KExplainedVar[-1], s=100, 
-        #             facecolors='none', edgecolors='r', label = "  Selected K \n(Thres = {})".format(KExplainedVarThres))
-        #     ax2.legend(loc = "center right")
-        #     ax2.axhline(y=KExplainedVarThres, ls = "--", lw = 0.5, c = "grey")
-        # if Kby == "KMax":
-        #     ax.scatter(SelectedK, KDistortions[-1], s=100, 
-        #             facecolors='none', edgecolors='r', label = "  Selected K \n(Reach K Max)".format(KLeastImproveRate))
-        #     ax.legend(loc = "center right")
-        ax.set_xlabel("Number of clusters (Max K = {})".format(KClusterMax))
-        ax.set_ylabel("Distortion (within cluster sum of squares")    
-        ax2.set_ylabel("Explained Variance")
-        ax2.set_ylim([0,1])
-        
-        plt.show()
-        
-        
-    def plotSilhouetteAvg(self):
-        CurrentGen = self.CurrentGen
-        SelectedK = self.KPopRes[CurrentGen]["SelectedK"]
-        KClusterMin = self.Config["KClusterMin"]
-        KClusterMax = self.Config["KClusterMax"]
-        SilhouetteAvg = self.KPopRes[CurrentGen]["SilhouetteAvg"]
-        fig, ax = plt.subplots()
-        ax.plot(range(KClusterMin, KClusterMin+len(SilhouetteAvg)), SilhouetteAvg, marker='o', markersize=5, c = "blue")
-        ax.axvline(x=SelectedK, color = "red")
-        ax.set_ylim([-1,1])
-        ax.set_title(self.__name__ + " (Gen {})".format(CurrentGen))
-        ax.set_xlabel("Number of clusters (Max K = {})".format(KClusterMax))
-        ax.set_ylabel("Silhouette Averge")    
-        plt.show()
