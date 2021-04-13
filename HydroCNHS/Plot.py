@@ -158,26 +158,24 @@ class Plot():
         NumPar = Caliobj.NumPar
         Pop = Caliobj.Pop
         ParName = Caliobj.Inputs["ParName"]
-        Loss = np.zeros((MaxGen+1, PopSize))
         Bound = Caliobj.Inputs["ParBound"]
         if SelectedPar is None:
             SelectedPar = ParName
         
         # Get feasible loss
+        Loss = np.zeros((MaxGen+1)*PopSize)
+        PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
         for i in range(MaxGen+1):
-            Loss[i,:] = KPopResult[i]["Loss"]
-        Loss_q = np.quantile(Loss, q)
-        FeasibleIndex = np.argwhere(Loss<=Loss_q)
+            Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+            PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+        df = pd.DataFrame(PopAll, columns = ParName)
+        df["Loss"] = Loss
+        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        Loss_q = np.quantile(df["Loss"], q)
+
         
         # Get feasible pop
-        FeasiblePop = np.empty((FeasibleIndex.shape[0], NumPar))
-        FeasibleLoss = []
-        for i, v in enumerate(FeasibleIndex):
-            FeasiblePop[i] = Pop[v[0]][v[1]]
-            FeasibleLoss = Loss[v[0]][v[1]]
-        df = pd.DataFrame(FeasiblePop, columns = ParName)
-        df["Loss"] = FeasibleLoss
-        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        df = df[df["Loss"] <= Loss_q]
         df = df[SelectedPar + ["Loss"]]
 
         # Get best
@@ -207,8 +205,8 @@ class Plot():
         ax.tick_params(axis='x', rotation=30, labelsize = 8)
         ax.axhline(0, color = "black", lw = 0.5)
         ax.axhline(1, color = "black", lw = 0.5)
+        ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(1-Loss_q,3)))
         ax.set_ylim([-0.1,1.1])
-        ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(Loss_q,3)))
         for x in range(len(SelectedPar)):
             ax.text(x, -0.05, dfBound["LB"][x], horizontalalignment='center', fontsize=6)
             ax.text(x, 1.05, dfBound["UB"][x], horizontalalignment='center', fontsize=6)
