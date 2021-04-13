@@ -68,8 +68,14 @@ class KGCASimple(object):
             ans2 = int(ans1)
             if ans2 <= self.Config["MaxGen"]:
                 print("Fail to update MaxGen. Note that new MaxGen must be larger than original MaxGen.")
+            orgMaxGen = self.Config["MaxGen"]
             self.Config["MaxGen"] = ans2
-            MaxGen = self.Config["MaxGen"]
+            # Extend Best storage space.
+            Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
+                    "Index": np.empty(self.Config["MaxGen"]+1)}
+            Best["Loss"][:orgMaxGen+1] = self.Best["Loss"]
+            Best["Index"][:orgMaxGen+1] = self.Best["Index"]
+            self.Best = Best
         
 
                     
@@ -113,7 +119,7 @@ class KGCASimple(object):
         
         # Best loss value and index of corresponding member in Pop[gen][sp]. Best[Loss/Index][sp]: 1D array with length of MaxGen.
         self.Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
-                        "Index": np.empty(self.Config["MaxGen"]+1)}
+                     "Index": np.empty(self.Config["MaxGen"]+1)}
         
         # Calculate scales for parameter normalization.
         # We assume categorical type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
