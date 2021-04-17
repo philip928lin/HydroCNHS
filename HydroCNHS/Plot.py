@@ -91,7 +91,10 @@ class Plot():
             x_label = xyLabal[0]; y_label = xyLabal[1]
         
         if xticks is None:
-            xticks = np.arange(0,len(x_obv))
+            if isinstance(x_obv, pd.DataFrame):
+                xticks = x_obv.index
+            else:
+                xticks = np.arange(0,len(x_obv))
         else:
             assert len(xticks) == len(x_obv), print("Input length of x is not corresponding to the length of data.")
             # try:
