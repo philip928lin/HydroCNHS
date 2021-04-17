@@ -8,7 +8,7 @@ from .Indicators import Indicator
 
 class Plot():
     @staticmethod
-    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True):
+    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True, returnRegPar = False):
         
         if Title is None:
             Title = "Regression" 
@@ -27,6 +27,8 @@ class Plot():
         ax.set_ylabel(y_label)
         
         # Regression calculation and plot
+        x_obv = np.array(x_obv)
+        y_sim = np.array(y_sim)
         mask = ~np.isnan(x_obv) & ~np.isnan(y_sim)  # Mask to ignore nan
         slope, intercept, r_value, p_value, std_err = stats.linregress(x_obv[mask], y_sim[mask]) # Calculate the regression line
         line = slope*x_obv+intercept                # For plotting regression line
@@ -67,7 +69,11 @@ class Plot():
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.85)
         ax.annotate(string, xy= (0.05, 0.95), xycoords='axes fraction', verticalalignment='top', horizontalalignment='left', transform=ax.transAxes, fontsize=9, bbox = props)       
         plt.show()
-        return ax
+        
+        if returnRegPar:
+            return [slope, intercept]
+        else:
+            return ax
 
     @staticmethod
     def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, **kwargs):        
