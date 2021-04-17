@@ -8,7 +8,7 @@ from .Indicators import Indicator
 
 class Plot():
     @staticmethod
-    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True, returnRegPar = False):
+    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True, returnRegPar = False, SavePath = None):
         
         if Title is None:
             Title = "Regression" 
@@ -70,13 +70,16 @@ class Plot():
         ax.annotate(string, xy= (0.05, 0.95), xycoords='axes fraction', verticalalignment='top', horizontalalignment='left', transform=ax.transAxes, fontsize=9, bbox = props)       
         plt.show()
         
+        if SavePath is not None:
+            fig.savefig()
+            
         if returnRegPar:
             return [slope, intercept]
         else:
             return ax
 
     @staticmethod
-    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, **kwargs):        
+    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, SavePath = None, **kwargs):        
         if Title is None:
             Title = "Timeseries" 
         else:
@@ -121,10 +124,14 @@ class Plot():
         ax.set_ylabel("Value")
         #ax.set_xticks(pd.date_range(start='1/1/1966', end='12/31/2005'))
         plt.show()
+        
+        if SavePath is not None:
+            fig.savefig()
+            
         return ax
     
     @staticmethod
-    def SimpleTSPlot(df, Title = None, xyLabal = None, Dot = True, **kwargs):
+    def SimpleTSPlot(df, Title = None, xyLabal = None, Dot = True, SavePath = None, **kwargs):
         if Title is None:
             Title = "" 
         else:
@@ -154,10 +161,14 @@ class Plot():
                 df[[v]].plot(ax=ax, color = "C{}".format(i%10), alpha = 0.5)
         ax.legend()     
         plt.show()
+        
+        if SavePath is not None:
+            fig.savefig()
+            
         return ax
     
     @staticmethod
-    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01):
+    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None):
         KPopResult = Caliobj.KPopRes
         MaxGen = Caliobj.Config["MaxGen"]
         PopSize = Caliobj.Config["PopSize"]
@@ -217,3 +228,8 @@ class Plot():
             ax.text(x, -0.05, dfBound["LB"][x], horizontalalignment='center', fontsize=6)
             ax.text(x, 1.05, dfBound["UB"][x], horizontalalignment='center', fontsize=6)
             ax.axvline(x, color = "grey", lw = 0.1)
+            
+        if SavePath is not None:
+            fig.savefig()
+        
+        return ax

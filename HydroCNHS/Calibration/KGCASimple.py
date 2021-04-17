@@ -476,7 +476,7 @@ class KGCASimple(object):
         with open(os.path.join(self.CaliWD, "Report_KGCA_" + self.__name__ + ".txt"), "w") as text_file:
             text_file.write(Dict2String(self.Result))
             text_file.write("\n=====================================================")
-            text_file.write("Elapsed time:\n{}".format(self.elapsed_time))
+            text_file.write("\nElapsed time:\n{}".format(self.elapsed_time))
             text_file.write("\n=====================================================")
             text_file.write("\nKGCA user input Config:\n")
             text_file.write(Dict2String(self.Config))
