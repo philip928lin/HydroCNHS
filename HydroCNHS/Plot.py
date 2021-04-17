@@ -71,7 +71,7 @@ class Plot():
         plt.show()
         
         if SavePath is not None:
-            fig.savefig()
+            fig.savefig(SavePath)
             
         if returnRegPar:
             return [slope, intercept]
@@ -129,7 +129,7 @@ class Plot():
         plt.show()
         
         if SavePath is not None:
-            fig.savefig()
+            fig.savefig(SavePath)
             
         return ax
     
@@ -166,7 +166,7 @@ class Plot():
         plt.show()
         
         if SavePath is not None:
-            fig.savefig()
+            fig.savefig(SavePath)
             
         return ax
     
@@ -233,6 +233,6 @@ class Plot():
             ax.axvline(x, color = "grey", lw = 0.1)
             
         if SavePath is not None:
-            fig.savefig()
+            fig.savefig(SavePath)
         
         return ax
