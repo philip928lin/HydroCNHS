@@ -129,12 +129,11 @@ class HydroCNHSModel(object):
         # Add user assigned Q first.
         # Q_routed will be continuously updated for routing.
         self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
-        self.Q_routed = deepcopy(AssignedQ)         # Necessary deepcopy!
         # Collect QParel results
         for i, sb in enumerate(Outlets):
             self.Q_LSM[sb] = QParel[i]
-            self.Q_routed[sb] = QParel[i]
-        logger.info("[{}] Complete GWLF... [{}]".format(self.__name__, getElapsedTime()))
+        self.Q_routed = deepcopy(self.Q_LSM)        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage pointer!
+        logger.info("[{}] Complete LSM simulation. [{}]".format(self.__name__, getElapsedTime()))
         # ---------------------------------------------------------------------    
     
 
