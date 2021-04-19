@@ -509,21 +509,21 @@ def parseSimulationSeqence(Model):
                 else:
                     for up in BackTrackingDict[node]:
                         SimSeq, TempDict, BackTrackingDict = trackBack(up, SimSeq, BackTrackingDict, TempDict)    
-            elif TempDict != {}:
-                # Search TempDict and jump backward to add other tributary.
-                # reverse TempDict
-                rTempDict = {}
-                for g in TempDict:
-                    if rTempDict.get(TempDict[g]) is None:
-                        rTempDict[TempDict[g]] = [g]
-                    else:
-                        rTempDict[TempDict[g]].append(g)
-                if rTempDict != {}:
-                    # Replace BackTrackingDict
-                    for g in rTempDict:
-                        BackTrackingDict[g] = rTempDict[g]
-                    ToNode = SimSeq[min([SimSeq.index(i) for i in rTempDict])]
-                    SimSeq, TempDict, BackTrackingDict = trackBack(ToNode, SimSeq, BackTrackingDict, {}, False)
+            # elif TempDict != {}:
+            #     # Search TempDict and jump backward to add other tributary.
+            #     # reverse TempDict
+            #     rTempDict = {}
+            #     for g in TempDict:
+            #         if rTempDict.get(TempDict[g]) is None:
+            #             rTempDict[TempDict[g]] = [g]
+            #         else:
+            #             rTempDict[TempDict[g]].append(g)
+            #     if rTempDict != {}:
+            #         # Replace BackTrackingDict
+            #         for g in rTempDict:
+            #             BackTrackingDict[g] = rTempDict[g]
+            #         ToNode = SimSeq[min([SimSeq.index(i) for i in rTempDict])]
+            #         SimSeq, TempDict, BackTrackingDict = trackBack(ToNode, SimSeq, BackTrackingDict, {}, False)
             return SimSeq, TempDict, BackTrackingDict 
         SimSeq, TempDict, BackTrackingDict = trackBack(Node, SimSeq, BackTrackingDict)
         return SimSeq
