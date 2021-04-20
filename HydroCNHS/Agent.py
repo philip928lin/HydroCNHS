@@ -21,9 +21,9 @@ class IrrDiv_AgType(object):
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
-        if self.AssignValue:
+        #if self.AssignValue:
             # Expect to be a df.
-            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
+        self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
             
         # Storage
         self.TempResult = {"RemainMonthlyDiv": 0}
@@ -74,7 +74,7 @@ class IrrDiv_AgType(object):
             self.Q[node][self.t] = self.Q[node][self.t] + Factor * Div_t
             
             
-class ResDam_AgType()(object):
+class ResDam_AgType(object):
     def __init__(self, Name, Config, StartDate, DataLength):
         self.Name = Name                    # Agent name.   
         self.StartDate = StartDate          # Datetime object.
@@ -91,9 +91,9 @@ class ResDam_AgType()(object):
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
-        if self.AssignValue:
+        #if self.AssignValue:
             # Expect to be a df.
-            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
+        self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
             
     def act(self, Q, AgentDict, node, CurrentDate, t):
         self.Q = Q
