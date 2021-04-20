@@ -595,10 +595,23 @@ def parseSimulationSeqence(Model):
             for ag in Model["ABM"][agType]:
                 Links = Model["ABM"][agType][ag]["Inputs"]["Links"]
                 # "list" is our special offer to calibrate return flow factor (Inputs).
-                Plus = [p if isinstance(Links[p], list) else p if Links[p] >= 0 else None for p in Links]    
-                Minus = [None if isinstance(Links[p], list) else p if Links[p] <= 0 else None for p in Links]
-                Plus = list(filter(None, Plus))         # Drop None in a list.
-                Minus = list(filter(None, Minus))       # Drop None in a list.
+                Plus = []; Minus = []
+                for p in Links:
+                    if isinstance(Links[p], list):
+                        if Links[p][-1] == "Minus":
+                            Minus.append(p)
+                        else:
+                            Plus.append(p)
+                    else:
+                        if Links[p] >= 0:
+                            Plus.append(p)
+                        else:
+                            Minus.append(p)
+                            
+                # Plus = [p if isinstance(Links[p], list) else p if Links[p] >= 0 else None for p in Links]    
+                # Minus = [None if isinstance(Links[p], list) else p if Links[p] <= 0 else None for p in Links]
+                # Plus = list(filter(None, Plus))         # Drop None in a list.
+                # Minus = list(filter(None, Minus))       # Drop None in a list.
                 for p in Plus:
                     ro = searchRoutingOutlet(p)     # Return flow can be added to non-routing outlets. So we need to find the associate routing outlet in the SimSeq.
                     createEmptyList(AgSimSeq["AgSimPlus"][ro], "RiverDivAgents")
