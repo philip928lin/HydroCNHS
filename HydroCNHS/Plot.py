@@ -236,3 +236,15 @@ class Plot():
             fig.savefig(SavePath)
         
         return ax
+    
+    @staticmethod
+    def YearPlot(df, **kwargs):
+        for i in df:
+            fig, ax = plt.subplots()
+            x = np.arange(1, 13)
+            S = df.index[0].year
+            E = df.index[-1].year
+            for y in range(S, E+1):
+                dff = df[df.index.year == y]
+                ax.plot(x, dff[i], color = "grey", lw = 1, alpha = 0.3, **kwargs)
+                ax.set_title(i)
