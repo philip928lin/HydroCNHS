@@ -50,7 +50,8 @@ class IrrDiv_AgType(object):
         
         # Diversion
         if Factor < 0:
-            RequestDiv = self.AssignedBehavior.loc[CurrentDate, self.Name] + RemainMonthlyDiv
+            #!!!!!!!!!!!!!! Need to be super careful!!!
+            RequestDiv = -Factor*self.AssignedBehavior.loc[CurrentDate, self.Name] + RemainMonthlyDiv
             Qorg = self.Q[node][self.t]
             MinFlowTarget = 0   # cms
             
@@ -59,7 +60,7 @@ class IrrDiv_AgType(object):
                 RemainMonthlyDiv = RequestDiv
                 Qt = Qorg
             else:
-                Qt = max(Qorg + Factor * RequestDiv, MinFlowTarget)
+                Qt = max(Qorg - RequestDiv, MinFlowTarget)
                 ActualDiv = Qorg - Qt   # >= 0
                 RemainMonthlyDiv = max(RequestDiv-ActualDiv, 0)
             
