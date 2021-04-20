@@ -148,7 +148,7 @@ class BasicAgent(object):
             self.UpdatedDM = self.ActualBehavior[node][self.t]      # Save for ruturn flow.
             self.Q[node][self.t] = Qt
             
-            return Q
+            return self.Q
 
     def countNumDM(self, StartDate, EndDate, Freq):
         """Return index with corresponding Freq for self.Record.

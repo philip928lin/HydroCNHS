@@ -66,7 +66,7 @@ class IrrDiv_AgType(object):
             self.Result["ActualDiv"].append(ActualDiv)
             self.TempResult["RemainMonthlyDiv"] = RemainMonthlyDiv
             self.Q[node][self.t] = Qt
-            return Q
+            return self.Q
         
         elif Factor > 0:
             # Assume that diversion has beed done in t.
@@ -74,6 +74,45 @@ class IrrDiv_AgType(object):
             self.Q[node][self.t] = self.Q[node][self.t] + Factor * Div_t
             
             
+class ResDam_AgType()(object):
+    def __init__(self, Name, Config, StartDate, DataLength):
+        self.Name = Name                    # Agent name.   
+        self.StartDate = StartDate          # Datetime object.
+        self.DataLength = DataLength
+        self.Inputs = Config["Inputs"]
+        self.Attributions = Config.get("Attributions")
+        self.Pars = Config["Pars"]
         
+        self.CurrentDate = None             # Datetime object.
+        self.t = None                       # Current time step index.
+        self.Q = None                       # Input outlets' flows.
         
+        #--- Load ObvDf from ObvDfPath.
+        self.ObvDf = {}
+        for k, v in self.Attributions["ObvDfPath"].items():
+            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
+        if self.AssignValue:
+            # Expect to be a df.
+            self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
+            
+    def act(self, Q, AgentDict, node, CurrentDate, t):
+        self.Q = Q
+        self.AgentDict = AgentDict
+        self.CurrentDate = CurrentDate
+        self.t = t
+    
+        Factor = self.Inputs["Links"][node]
+        # For parameterized (for calibration) factor.
+        if isinstance(Factor, list):    
+            Factor = self.Pars[Factor[0]][Factor[1]]
+        
+        # Release (Factor should be 1)
+        if Factor < 0:
+            print("Something is not right in ResDam agent.")
+        
+        elif Factor > 0:
+            # Assume that diversion has beed done in t.
+            Res_t = self.AssignedBehavior.loc[CurrentDate, self.Name]
+            self.Q[node][self.t] = Res_t
+            return self.Q
             
