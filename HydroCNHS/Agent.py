@@ -40,6 +40,7 @@ class IrrDiv_AgType(object):
         if CurrentDate.month != self.t_pre_month:
             self.Result["MonthlyDivShortage"].append(self.TempResult["RemainMonthlyDiv"])
             self.TempResult["RemainMonthlyDiv"] = 0
+        self.t_pre_month = CurrentDate.month
         RemainMonthlyDiv = self.TempResult["RemainMonthlyDiv"]
         
         Factor = self.Inputs["Links"][node]
