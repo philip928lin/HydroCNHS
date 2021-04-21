@@ -74,6 +74,7 @@ class IrrDiv_AgType(object):
             # Assume that diversion has beed done in t.
             Div_t = self.Result["ActualDiv"][-1]
             self.Q[node][self.t] = self.Q[node][self.t] + Factor * Div_t
+            return self.Q
             
             
 class ResDam_AgType(object):
