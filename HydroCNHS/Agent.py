@@ -51,7 +51,7 @@ class IrrDiv_AgType(object):
         else:
             self.AssignValue = False
             # Load initial assigned daily diversion.
-            self.Output.loc[self.ObvDf["InitDiv"].index, "DailyAction"] = self.ObvDf["InitDiv"].loc[:, self.Name]   
+            self.Output.loc[self.rng[:180], "DailyAction"] = self.ObvDf["InitDiv"].loc[self.rng[:180]  , self.Name]   
             
         logger.info("Initialize irrigation diversion agent: {}".format(self.Name))
         
