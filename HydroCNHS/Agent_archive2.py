@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import norm, truncnorm
-import logging
-logger = logging.getLogger("ABM") # Get logger 
+
+# This only for assigned values!!
 
 class IrrDiv_AgType(object):
     def __init__(self, Name, Config, StartDate, DataLength):
@@ -18,59 +18,37 @@ class IrrDiv_AgType(object):
         self.t_pre = None                   # Record last t that "act()" is called,
         self.t_pre_month = StartDate.month  # Record last t month (for RemainMonthlyDiv)
         self.Q = None                       # Input outlets' flows.
-        self.CheckDMHasNotBeenDone = None
         
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
             self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
-        
-        # Load FlowTarget ad a DF with year in index column. Note that year should include StartYear - 1.
-        self.FlowTarget = pd.read_csv(self.Inputs["FlowTarget"], index_col=0)
-        
-        #--- Storage
-        self.rng = pd.date_range(start = StartDate, periods = DataLength, freq = "D")       
-        
-        # Store daily output in the form of DataFrame.
-        self.Output = pd.DataFrame(index=self.rng, columns=["DailyAction", "RequestDiv", "ActualDiv"])
-        # Mid-calculation results.
-        self.MidResult = {"RemainMonthlyDiv": 0,
-                          "MonthlyDivShortage": []} 
-        # For RL all variables have initial value as assigned below
-        self.RL = {"Ravg": [0.5],       
+        #if self.AssignValue:
+            # Expect to be a df.
+        self.AssignedBehavior = self.ObvDf["AssignedBehavior"]    
+            
+        # Storage
+        self.TempResult = {"RemainMonthlyDiv": 0}
+        self.Result = {"MonthlyDivShortage": [],
+                       "ActualDiv": [],
+                       "RequestDiv": []} 
+        self.RL = {"Ravg": [0.5],
                    "Value": [1],
                    "Action": [0],
                    "Mu": [0],
-                   "c": [0],
-                   "YDivReq": [self.Inputs["InitYDivRef"]]} 
-        
-        #--- Check whether to run the DM or assigned values.
-        if self.Inputs["DMFreq"] is None:
-            self.AssignValue = True
-            self.Output.loc[:,"DailyAction"] = self.ObvDf["AssignedBehavior"].loc[self.rng, self.Name]    
-        else:
-            self.AssignValue = False
-            # Load initial assigned daily diversion.
-            self.Output.loc[self.ObvDf["InitDiv"].index, "DailyAction"] = self.ObvDf["InitDiv"].loc[:, self.Name]   
-            
-        logger.info("Initialize irrigation diversion agent: {}".format(self.Name))
-        
+                   "c": [0]} 
+    
     def act(self, Q, AgentDict, node, CurrentDate, t):
         self.Q = Q
         self.AgentDict = AgentDict
         self.CurrentDate = CurrentDate
         self.t = t
         
-        # For now we hard code the decision period here.
-        if self.AssignValue is False and self.CurrentDate.month == 3 and self.CurrentDate.day == 1 and self.CheckDMHasNotBeenDone != self.CurrentDate:
-            self.CheckDMHasNotBeenDone = CurrentDate
-            self.DMFunc()
-        
         if CurrentDate.month != self.t_pre_month:
-            self.MidResult["MonthlyDivShortage"].append(self.MidResult["RemainMonthlyDiv"])
-            self.MidResult["RemainMonthlyDiv"] = 0
+            self.Result["MonthlyDivShortage"].append(self.TempResult["RemainMonthlyDiv"])
+            self.TempResult["RemainMonthlyDiv"] = 0
         self.t_pre_month = CurrentDate.month
-        RemainMonthlyDiv = self.MidResult["RemainMonthlyDiv"]
+        RemainMonthlyDiv = self.TempResult["RemainMonthlyDiv"]
         
         Factor = self.Inputs["Links"][node]
         # For parameterized (for calibration) factor.
@@ -80,7 +58,7 @@ class IrrDiv_AgType(object):
         # Diversion
         if Factor < 0:
             #!!!!!!!!!!!!!! Need to be super careful!!!
-            RequestDiv = -Factor*self.Output.loc[CurrentDate, "DailyAction"] + RemainMonthlyDiv
+            RequestDiv = -Factor*self.AssignedBehavior.loc[CurrentDate, self.Name] + RemainMonthlyDiv
             Qorg = self.Q[node][self.t]
             MinFlowTarget = 0   # cms
             
@@ -93,15 +71,15 @@ class IrrDiv_AgType(object):
                 ActualDiv = Qorg - Qt   # >= 0
                 RemainMonthlyDiv = max(RequestDiv-ActualDiv, 0)
             
-            self.Output.loc[CurrentDate, "RequestDiv"] = RequestDiv
-            self.Output.loc[CurrentDate, "ActualDiv"] = ActualDiv
-            self.MidResult["RemainMonthlyDiv"] = RemainMonthlyDiv
+            self.Result["RequestDiv"].append(RequestDiv)
+            self.Result["ActualDiv"].append(ActualDiv)
+            self.TempResult["RemainMonthlyDiv"] = RemainMonthlyDiv
             self.Q[node][self.t] = Qt
             return self.Q
         
         elif Factor > 0:
             # Assume that diversion has beed done in t.
-            Div_t = self.Output.loc[CurrentDate, "ActualDiv"]
+            Div_t = self.Result["ActualDiv"][-1]
             self.Q[node][self.t] = self.Q[node][self.t] + Factor * Div_t
             return self.Q
     
@@ -110,7 +88,7 @@ class IrrDiv_AgType(object):
         Pars = self.Pars
         RL = self.RL
         
-        FlowTarget = self.FlowTarget.loc[self.CurrentDate.year - 1, "FlowTarget"] # Load from how to assign the value. !!!!!!!!!!!!!
+        FlowTarget = Inputs["FlowTarget"] # Load from how to assign the value.
         L = Inputs["L"]
         Ravg = RL["Ravg"][-1]
         V_pre = RL["Value"][-1]
@@ -122,13 +100,7 @@ class IrrDiv_AgType(object):
         c = RL["c"][-1]
         
         #--- Update
-        # We use the 7 8 9 average flow (of last year), y, to calculate the deviation!
-        # Maybe we can use a common pool for sharing info among agents.
-        if self.CurrentDate.year == self.StartDate.year:
-            y = FlowTarget   # Initial value (No deviation from the flow target.)
-        else:
-            mask = [True if i.month in [7,8,9] and (i.year == self.CurrentDate.year - 1) else False for i in self.rng]
-            y = np.mean(self.Q["G"][mask])
+        y = 0 # Last year 8 9 flow deviation. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         R = self.getReward(y, FlowTarget, L)
         delta = R-Ravg + self.getValue(y, FlowTarget, L, b = 2) - V_pre
@@ -149,43 +121,28 @@ class IrrDiv_AgType(object):
         beta = Pars["beta"]
         
         #--- Get action
-        q = self.genQuantile(Samples, x)        # Inverse normal CDF.
-        mu = self.getMu(q, c, alpha, beta)      # Prospect function with moving center.
-        action = self.getPolicyAction(mu, sig, low = -0.9, high = 1)    # Truncated normal.
+        q = self.genQuantile(Samples, x)
+        mu = self.getMu(q, c, alpha, beta)
+        action = self.getPolicyAction(mu, sig, low = -0.9, high = 1)
         # save
         RL["Action"].append(action)
-        RL["Mu"].append(mu)
-        self.RL = RL
+        RL["Mu"][-1].append(mu)
         
         #==================================================
         # All diversion units are in cms.
-        # Calculate annual diversion request.
         CCurves = self.ObvDf["CharacteristicCurves"]
-        YDivRef = self.RL["YDivReq"][-1]
+        if self.Result["RequestDiv"] == []:
+            YDivRef = Inputs["InitYDivRef"]
+        else:
+            YDivRef = sum(self.Result["RequestDiv"][-365:])/365
         YDiv = YDivRef * (1 + action)
-        self.RL["YDivReq"].append(YDiv)
-
         #--- Map back to daily diversion 
         MRatio = np.array([IrrDiv_AgType.getMonthlyDiv(YDiv, *CCurves.loc[m,:]) for m in range(1, 13)])
         MRatio = MRatio/sum(MRatio)
         MDiv = YDiv * 12 * MRatio
         
-        # To daily. Uniformly assign those monthly average diversion to each day.
-        if (self.CurrentDate.year + 1)%4 == 0:
-            DayInMonth = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29]   # From Mar to Feb
-            DDiv = []
-            for m in range(12):
-                DDiv += [MDiv[m]]*DayInMonth[m]
-            rngIndex = pd.date_range(start = self.StartDate, periods = 366, freq = "D")
-        else:
-            DayInMonth = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 28]   # From Mar to Feb
-            DDiv = []
-            for m in range(12):
-                DDiv += [MDiv[m]]*DayInMonth[m]
-            rngIndex = pd.date_range(start = self.StartDate, periods = 366, freq = "D")
-        
-        # Store into dataframe. 
-        self.Output.loc[rngIndex,"DailyAction"] = DDiv
+        # To daily
+        # How to store ????
         
         
         
