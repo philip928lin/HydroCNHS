@@ -119,6 +119,7 @@ class IrrDiv_AgType(object):
         action_pre = RL["Action"][-1]
         mu_pre = RL["Mu"][-1]
         sig = Pars["Sig"]
+        b = Pars["b"]
         c = RL["c"][-1]
         
         #--- Update
@@ -131,7 +132,7 @@ class IrrDiv_AgType(object):
             y = np.mean(self.Q["G"][mask])
         
         R = self.getReward(y, FlowTarget, L)
-        delta = R-Ravg + self.getValue(y, FlowTarget, L, b = 2) - V_pre
+        delta = R-Ravg + self.getValue(y, FlowTarget, L, b) - V_pre
         gradient = (action_pre - mu_pre)/sig**2
         # update
         Ravg = Ravg + Lr_Ravg*delta
