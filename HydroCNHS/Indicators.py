@@ -134,7 +134,10 @@ class Indicator():
         Returns:
             float
         """
-        return 1 - np.nansum((xObv[1:]-ySim[1:])**2)/np.nansum((xObv[1:]-xObv[:-1])**2)
+        a = np.nansum((xObv[1:]-xObv[:-1])**2)
+        if a == 0:
+            a = 0.0000001
+        return 1 - np.nansum((xObv[1:]-ySim[1:])**2)/a
     
     @staticmethod
     def RSR(xObv, ySim):
