@@ -81,8 +81,8 @@ class IrrDiv_AgType(object):
                 if self.CheckDMHasNotBeenDone:
                     self.DMFunc()
                     self.CheckDMHasNotBeenDone = False
-                else:
-                    self.CheckDMHasNotBeenDone = True
+            else:
+                self.CheckDMHasNotBeenDone = True
         
         if CurrentDate.month != self.t_pre_month:
             self.MidResult["MonthlyDivShortage"].append(self.MidResult["RemainMonthlyDiv"])
