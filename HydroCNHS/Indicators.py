@@ -52,7 +52,11 @@ class Indicator():
         Returns:
             float
         """
-        return np.corrcoef(xObv, ySim)[0,1]
+        r = np.corrcoef(xObv, ySim)[0,1]
+        if np.isnan(r):
+            # We don't consider 2 identical horizontal line as r = 1!
+            r = 0
+        return r
     
     @staticmethod
     def r2(xObv, ySim):
@@ -65,7 +69,8 @@ class Indicator():
         Returns:
             float
         """
-        return np.corrcoef(xObv, ySim)[0,1]**2
+        r = Indicator.r(xObv, ySim)
+        return r**2
     
     @staticmethod
     def rmse(xObv, ySim):
@@ -106,10 +111,15 @@ class Indicator():
             float
         """
         # Prevent dividing zero.
-        xObv = 1/(xObv + 0.01*np.nanmean(xObv))
-        ySim = 1/(ySim + 0.01*np.nanmean(ySim))
-        mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
-        sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
+        if np.nanmean(xObv) == 0:
+            xObv = 1/(xObv + 0.0000001)
+        else:
+            xObv = 1/(xObv + 0.01*np.nanmean(xObv))
+            
+        if np.nanmean(ySim) == 0:
+            ySim = 1/(ySim + 0.0000001)
+        else:
+            ySim = 1/(ySim + 0.01*np.nanmean(ySim))
         mu_xObv = np.nanmean(xObv)
         return 1 - np.nansum((xObv-ySim)**2)/np.nansum((xObv-mu_xObv)**2) # Nash
     
@@ -168,8 +178,16 @@ class Indicator():
             float
         """
         # Prevent dividing zero.
-        xObv = 1/(xObv + 0.01*np.nanmean(xObv))
-        ySim = 1/(ySim + 0.01*np.nanmean(ySim))
+        if np.nanmean(xObv) == 0:
+            xObv = 1/(xObv + 0.0000001)
+        else:
+            xObv = 1/(xObv + 0.01*np.nanmean(xObv))
+            
+        if np.nanmean(ySim) == 0:
+            ySim = 1/(ySim + 0.0000001)
+        else:
+            ySim = 1/(ySim + 0.01*np.nanmean(ySim))
+            
         mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
         sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
         return 1 - ((Indicator.r(xObv, ySim)-1)**2 + (sig_ySim/sig_xObv - 1)**2 + (mu_ySim/mu_xObv - 1)**2)**0.5

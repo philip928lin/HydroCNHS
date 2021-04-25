@@ -23,7 +23,10 @@ class IrrDiv_AgType(object):
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
-            self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
+            if k == "InitDiv":
+                self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
+            else:
+                self.ObvDf[k] = pd.read_csv(v, index_col=0)
         
         # Load FlowTarget ad a DF with year in index column. Note that year should include StartYear - 1.
         self.FlowTarget = pd.read_csv(self.Inputs["FlowTarget"], index_col=0)
@@ -132,27 +135,31 @@ class IrrDiv_AgType(object):
             y = np.mean(self.Q["G"][mask])
         
         R = self.getReward(y, FlowTarget, L)
+        #print(Ravg)
         delta = R-Ravg + self.getValue(y, FlowTarget, L, b) - V_pre
         gradient = (action_pre - mu_pre)/sig**2
         # update
         Ravg = Ravg + Lr_Ravg*delta
         c = c + Lr_c * delta * gradient
+        
         # save
         RL["Ravg"].append(Ravg)
         RL["c"].append(c)
         
         #==================================================
         
-        TotalDamS = self.ObvDf["TotalDamS"][:,self.CurrentDate] # Total 5 reservoirs' storage at 3/31 each year. 
-        Samples = TotalDamS.iloc[-31:-1, 0]     # Use past 30 year's data to build CDF.
-        x = TotalDamS.iloc[-1, 0]               # Get predict storage at 3/31 current year. (DM is on 3/1.)
+        TotalDamS = self.ObvDf["TotalDamS"].loc[:self.CurrentDate.year, "TotalDamS"].to_numpy() #Total 5 reservoirs' storage at 3/31 each year. 
+        Samples = TotalDamS[-31:-1]     # Use past 30 year's data to build CDF.
+        x = TotalDamS[-1]               # Get predict storage at 3/31 current year. (DM is on 3/1.)
         alpha = Pars["alpha"]
         beta = Pars["beta"]
+        Rmax = Pars["Rmax"]
         
         #--- Get action
         q = self.genQuantile(Samples, x)        # Inverse normal CDF.
         mu = self.getMu(q, c, alpha, beta)      # Prospect function with moving center.
-        action = self.getPolicyAction(mu, sig, low = -0.9, high = 1)    # Truncated normal.
+        action = self.getPolicyAction(mu, sig, low = -0.99, high = 0.99)    # Truncated normal.
+        action = action*Rmax
         # save
         RL["Action"].append(action)
         RL["Mu"].append(mu)
@@ -177,17 +184,19 @@ class IrrDiv_AgType(object):
             DDiv = []
             for m in range(12):
                 DDiv += [MDiv[m]]*DayInMonth[m]
-            rngIndex = pd.date_range(start = self.StartDate, periods = 366, freq = "D")
+            rngIndex = pd.date_range(start = self.CurrentDate, periods = 366, freq = "D")
         else:
             DayInMonth = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 28]   # From Mar to Feb
             DDiv = []
             for m in range(12):
                 DDiv += [MDiv[m]]*DayInMonth[m]
-            rngIndex = pd.date_range(start = self.StartDate, periods = 366, freq = "D")
+            rngIndex = pd.date_range(start = self.CurrentDate, periods = 365, freq = "D")
         
         # Store into dataframe. 
-        self.Output.loc[rngIndex,"DailyAction"] = DDiv
-        
+        try:
+            self.Output.loc[rngIndex,"DailyAction"] = DDiv
+        except:     # For last year~~~
+            self.Output.loc[self.CurrentDate:,"DailyAction"] = DDiv[:len(self.Output.loc[self.CurrentDate:,"DailyAction"])]
         
         
     def genQuantile(self, Samples, x):
@@ -222,7 +231,8 @@ class IrrDiv_AgType(object):
         if q >= c:
             mu = ((q-c)/(1-c))**alpha * (1-c) + c
         elif q < c:
-            mu = ((q-c)/c)**beta * c + c
+            mu = -abs((q-c)/c)**beta * c + c
+        #print(q)
         return mu
 
     def getPolicyAction(self, mu, sig, low = -1, high = 1):
@@ -237,7 +247,10 @@ class IrrDiv_AgType(object):
         Returns:
             action: The ratio for adjusting annual diversion is bounded by [low, high]. Default [-1,1].
         """
-        action = truncnorm.rvs(low, high, loc=mu, scale=sig, size=1)
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
+        low, high = (low - mu) / sig, (high - mu) / sig
+        #print(mu, "  ", low, "  ", high)
+        action = truncnorm.rvs(low, high, loc=mu, scale=sig, size=1)[0]
         return action
 
     def getValue(self, y, FlowTarget, L, b = 2):
@@ -251,6 +264,7 @@ class IrrDiv_AgType(object):
         Returns:
             float: value
         """
+        b = int(round(b, 0))
         return 1 / ( 1 + ( (y - FlowTarget) / L )**(2 * b) )
 
     def getReward(self, y, FlowTarget, L):
