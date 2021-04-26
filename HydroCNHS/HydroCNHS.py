@@ -15,7 +15,7 @@ logger = logging.getLogger("HydroCNHS") # Get logger
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel
-from .Agent import *                    # AgType_Reservoir, AgType_IrrDiversion
+from .Agent_RL import *                    # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.

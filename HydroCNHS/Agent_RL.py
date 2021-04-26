@@ -157,43 +157,18 @@ class IrrDiv_AgType(object):
             mask = [True if i.month in [7,8,9] and (i.year == CurrentDate.year - 1) else False for i in self.rng]
             y = np.mean(self.Q["G"][mask])
         
-        #print("y: ", y)
-        #print("FlowTarget: ", FlowTarget)
-        R = self.getReward(y, FlowTarget, L)
-        #print(Ravg)
-        V = self.getValue(y, FlowTarget, L, b)
-        delta = R-Ravg + V - V_pre
-        #print("delta: ", delta)
-        a_norm = (action_pre - mu_pre) / sig
-        #low, high = (-Rmax - mu_pre) / sig, (Rmax - mu_pre) / sig
-        #print("Low high: ", low, "  ", high)
-        #print("norm.cdf(high)-norm.cdf(low): ", norm.cdf(high)-norm.cdf(low))
-        gradient = 1/sig * (a_norm + (mu_pre - RL["Mu_trunc"][-1])/sig )
-        #gradient = 1/sig * (a_norm + (norm.pdf(high)-norm.pdf(low)) / (norm.cdf(high)-norm.cdf(low)) )
-        #gradient = (action_pre - mu_pre)/sig**2
-        #print("action_pre: ", action_pre)
-        #print("mu_pre: ", mu_pre)
-        #print("gradient: ", gradient)
-        # update
-        Ravg = Ravg + Lr_Ravg*delta
-        #print("c: ", c)
-        c = c + Lr_c * delta * gradient
-        
-        if c > 1:
-            #print("c > 1")
-            c=1
-        elif c < 0:
-            #print("c < 0")
-            c=0
+        # Get strength
+        if y >= FlowTarget: # increase div decrease c
+            V = - (1 - self.getValue(y, FlowTarget, L, b))
+            c = c + Lr_c * V * (1-c)
+        else:
+            V = (1 - self.getValue(y, FlowTarget, L, b))
+            c = c + Lr_c * V * c
         
         # save
         RL["y"].append(y)
-        RL["R"].append(R)
-        RL["Ravg"].append(Ravg) #
         RL["c"].append(c)       #
         RL["Value"].append(V)   
-        RL["Gradient"].append(gradient)
-        RL["Delta"].append(delta)
         
         #==================================================
         # Total 5 reservoirs' storage at 3/31 each year. 
@@ -276,10 +251,15 @@ class IrrDiv_AgType(object):
         Returns:
             float: mu
         """
+        # q in [0, 1]
+        # c in [0, 1]
+        # mu in [-1, 1]
+        # Prospect function with moving center (split point).
         if q >= c:
             mu = ((q-c)/(1-c))**alpha * (1-c) + c
         elif q < c:
             mu = -abs((q-c)/c)**beta * c + c
+        # Scale to Rmax
         Rmax = self.Pars["Rmax"]
         return (mu - c)*2*Rmax
 
@@ -320,23 +300,7 @@ class IrrDiv_AgType(object):
         b = int(round(b, 0))
         return 1 / ( 1 + ( (y - FlowTarget) / L )**(2 * b) )
 
-    def getReward(self, y, FlowTarget, L):
-        """Reward function
 
-        Args:
-            y (float): Flow deviation.
-            FlowTarget (float): Flow target.
-            L (float): Allowed flow deviation from the flow target. 
-
-        Returns:
-            [type]: [description]
-        """
-        deviation = abs(y-FlowTarget)
-        if deviation > L:
-            Reward = 0
-        else:
-            Reward = 1
-        return Reward
     
     @staticmethod
     def getMonthlyDiv(YDiv, a, b, LB, UB):
