@@ -54,7 +54,7 @@ class IrrDiv_AgType(object):
                    "Value": [1],
                    "Action": [0],
                    "Mu": [0],
-                   "c": [0],
+                   "c": [0.5],
                    "YDivReq": [self.Inputs["InitYDivRef"]]} 
         
         #--- Check whether to run the DM or assigned values.
@@ -175,8 +175,8 @@ class IrrDiv_AgType(object):
         #--- Get action
         q = self.genQuantile(Samples, x)        # Inverse normal CDF.
         mu = self.getMu(q, c, alpha, beta)      # Prospect function with moving center.
-        action = self.getPolicyAction(mu, sig, low = -0.99, high = 0.99)    # Truncated normal.
-        action = action*Rmax
+        action = self.getPolicyAction(mu, sig, low = -Rmax, high = Rmax)    # Truncated normal.
+        #action = action*Rmax
         # save
         RL["Action"].append(action)
         RL["Mu"].append(mu)
@@ -246,10 +246,10 @@ class IrrDiv_AgType(object):
         """
         # Prospect function with moving center (split point).
         if q >= c:
-            mu = ((q-c)/(1-c))**alpha * (1-c) + c
+            mu = ((q-c)/(1-c))**alpha * (1-c)   # + c  => to [0,1]
         elif q < c:
-            mu = -abs((q-c)/c)**beta * c + c
-        #print(q)
+            mu = -abs((q-c)/c)**beta * c        # + c  => to [0,1]
+        # mu => center around c.
         return mu
 
     def getPolicyAction(self, mu, sig, low = -1, high = 1):
