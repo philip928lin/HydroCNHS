@@ -159,11 +159,11 @@ class IrrDiv_AgType(object):
         
         # Get strength
         if y >= FlowTarget: # increase div decrease c
-            V = (1 - self.getValue(y, FlowTarget, L, b))
-            c = c + Lr_c * V * (1-c)
-        else:
             V = - (1 - self.getValue(y, FlowTarget, L, b))
             c = c + Lr_c * V * c
+        else:
+            V = (1 - self.getValue(y, FlowTarget, L, b))
+            c = c + Lr_c * V * (1-c)
         
         # save
         RL["y"].append(y)
