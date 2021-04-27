@@ -134,15 +134,12 @@ class IrrDiv_AgType(object):
         Pars = self.Pars
         RL = self.RL
         CurrentDate = self.CurrentDate
+        t = self.t
+        DataLength = self.DataLength
         
         FlowTarget = self.FlowTarget[CurrentDate.year - 1] 
         L = Inputs["L"]
-        Ravg = RL["Ravg"][-1]
-        V_pre = RL["Value"][-1]
-        Lr_Ravg = Pars["Lr_Ravg"]
         Lr_c = Pars["Lr_c"]
-        action_pre = RL["Action"][-1]
-        mu_pre = RL["Mu"][-1]
         sig = Pars["Sig"]
         b = Pars["b"]
         c = RL["c"][-1]
@@ -217,10 +214,10 @@ class IrrDiv_AgType(object):
             NumDay = 365
         
         # Store into dataframe. 
-        try:
-            self.Output["DailyAction"][self.t:self.t+NumDay] = DDiv
-        except:     # For last year~~~
-            self.Output["DailyAction"][self.t:] = DDiv[:len(self.Output["DailyAction"][self.t:] )]
+        if DataLength - t > 366:
+            self.Output["DailyAction"][t:t+NumDay] = DDiv
+        else:     # For last year~~~
+            self.Output["DailyAction"][t:] = DDiv[:len(self.Output["DailyAction"][t:] )]
         
         
     def genQuantile(self, Samples, x):
