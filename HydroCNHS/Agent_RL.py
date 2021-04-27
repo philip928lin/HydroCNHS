@@ -159,10 +159,10 @@ class IrrDiv_AgType(object):
         
         # Get strength
         if y >= FlowTarget: # increase div decrease c
-            V = - (1 - self.getValue(y, FlowTarget, L, b))
+            V = (1 - self.getValue(y, FlowTarget, L, b))
             c = c + Lr_c * V * (1-c)
         else:
-            V = (1 - self.getValue(y, FlowTarget, L, b))
+            V = - (1 - self.getValue(y, FlowTarget, L, b))
             c = c + Lr_c * V * c
         
         # save
@@ -198,7 +198,7 @@ class IrrDiv_AgType(object):
         self.RL["YDivReq"].append(YDiv)
 
         #--- Map back to daily diversion 
-        MRatio = np.array([IrrDiv_AgType.getMonthlyDiv(YDiv, *CCurves[m]) for m in range(12)])
+        MRatio = np.array([IrrDiv_AgType.getMonthlyDiv(YDiv, *CCurves[m-1]) for m in [3,4,5,6,7,8,9,10,11,12,1,2]])
         MRatio = MRatio/sum(MRatio)
         MDiv = YDiv * 12 * MRatio
         

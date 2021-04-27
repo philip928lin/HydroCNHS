@@ -223,7 +223,7 @@ class IrrDiv_AgType(object):
         self.RL["YDivReq"].append(YDiv)
 
         #--- Map back to daily diversion 
-        MRatio = np.array([IrrDiv_AgType.getMonthlyDiv(YDiv, *CCurves[m]) for m in range(12)])
+        MRatio = np.array([IrrDiv_AgType.getMonthlyDiv(YDiv, *CCurves[m-1]) for m in [3,4,5,6,7,8,9,10,11,12,1,2]])
         MRatio = MRatio/sum(MRatio)
         MDiv = YDiv * 12 * MRatio
         
