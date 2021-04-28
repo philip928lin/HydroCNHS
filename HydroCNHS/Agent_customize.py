@@ -101,21 +101,25 @@ class DivDM(object):
             Pars = self.AgPars[ag]
             
             L = Pars["L"]
-            b = int(round(Pars["b"], 0))     # Convert to integer
             Lr_c = Pars["Lr_c"]
             V_pre = RL["V"][:-9]
-            f = 1 / ( 1 + ( (y - FlowTarget) / L )**(2 * b) )
-            # BM model
-            if y >= FlowTarget: # increase div decrease c
-                V = - (1 - f)
-                Vavg = np.sum([V] + V_pre)/10     # Average over past ten years
-                c = c + Lr_c * Vavg * c
-                #c = c + Lr_c * V * c
+            
+            # Sigmoid function as the value function
+            V = (FlowTarget - y)/L
+            if V < 0:    # To avoid overflow issue
+                V = 1 - 1/(1+np.exp(V)) - 0.5
             else:
-                V = (1 - f)
-                Vavg = np.sum([V] + V_pre)/10
-                c = c + Lr_c * Vavg * (1-c)
-                #c = c + Lr_c * V * (1-c)
+                V = 1/(1+np.exp(-V)) - 0.5   
+            V = 2*V     # V in  [-1, 1]
+            Vavg = np.sum([V] + V_pre)/10     # Average over past ten years
+            
+            # BM model      (Note: Lr_c * Vavg or V has to be in [-1, 1])     
+            # Choose V or Vavg
+            if V >= 0:   # Sim < Target: increase center => decrease Div 
+                c = c + V*Lr_c*(1-c)
+            else:        # Sim > Target: decrease center => increase Div
+                c = c + V*Lr_c*c  
+            
             # Save
             RL["y"].append(y)
             RL["c"].append(c)       
@@ -503,3 +507,17 @@ class ResDam_AgType(object):
             Res_t = self.AssignedBehavior[t]
             self.Q[node][t] = Res_t
             return self.Q
+
+
+# b = int(round(Pars["b"], 0))     # Convert to integer
+# f = 1 / ( 1 + ( (y - FlowTarget) / L )**(2 * b) )
+# if y >= FlowTarget: # increase div decrease c
+#     V = - (1 - f)
+#     Vavg = np.sum([V] + V_pre)/10     # Average over past ten years
+#     c = c + Lr_c * Vavg * c
+#     c = c + Lr_c * V * c
+# else:
+#     V = (1 - f)
+#     Vavg = np.sum([V] + V_pre)/10
+#     c = c + Lr_c * Vavg * (1-c)
+#     c = c + Lr_c * V * (1-c)
