@@ -550,6 +550,10 @@ def parseSimulationSeqence(Model):
         InsituDivAgentTypes = Model["ABM"]["Inputs"]["InsituDivAgentTypes"]
         RoutingOutlets = Model["SystemParsedData"]["RoutingOutlets"]     # Ordered
         
+        # AgGroup: AgGroup = {"AgType":{"Name": []}}
+        AgGroup = Model["ABM"]["Inputs"].get("AgGroup")
+        if AgGroup is None: AgGroup = []
+        
         def searchRoutingOutlet(agQ):
             """Find in which routing outlet first need agQ to adjust original Q. (from upstream).
             Args:
@@ -574,8 +578,12 @@ def parseSimulationSeqence(Model):
             AgSimSeq["AgSimPlus"][ss] = {} ; Piority["AgSimPlus"][ss] = {}
         
         for agType in ResDamAgentTypes:
+            if agType in AgGroup:
+                AgList = AgGroup[agType].keys()     # Use the group name
+            else:
+                AgList = Model["ABM"][agType].keys()
             # Note that in-stream agent (ag) will be in SimSeq
-            for ag in Model["ABM"][agType]:
+            for ag in AgList:
                 createEmptyList(AgSimSeq["AgSimPlus"][ag], "ResDamAgents")
                 createEmptyList(Piority["AgSimPlus"][ag], "ResDamAgents")
                 # No AgSimMinus is needed since in-stream agents replace original streamflow.
@@ -583,8 +591,12 @@ def parseSimulationSeqence(Model):
                 Piority["AgSimPlus"][ag]["ResDamAgents"].append(0)  # In-stream agent always has piority 0.
                 
         for agType in DamDivAgentTypes:
+            if agType in AgGroup:
+                AgList = AgGroup[agType].keys()     # Use the group name
+            else:
+                AgList = Model["ABM"][agType].keys()
             # Note that in-stream agent (ag) will be in SimSeq
-            for ag in Model["ABM"][agType]:
+            for ag in AgList:
                 createEmptyList(AgSimSeq["AgSimPlus"][ag], "DamDivAgents")
                 createEmptyList(Piority["AgSimPlus"][ag], "DamDivAgents")
                 # No AgSimMinus is needed since in-stream agents replace original streamflow.
@@ -592,8 +604,18 @@ def parseSimulationSeqence(Model):
                 Piority["AgSimPlus"][ag]["DamDivAgents"].append(0)  # In-stream agent always has piority 0.
         
         for agType in RiverDivAgentTypes:
-            for ag in Model["ABM"][agType]:
-                Links = Model["ABM"][agType][ag]["Inputs"]["Links"]
+            if agType in AgGroup:
+                AgList = AgGroup[agType].keys()     # Use the group name
+                Group = True
+            else:
+                AgList = Model["ABM"][agType].keys()
+                Group = False
+            for ag in AgList:
+                if Group:
+                    member = AgGroup[agType][ag][0]     # Use the setting of the first member in the group
+                else:
+                    member = ag
+                Links = Model["ABM"][agType][member]["Inputs"]["Links"]
                 # "list" is our special offer to calibrate return flow factor (Inputs).
                 Plus = []; Minus = []
                 for p in Links:
@@ -617,21 +639,31 @@ def parseSimulationSeqence(Model):
                     createEmptyList(AgSimSeq["AgSimPlus"][ro], "RiverDivAgents")
                     createEmptyList(Piority["AgSimPlus"][ro], "RiverDivAgents")
                     AgSimSeq["AgSimPlus"][ro]["RiverDivAgents"].append(ag)
-                    Piority["AgSimPlus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    Piority["AgSimPlus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][member]["Inputs"]["Piority"])
                 for m in Minus:
                     # ro = searchRoutingOutlet(m)  
                     ro = m      # RiverDivAgents diverted outlets should belong to one routing outlet.
                     createEmptyList(AgSimSeq["AgSimMinus"][ro], "RiverDivAgents")
                     createEmptyList(Piority["AgSimMinus"][ro], "RiverDivAgents")
                     AgSimSeq["AgSimMinus"][ro]["RiverDivAgents"].append(ag)
-                    Piority["AgSimMinus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    Piority["AgSimMinus"][ro]["RiverDivAgents"].append(Model["ABM"][agType][member]["Inputs"]["Piority"])
 
         for agType in InsituDivAgentTypes:
             # InsituDivAgentTypes is a simple diversion agent type, which only divert water from a single sub-basin.
             # Runoff of the max(sub-basin - InsituDiv, 0)
             # Note that it divert from runoff of a single sub-basin not river and no return flow option.
-            for ag in Model["ABM"][agType]:
-                Links = Model["ABM"][agType][ag]["Inputs"]["Links"]
+            if agType in AgGroup:
+                AgList = AgGroup[agType].keys()     # Use the group name
+                Group = True
+            else:
+                AgList = Model["ABM"][agType].keys()
+                Group = False
+            for ag in AgList:
+                if Group:
+                    member = AgGroup[agType][ag][0]     # Use the setting of the first member in the group
+                else:
+                    member = ag
+                Links = Model["ABM"][agType][member]["Inputs"]["Links"]
                 # No special "list"offer to calibrate return flow factor (Inputs).
                 # No return flow option. 
                 Minus = [p for p in Links if Links[p] <= 0]
@@ -640,7 +672,7 @@ def parseSimulationSeqence(Model):
                     createEmptyList(AgSimSeq["AgSimMinus"][ro], "InsituDivAgents")
                     createEmptyList(Piority["AgSimMinus"][ro], "InsituDivAgents")
                     AgSimSeq["AgSimMinus"][ro]["InsituDivAgents"].append(ag)
-                    Piority["AgSimMinus"][ro]["InsituDivAgents"].append(Model["ABM"][agType][ag]["Inputs"]["Piority"])
+                    Piority["AgSimMinus"][ro]["InsituDivAgents"].append(Model["ABM"][agType][member]["Inputs"]["Piority"])
                     
         # Sort agents based on their piorities               
         for pm in AgSimSeq:

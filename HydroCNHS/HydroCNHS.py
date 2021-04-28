@@ -15,7 +15,7 @@ logger = logging.getLogger("HydroCNHS") # Get logger
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel
-from .Agent_RL import *                    # AgType_Reservoir, AgType_IrrDiversion
+from .Agent_customize import *                    # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
@@ -164,17 +164,36 @@ class HydroCNHSModel(object):
         # ----- Load Agents from ABM -----
         # Note: we will automatically detect whether the ABM section is available. If ABM section is not found,
         # then we consider it as none coupled model.
+        # AgGroup = {"AgType":{"Name": []}}
+        
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
+        DataLength = self.WS["DataLength"]
         self.Agents = {}     # Here we store all agent objects with key = agent name.
         if self.ABM is not None: 
+            #====== Customize part ======
+            DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
+            #============================
+            # Create agent group
+            AgGroup = self.ABM["Inputs"].get("AgGroup")
+            if AgGroup is not None:
+                for agType in AgGroup:
+                    for agG in AgGroup[agType]:
+                        agList = AgGroup[agType][agG]
+                        agConfig = {}
+                        for ag in agList:
+                            agConfig[ag] = self.ABM[agType][ag]
+                        self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+            else:
+                AgGroup = []
+            # Create agent
             for agType, Ags in self.ABM.items():
-                if agType == "Inputs":
+                if agType == "Inputs" or agType in AgGroup:
                         continue
                 for ag, agConfig in Ags.items():
                     # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
                     try:
                         # Initialize agent object from agent-type class defined in Agent.py.
-                        self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=self.WS["DataLength"])
+                        self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
                     except Exception as e:
                         logger.error(traceback.format_exc())
                         raise Error("Fail to load {} as agent type {}.".format(ag, agType))
@@ -183,7 +202,7 @@ class HydroCNHSModel(object):
         
         # ----- Time step simulation (Coupling hydrological model and ABM) -----
         # Obtain datetime index
-        pdDatedateIndex = date_range(start = StartDate, periods = self.WS["DataLength"], freq = "D")
+        pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")
         self.pdDatedateIndex = pdDatedateIndex  # So users can use it directly.    
         SimSeq = self.SysPD["SimSeq"]
         AgSimSeq = self.SysPD["AgSimSeq"]
@@ -192,10 +211,10 @@ class HydroCNHSModel(object):
         # Add instream agent to Q_routed. It will be populated after instream agent make their decisions.
         # InStreamAgents = ResDamAgentTypes & DamDivAgentTypes
         for isag in InStreamAgents:
-            self.Q_routed[isag] = np.zeros(self.WS["DataLength"])
+            self.Q_routed[isag] = np.zeros(DataLength)
         
         # Run time step routing and agent simulation to update Q_LSM.
-        for t in tqdm(range(self.WS["DataLength"]), desc = self.__name__, disable=disable):
+        for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
             CurrentDate = pdDatedateIndex[t]
             if self.ABM is None: # Only LSM and Routing.
                 for node in SimSeq:
@@ -231,10 +250,11 @@ class HydroCNHSModel(object):
                                 self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                                 
                         if RiverDivAgents_Plus is not None:    
+                            ##### Customize DM
                             for ag in RiverDivAgents_Plus:
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
                                 # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
-                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
                     
                     elif ResDamAgents_Plus is not None:
                         r"""
@@ -242,7 +262,7 @@ class HydroCNHSModel(object):
                         No minus action is needed.
                         """
                         for ag in ResDamAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = None)
                     
                     elif DamDivAgents_Plus is not None:
                         r"""
@@ -267,8 +287,9 @@ class HydroCNHSModel(object):
                         No minus action is needed.
                         Note that even the DM is diversion, the action should be converted to release (code in agent class). 
                         """
+                        ##### Customize DM
                         for ag in RiverDivAgents_Minus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
                     
 
         # ----------------------------------------------------------------------

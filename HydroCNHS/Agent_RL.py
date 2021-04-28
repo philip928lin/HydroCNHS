@@ -55,7 +55,7 @@ class IrrDiv_AgType(object):
                    "R": [0],
                    "Gradient": [0],
                    "Delta": [0],
-                   "Value": [1],
+                   "Value": [0],
                    "Action": [0],
                    "Mu": [0],
                    "Mu_trunc": [0],
