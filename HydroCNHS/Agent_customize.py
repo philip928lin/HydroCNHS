@@ -44,7 +44,7 @@ class DivDM(object):
                                  "Mu_trunc": [0],
                                  "Sig_trunc": [0],
                                  "c": [0.5],
-                                 "YDivReq": [ AgInputs[ag]["InitYDivRef"] ] },
+                                 "YDivReq": [ self.AgInputs[ag]["InitYDivRef"] ] },
                            "Output": Output}
         #--- Flowtarget
         FlowTarget = pd.read_csv(self.Path["FlowTarget"], index_col=0)
