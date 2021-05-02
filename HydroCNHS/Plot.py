@@ -239,7 +239,7 @@ class Plot():
         return ax
     
     @staticmethod
-    def YearPlot(df, **kwargs):
+    def YearPlot(df, ylim = None, **kwargs):
         for i in df:
             fig, ax = plt.subplots()
             x = np.arange(1, 13)
@@ -249,3 +249,5 @@ class Plot():
                 dff = df[df.index.year == y]
                 ax.plot(x, dff[i], color = "grey", lw = 1, alpha = 0.3, **kwargs)
                 ax.set_title(i)
+            if ylim is not None:
+                ax.set_ylim(ylim)
