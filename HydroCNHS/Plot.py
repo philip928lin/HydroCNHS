@@ -79,7 +79,7 @@ class Plot():
             return ax
 
     @staticmethod
-    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, SavePath = None, **kwargs):        
+    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, SavePath = None, Legend = True, **kwargs):        
         if Title is None:
             Title = "Timeseries" 
         else:
@@ -121,7 +121,8 @@ class Plot():
         else:
             ax.plot(xticks, y_sim, linestyle='dashed', label = y_label, **kwargs)
         #ax.bar(x, np.nan_to_num(y_obv-y_sim), label = "Hydromet - YAKRW", color = "red")
-        ax.legend(fontsize=9)
+        if Legend:
+            ax.legend(fontsize=9)
         ax.set_title(Title)
         ax.set_xlabel("Time")
         ax.set_ylabel("Value")
