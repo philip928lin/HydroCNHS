@@ -41,15 +41,12 @@ class DivDM(object):
         self.rng = pd.date_range(start = StartDate, periods = DataLength, freq = "D")
         for ag in self.AgList:
             self.Ag[ag] = {"RL":{"y": [None],
+                                 "x": [None],
                                  "V": [0],
                                  "Vavg": [0],
-                                 "q": [None],
-                                 "Action": [0],
                                  "Mu": [0],
-                                 "Mu_trunc": [0],
-                                 "Sig_trunc": [0],
-                                 "c": [0.5],
-                                 "YDivReq": [ self.AgInputs[ag]["InitYDivRef"] ] },
+                                 "DivReqRef": [self.AgInputs[ag]["InitYDivRef"] ],
+                                 "YDivReq": [None] },
                            "DailyAction": list(InitDiv[ag])}
         #--- Flowtarget
         FlowTarget = pd.read_csv(self.Path["FlowTarget"], index_col=0)
@@ -98,9 +95,12 @@ class DivDM(object):
         AgList = self.AgList
         CurrentDate = self.CurrentDate
         FlowTarget = self.FlowTarget[CurrentDate.year - 1]
+        DataLength = self.DataLength
+        t = self.t
         
         #==================================================
-        #--- Update c by BM algorithm
+        # Learning: Totally empirical
+        #==================================================
         if self.Learning:
             if CurrentDate.year == self.StartDate.year:
                 y = FlowTarget   # Initial value (No deviation from the flow target.)
@@ -111,173 +111,96 @@ class DivDM(object):
             for ag in AgList:
                 RL = self.Ag[ag]["RL"]
                 Pars = self.AgPars[ag]
-                
-                L = Pars["L"]
+                DivReqRef = RL["DivReqRef"][-1]
+                L_U = Pars["L_U"]
+                L_L = Pars["L_L"]
                 Lr_c = Pars["Lr_c"]
-                V_pre = RL["V"][:-9]
-                
-                # Sigmoid function as the value function
-                V = (FlowTarget - y)/L
-                if V < 0:    # To avoid overflow issue
-                    V = 1 - 1/(1+np.exp(V)) - 0.5
+                if y > FlowTarget + L_U:
+                    V = 1
+                elif y < FlowTarget - L_L:
+                    V = -1
                 else:
-                    V = 1/(1+np.exp(-V)) - 0.5   
-                V = 2*V     # V in  [-1, 1]
-                
-                discount = [0.1342, 0.1678, 0.2097, 0.2621, 0.3277, 0.4096, 0.512, 0.64, 0.8, 1.0]
-                d_sum = sum(discount)
-                VList = [V] + V_pre
-                VList = [0]*(10-len(VList)) + VList # Ensure length = 10
-                VList = [VList[i]*discount[i]/d_sum for i in range(10)]
-                Vavg = np.sum(VList)     # Average over past ten years
-                
-                # BM model      (Note: Lr_c * Vavg or V has to be in [-1, 1])     
-                # Choose V or Vavg
-                c = RL["c"][-1]
-                if V >= 0:   # Sim < Target: increase center => decrease Div 
-                    c = c + V*Lr_c*(1-c)
-                else:        # Sim > Target: decrease center => increase Div
-                    c = c + V*Lr_c*c  
-                    
-                # if Vavg >= 0:   # Sim < Target: increase center => decrease Div 
-                #     c = c + Vavg*Lr_c*(1-c)
-                # else:        # Sim > Target: decrease center => increase Div
-                #     c = c + Vavg*Lr_c*c  
-                
+                    V = 0
+                RL["V"].append(V) 
+                # Mean value of the past ten years.
+                Vavg = np.sum(RL["V"][-10:])/10   # First few years, strengh is decreased on purpose.  
+                DivReqRef = DivReqRef + Vavg*Lr_c
+
                 # Save
                 RL["y"].append(y)
-                RL["c"].append(c)       
-                RL["V"].append(V)   
+                RL["DivReqRef"].append(DivReqRef)
                 RL["Vavg"].append(Vavg) 
                 self.Ag[ag]["RL"] = RL
-            
         #==================================================
+
+
         #==================================================
-        #--- Get feature
-        # Index = np.where(self.TotalDamS["Index"] == CurrentDate.year)[0][0] 
-        # TotalDamS = self.TotalDamS["Value"]
-        # Samples = np.array(TotalDamS[max(Index-30, 0):Index])     # Use past 30 year's data to build CDF.
-        # x = TotalDamS[Index]               # Get predict storage at 3/31 current.
-        # mu, std = norm.fit(Samples)
-        # q = norm.cdf(x, loc=mu, scale=std)
+        # Adaptive & Emergency Operation (Drought year proration) 
+        #==================================================
+        #--- Get feature: Annual daily mean BCPrec from 11 - 6
+        Database = self.Database
+        Index = np.where(Database["Index"] == CurrentDate.year)[0][0] 
+        x = Database['Value'][Index, 0]
         
-        # Get it directly from precalculated csv file.
-        Quantile_Database = self.Quantile_Database
-        Index = np.where(Quantile_Database["Index"] == CurrentDate.year)[0][0] 
-        Column_R3S = np.where(Quantile_Database["Column"] == "R3S")[0][0] 
-        Column_S2BCP = np.where(Quantile_Database["Column"] == "S2BCP")[0][0] 
-        q_R3S = Quantile_Database['Value'][Index, Column_R3S]
-        q_S2BCP = Quantile_Database['Value'][Index, Column_S2BCP]
-        #==================================================
-        #==================================================
-        #--- Get Mu
-        for ag in AgList:
-            RL = self.Ag[ag]["RL"]
-            Pars = self.AgPars[ag]
-            alpha_ = Pars["alpha"]
-            beta_ = Pars["beta"]
-            Rmax = Pars["Rmax"]
-            c = RL["c"][-1]
-            # Select q
-            if ag =="Tieton":
-                q = q_R3S
-            else:
-                q = q_S2BCP
-            # Prospect function => [0, 1]
-            if q >= c:
-                mu = ((q-c)/(1-c))**alpha_ * (1-c) + c
-            elif q < c:
-                mu = -abs((q-c)/c)**beta_ * c + c
-            # Scale to Rmax  => at beta
-            # Mu = (mu - c)*2*Rmax
-            Mu = mu     # Still in  [0,1]
-            # Save
-            RL["q"].append(q)
-            RL["Mu"].append(Mu)
-            self.Ag[ag]["RL"] = RL
-        #==================================================
-        #==================================================
-        #--- Get Action
-        # Get uniform rn for quantile mapping.
+        #--- Get Multinormal random noise
         if self.SocialNorm:
             Corr = self.Corr
-            rn_cor = multivariate_normal.rvs(cov = Corr, size=1)
-            rn = norm.cdf(rn_cor)
+            rn = multivariate_normal.rvs(cov = Corr, size=1)
         else:
-            rn = uniform.rvs(size=len(AgList))
-           
-        # Inverse of Beta CDF 
+            rn = norm.rvs(size=5)
+        
+        #--- Get YDivReq
         for i, ag in enumerate(AgList):
-            RL = self.Ag[ag]["RL"]
             Pars = self.AgPars[ag]
-            Rmax = Pars["Rmax"]
-            mu = RL["Mu"][-1]   # [0,1]
+            RL = self.Ag[ag]["RL"]
+            MaxYDiv = self.AgInputs[ag]["MaxYDiv"]
+            MinYDiv = self.AgInputs[ag]["MinYDiv"]
+            DivReqRef = RL["DivReqRef"][-1]
+            ProratedRatio = Pars["ProratedRatio"]
+            a = Pars["a"]
+            b = Pars["b"]
             sig = Pars["Sig"]
-            c = RL["c"][-1]
-            rn_q = rn[i]
-            # Inverse CDF
-            # https://en.wikipedia.org/wiki/Beta_distribution
-            if sig**2 >= mu*(1-mu):
-                sig = (mu*(1-mu) - 0.00000001)**0.5
-            a = ( mu*(1-mu) / (sig**2) - 1 ) * mu
-            b = ( mu*(1-mu) / (sig**2) - 1 ) * (1 - mu)
-            action = beta.ppf(rn_q, a, b)
-            # action in [0,1] =>  [-Rmax, Rmax]
-            action = (action - c)*2*Rmax
-            
-            if np.isnan(action):
-                print(ag)
-            
-            
-            RL["Action"].append(action)
-            RL["Mu_trunc"].append( (mu - c)*2*Rmax )
-            RL["Sig_trunc"].append(sig)
+            if x <= 0.583:      # Emergency Operation (Drought year proration) 
+                Mu = DivReqRef * ProratedRatio
+            else:               # Adaptive behavoir under normal year.
+                Mu = DivReqRef + a*x+b
+            YDivReq = Mu + rn[i]*sig
+            # Hard constraint for MaxYDiv and MinYDiv
+            if MaxYDiv is not None and MinYDiv is not None:
+                if YDivReq > MaxYDiv:
+                    YDivReq = MaxYDiv
+                elif YDivReq < MinYDiv:
+                    YDivReq = MinYDiv
+            #--- Save
+            RL["x"].append(x)
+            RL["Mu"].append(Mu)
+            RL["YDivReq"].append(YDivReq)
             self.Ag[ag]["RL"] = RL
         #==================================================
+        
         #==================================================
-        #--- Mapping back to daily diversion
-        def getMonthlyDiv(YDiv, a, b, LB, UB):
-            if YDiv <= LB:
-                MDiv = b
-            elif YDiv >= UB:
-                MDiv = a*(UB-LB) + b
-            else:
-                MDiv = a*(YDiv-LB) + b
-            return MDiv
-
-        t = self.t
-        DataLength = self.DataLength
+        # To Daily
+        #==================================================
         for ag in AgList:
             RL = self.Ag[ag]["RL"]
             DailyAction = self.Ag[ag]["DailyAction"]
             CCurves = self.CCurves[ag]
-            MaxYDiv = self.AgInputs[ag]["MaxYDiv"]
-            MinYDiv = self.AgInputs[ag]["MinYDiv"]
-            action = RL["Action"][-1]
-            
-            # Calculate mean YDiv
-            YDivRef = RL["YDivReq"][-10:]
-            count = 0; Len = len(YDivRef)
-            while len(YDivRef) < 10:
-                YDivRef += [YDivRef[count%Len]]
-                count += 1
-            YDivRef = np.mean(YDivRef)
-            YDiv = YDivRef * (1 + action)
-            
-            # Hard constraint for MaxYDiv and MinYDiv
-            if MaxYDiv is not None and MinYDiv is not None:
-                if YDiv > MaxYDiv:
-                    YDiv = MaxYDiv
-                elif YDiv < MinYDiv:
-                    YDiv = MinYDiv
-            RL["YDivReq"].append(YDiv)
-            #print(YDiv)
-            # Map back to daily diversion (from Mar to Feb)
-            MRatio = np.array([getMonthlyDiv(YDiv, *CCurves[m-1]) for m in [3,4,5,6,7,8,9,10,11,12,1,2]])
+            YDivReq = RL["YDivReq"][-1]
+
+            #--- Map back to daily diversion (from Mar to Feb)
+            def getMonthlyDiv(YDivReq, a, b, LB, UB):
+                if YDivReq <= LB:
+                    MDivReq = b
+                elif YDivReq >= UB:
+                    MDivReq = a*(UB-LB) + b
+                else:
+                    MDivReq = a*(YDivReq-LB) + b
+                return MDivReq
+            MRatio = np.array([getMonthlyDiv(YDivReq, *CCurves[m-1]) for m in [3,4,5,6,7,8,9,10,11,12,1,2]])
             MRatio = MRatio/sum(MRatio)
-            MDiv = YDiv * 12 * MRatio
-            #print(MDiv)
-            # To daily. Uniformly assign those monthly average diversion to each day.
+            MDivReq = YDivReq * 12 * MRatio
+
+            #--- To daily. Uniformly assign those monthly average diversion to each day.
             if (CurrentDate.year + 1)%4 == 0:
                 DayInMonth = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29]   # From Mar to Feb
                 NumDay = 366
@@ -287,21 +210,22 @@ class DivDM(object):
                 
             DDiv = []
             for m in range(12):
-                DDiv += [MDiv[m]]*DayInMonth[m]
+                DDiv += [MDivReq[m]]*DayInMonth[m]
                 
-            # Store into dataframe. 
+            #--- Store into dataframe. 
             if DataLength - t > 366:
                 DailyAction += DDiv
                 self.length = NumDay
             else:     # For last year~~~
-                DailyAction += DDiv[:self.DataLength-t ]
-                self.length = self.DataLength-t
+                DailyAction += DDiv[:self.DataLength - t]
+                self.length = self.DataLength - t
             
-            # Save
+            #--- Save
             self.Ag[ag]["RL"] = RL
             self.Ag[ag]["DailyAction"] = DailyAction
-            #print(DailyAction)
-                
+        #==================================================
+        
+        
 class IrrDiv_AgType(object):
     def __init__(self, Name, Config, StartDate, DataLength):
         self.Name = Name                    # Agent name.   

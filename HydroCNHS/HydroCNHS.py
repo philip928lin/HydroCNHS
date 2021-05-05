@@ -15,7 +15,7 @@ logger = logging.getLogger("HydroCNHS") # Get logger
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel
-from .Agent_customize import *                    # AgType_Reservoir, AgType_IrrDiversion
+from .Agent_customize2 import *                    # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
@@ -171,7 +171,7 @@ class HydroCNHSModel(object):
         self.Agents = {}     # Here we store all agent objects with key = agent name.
         if self.ABM is not None: 
             #====== Customize part ======
-            DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
+            self.DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
             #============================
             # Create agent group
             AgGroup = self.ABM["Inputs"].get("AgGroup")
@@ -252,9 +252,9 @@ class HydroCNHSModel(object):
                         if RiverDivAgents_Plus is not None:    
                             ##### Customize DM
                             for ag in RiverDivAgents_Plus:
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
                                 # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
-                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
+                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
                     
                     elif ResDamAgents_Plus is not None:
                         r"""
@@ -289,7 +289,7 @@ class HydroCNHSModel(object):
                         """
                         ##### Customize DM
                         for ag in RiverDivAgents_Minus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = DivDM_KTRWS)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
                     
 
         # ----------------------------------------------------------------------
