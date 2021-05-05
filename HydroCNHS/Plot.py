@@ -8,7 +8,7 @@ from .Indicators import Indicator
 
 class Plot():
     @staticmethod
-    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True, returnRegPar = False, SavePath = None):
+    def RegPlot(x_obv, y_sim, Title = None, xyLabal = None, SameXYLimit = True, returnRegPar = False, SavePath = None, Show = True):
         
         if Title is None:
             Title = "Regression" 
@@ -68,7 +68,8 @@ class Plot():
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.85)
         ax.annotate(string, xy= (0.05, 0.95), xycoords='axes fraction', verticalalignment='top', horizontalalignment='left', transform=ax.transAxes, fontsize=9, bbox = props)       
-        plt.show()
+        if Show:
+            plt.show()
         
         if SavePath is not None:
             fig.savefig(SavePath)
@@ -79,7 +80,7 @@ class Plot():
             return ax
 
     @staticmethod
-    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, SavePath = None, Legend = True, **kwargs):        
+    def TimeseriesPlot(x_obv, y_sim, xticks = None, Title = None, xyLabal = None, SavePath = None, Legend = True, Show = True, **kwargs):        
         if Title is None:
             Title = "Timeseries" 
         else:
@@ -127,7 +128,8 @@ class Plot():
         ax.set_xlabel("Time")
         ax.set_ylabel("Value")
         #ax.set_xticks(pd.date_range(start='1/1/1966', end='12/31/2005'))
-        plt.show()
+        if Show:
+            plt.show()
         
         if SavePath is not None:
             fig.savefig(SavePath)
