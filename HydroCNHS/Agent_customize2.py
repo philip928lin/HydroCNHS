@@ -25,6 +25,7 @@ class DivDM(object):
         self.BehaviorType = ABM["Inputs"].get("BehaviorType")
         if self.BehaviorType is None:           # Learning/Adaptive/Static
             self.BehaviorType = "Learning"      # Default
+            logger.warn("Agent's BehaviorType is set to 'Learning' as default.")
         self.DMcount = 0
         
         #--- AgPars, AgInputs (Not optimize)
