@@ -121,7 +121,7 @@ class DivDM(object):
                 if DMcount == 0:
                     DivReqRef = Init["DivReqRef"]
                 else:
-                    DivReqRef = RL["DivReqRef"][-1]
+                    DivReqRef = RL["DivReqRef"][DMcount-1]
                 L_U = Pars["L_U"]
                 L_L = Pars["L_L"]
                 Lr_c = Pars["Lr_c"]
@@ -134,7 +134,7 @@ class DivDM(object):
                 RL["V"][DMcount] = V
                 # Mean value of the past "ten" years.
                 Vavg = np.sum(RL["V"][max(0,DMcount-9):DMcount+1])/10   # First few years, strengh is decreased on purpose.  
-                DivReqRef = DivReqRef + Vavg*Lr_c
+                DivReqRef = DivReqRef + Vavg*Lr_c*5     # Scale to 5 Lr_c in [0,1]
 
                 # Save
                 RL["y"][DMcount] = y
@@ -161,15 +161,11 @@ class DivDM(object):
         
         #--- Get YDivReq
         for i, ag in enumerate(AgList):
-            Init = self.Ag[ag]["Init"]
             Pars = self.AgPars[ag]
             RL = self.Ag[ag]["RL"]
             MaxYDiv = self.AgInputs[ag]["MaxYDiv"]
             MinYDiv = self.AgInputs[ag]["MinYDiv"]
-            if DMcount == 0:
-                DivReqRef = Init["DivReqRef"]
-            else:
-                DivReqRef = RL["DivReqRef"][-1]
+            DivReqRef = RL["DivReqRef"][DMcount]
             ProratedRatio = Pars["ProratedRatio"]
             a = Pars["a"]
             b = Pars["b"]
@@ -235,7 +231,6 @@ class DivDM(object):
                 self.length = self.DataLength - t
             
             #--- Save
-            self.Ag[ag]["RL"] = RL
             self.Ag[ag]["DailyAction"] = DailyAction
         #==================================================
         self.DMcount += 1
