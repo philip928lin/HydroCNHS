@@ -238,6 +238,7 @@ class DivDM(object):
             self.Ag[ag]["RL"] = RL
             self.Ag[ag]["DailyAction"] = DailyAction
         #==================================================
+        self.DMcount += 1
         
         
 class IrrDiv_AgType(object):
