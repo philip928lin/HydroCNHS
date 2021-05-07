@@ -293,23 +293,20 @@ class IrrDiv_AgType(object):
         #==================================================
         #==================================================
         #--- Calculate the actual request.
-        if CurrentDate.month != self.t_pre_month:
-            MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
-            MidResult["RemainMonthlyDiv"] = 0
-        elif CurrentDate == self.rng[-1]:
-            MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
-            MidResult["RemainMonthlyDiv"] = 0
-            
-        self.t_pre_month = CurrentDate.month
-        RemainMonthlyDiv = self.MidResult["RemainMonthlyDiv"]
-        
         Factor = self.Inputs["Links"][node]
         # For parameterized (for calibration) factor.
         if isinstance(Factor, list):    
-            Factor = self.Pars[Factor[0]][Factor[1]]
-        
+            Factor = self.Pars[Factor[0]][Factor[1]]      
+
         # Diversion
         if Factor < 0:
+            if CurrentDate.month != self.t_pre_month or CurrentDate == self.rng[-1]:
+                MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
+                MidResult["RemainMonthlyDiv"] = 0
+            
+            self.t_pre_month = CurrentDate.month
+            RemainMonthlyDiv = self.MidResult["RemainMonthlyDiv"]
+            
             RequestDiv = (-Factor * Output["DailyAction"][t]) + RemainMonthlyDiv
             MinFlowTarget = 0   # cms
             AvailableWater = self.Q[node][t] - MinFlowTarget
@@ -413,7 +410,7 @@ class IrrDiv_RWS_AgType(object):
             MidResult = AgMidResult[ag]
             Output = AgOutput[ag]
             
-            if CurrentDate.month != self.t_pre_month:
+            if CurrentDate.month != self.t_pre_month or CurrentDate == self.rng[-1]:
                 MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
                 MidResult["RemainMonthlyDiv"] = 0
             RemainMonthlyDiv = MidResult["RemainMonthlyDiv"]

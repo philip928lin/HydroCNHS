@@ -247,14 +247,14 @@ class HydroCNHSModel(object):
                             for ag in InsituDivAgents_Minus:
                                 self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                                 # self.Q_LSM - Div
-                                self.Q_LSM = self.Q_routed[node][t]
+                                self.Q_LSM[node][t] = self.Q_routed[node][t]
                                 
                         if RiverDivAgents_Plus is not None:    
                             ##### Customize DM
                             for ag in RiverDivAgents_Plus:
                                 self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
                                 # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
-                                self.Q_LSM = self.Q_routed[node][t]
+                                self.Q_LSM[node][t] = self.Q_routed[node][t]
                     
                     elif ResDamAgents_Plus is not None:
                         r"""
@@ -302,32 +302,3 @@ class HydroCNHSModel(object):
     def getModelObject(self):
         return self.__dict__
     
-    
-    
-    
-    
-#%%
-                # # These are not duplicated and redundant code!
-                # # First, for instream agent, we don't run routing model, which we simply assign 
-                # # its upstream routing outlet (routing time lag is already considerred at here) as its inflow.
-                # # Second, we run Plus actions, then Minus actions.
-                # if node in InStreamAgents:      # The node is an in-stream agent.
-                #     #----- Update in-stream agent's actions to streamflow (self.Q_LSM) for later routing usage.
-                #     for ag in AgSimSeq["AgSimPlus"][node]:
-                #         self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                #     for ag in AgSimSeq["AgSimMinus"][node]:
-                #         self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                # else:                           # The node is a routing outlet.
-                #     if self.RR["Model"] == "Lohmann":
-                #         #----- Update none in-stream agent's actions (imply in AgSimSeq calculation) to streamflow (self.Q_LSM) for later routing usage.
-                #         if self.ABM is not None: 
-                #             for ag in AgSimSeq["AgSimPlus"][node]:
-                #                 self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                #             for ag in AgSimSeq["AgSimMinus"][node]:
-                #                 self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
-                        
-                #         #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day). 
-                #         Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_LSM, t)
-                        
-                #         #----- Store Qt to final output.
-                #         self.Q_routed[node][t] = Qt 
