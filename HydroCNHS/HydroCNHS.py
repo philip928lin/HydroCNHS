@@ -247,14 +247,14 @@ class HydroCNHSModel(object):
                             for ag in InsituDivAgents_Minus:
                                 self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                                 # self.Q_LSM - Div
-                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                                self.Q_LSM = self.Q_routed[node][t]
                                 
                         if RiverDivAgents_Plus is not None:    
                             ##### Customize DM
                             for ag in RiverDivAgents_Plus:
                                 self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
                                 # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
-                                self.Q_LSM = self.Agents[ag].act(self.Q_LSM, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
+                                self.Q_LSM = self.Q_routed[node][t]
                     
                     elif ResDamAgents_Plus is not None:
                         r"""
