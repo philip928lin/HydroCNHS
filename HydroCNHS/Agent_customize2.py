@@ -296,6 +296,10 @@ class IrrDiv_AgType(object):
         if CurrentDate.month != self.t_pre_month:
             MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
             MidResult["RemainMonthlyDiv"] = 0
+        elif CurrentDate == self.rng[-1]:
+            MidResult["MonthlyDivShortage"].append(MidResult["RemainMonthlyDiv"])
+            MidResult["RemainMonthlyDiv"] = 0
+            
         self.t_pre_month = CurrentDate.month
         RemainMonthlyDiv = self.MidResult["RemainMonthlyDiv"]
         

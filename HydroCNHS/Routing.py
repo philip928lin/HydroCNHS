@@ -119,6 +119,9 @@ def formUH_Lohmann(Inputs, RoutePars):
     UH_direct = UH_direct/sum(UH_direct)
     #--------------------------------------------------------------------------------------
     #logger.debug("[Lohmann] Complete calculating HRU's UH for flow routing simulation.")
+    
+    #--- Trim zero from back. So when we run routing, we don't need to run whole array.
+    UH_direct = np.trim_zeros(UH_direct, 'b')
     return UH_direct
 
 def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, Q_LSM, t):
@@ -134,9 +137,9 @@ def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, Q_LSM, t):
     """   
     #----- Base Time for in-grid (watershed subunit) UH and river/channel routing UH ------
     # In-grid routing
-    T_IG = 12					# [day] Base time for in-grid UH 
+    #T_IG = 12					# [day] Base time for in-grid UH 
     # River routing 
-    T_RR = 96					# [day] Base time for river routing UH 
+    #T_RR = 96					# [day] Base time for river routing UH 
     #--------------------------------------------------------------------------------------
     Qt = None
     ro = RoutingOutlet
@@ -144,7 +147,8 @@ def runTimeStep_Lohmann(RoutingOutlet, Routing, UH_Lohmann, Q, Q_LSM, t):
     Qresult = 0
     Subbasin = list(Routing[ro].keys())
     for sb in Subbasin:
-        l = T_IG + T_RR - 1
+        #l = T_IG + T_RR - 1
+        l = len(UH_Lohmann[(sb, ro)]) - 1
         UH = UH_Lohmann[(sb, ro)][0 : min(t + 1, l) ]   # t+1 is length, t is index.
         if ro == sb:    # Q[ro] is routed Q. We need to use unrouted Q (Q_LSM) to run the routing.
             Q_reverse = np.flip(Q_LSM[sb][ max(t-(l-1), 0) : t+1])
