@@ -70,7 +70,7 @@ class HydroCNHSModel(object):
             # Default to calculate PE with Hamon's method and no dz adjustment.
             for sb in LSMOutlets:
                 PE[sb] = calPEt_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
-                self.logger.info("Compute PEt by Hamon method. Users can improve the efficiency by assigning pre-calculated PEt.")
+            self.logger.info("Compute PEt by Hamon method. Users can improve the efficiency by assigning pre-calculated PEt.")
         self.Weather = {"T":T, "P":P, "PE":PE}
         self.logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
            
@@ -107,7 +107,7 @@ class HydroCNHSModel(object):
                     if sb in AssignedQ:
                         self.RR[ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
                         self.RR[ro][sb]["Pars"]["GRate"] = None   # No in-grid routing.
-                        self.logger.info("Turn {}'s GShape and GRate  to None in routing setting. Since Q (assuming to be observed data) is given, there is no in-grid time lag.".format((sb, ro)))
+                        self.logger.info("Turn {}'s GShape and GRate to None in the routing setting. There is no in-grid time lag with given observed Q.".format((sb, ro)))
         
         # Start GWLF simulation in parallel.
         if self.LSM["Model"] == "GWLF":
@@ -122,7 +122,7 @@ class HydroCNHSModel(object):
                             
         # Start HYMOD simulation in parallel.
         if self.LSM["Model"] == "HYMOD":
-            self.logger.info("[{}] Start HYMOD for {} sub-basins. [{}]".format(self.__name__, len(Outlets), getElapsedTime()))
+            self.logger.info("Start HYMOD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets)    
             QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
@@ -150,7 +150,7 @@ class HydroCNHSModel(object):
             # Remove assigned UH from the list. Not preserving element order in the list.
             UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
             # Start forming UH_Lohmann in parallel.
-            self.logger.info("[Start forming {} UHs for Lohmann routing. [{}]".format(len(UH_List_Lohmann), getElapsedTime()))
+            self.logger.info("Start forming {} UHs for Lohmann routing. [{}]".format(len(UH_List_Lohmann), getElapsedTime()))
             UHParel = Parallel(n_jobs = Paral["Cores_formUH_Lohmann"], verbose = Paral["verbose"]) \
                             ( delayed(formUH_Lohmann)\
                             (self.RR[pair[1]][pair[0]]["Inputs"], self.RR[pair[1]][pair[0]]["Pars"]) \
@@ -297,7 +297,7 @@ class HydroCNHSModel(object):
                     
 
         # ----------------------------------------------------------------------
-        
+        print("")   # Force the logger to start a new line after tqdm.
         self.logger.info("Complete HydroCNHS simulation! [{}]\n".format(getElapsedTime()))
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow outlets of in-stream agents).
         # For other variables users need to extract them manually from this class.
