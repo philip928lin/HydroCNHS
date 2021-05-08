@@ -121,6 +121,7 @@ class HydroCNHSModel(object):
                                 for sb in Outlets ) 
                             
         # Start HYMOD simulation in parallel.
+        # Not verify this model yet.
         if self.LSM["Model"] == "HYMOD":
             self.logger.info("Start HYMOD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
