@@ -138,7 +138,8 @@ class DivDM(object):
                 # Mean value of the past "ten" years.
                 Vavg = np.sum(RL["V"][max(0,DMcount-9):DMcount+1])/10   # First few years, strengh is decreased on purpose.  
                 DivReqRef = DivReqRef + Vavg*Lr_c*5     # Scale to 5 Lr_c in [0,1]
-                DivReqRef = min(MaxYDiv, max(DivReqRef, MinYDiv))       # Bound by Max and Min
+                if MaxYDiv is not None and MinYDiv is not None:
+                    DivReqRef = min(MaxYDiv, max(DivReqRef, MinYDiv))       # Bound by Max and Min
                 # Save
                 RL["y"][DMcount] = y
                 RL["DivReqRef"][DMcount] = DivReqRef
@@ -180,10 +181,8 @@ class DivDM(object):
             YDivReq = Mu + rn[i]*sig
             # Hard constraint for MaxYDiv and MinYDiv
             if MaxYDiv is not None and MinYDiv is not None:
-                if YDivReq > MaxYDiv:
-                    YDivReq = MaxYDiv
-                elif YDivReq < MinYDiv:
-                    YDivReq = MinYDiv
+                YDivReq = min(MaxYDiv, max(YDivReq, MinYDiv))       # Bound by Max and Min
+
             #--- Save
             RL["x"][DMcount] = x
             RL["Mu"][DMcount] = Mu
