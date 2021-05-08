@@ -118,6 +118,9 @@ class DivDM(object):
                 Init = self.Ag[ag]["Init"]
                 RL = self.Ag[ag]["RL"]
                 Pars = self.AgPars[ag]
+                MaxYDiv = self.AgInputs[ag]["MaxYDiv"]
+                MinYDiv = self.AgInputs[ag]["MinYDiv"]
+                
                 if DMcount == 0:
                     DivReqRef = Init["DivReqRef"]
                 else:
@@ -135,7 +138,7 @@ class DivDM(object):
                 # Mean value of the past "ten" years.
                 Vavg = np.sum(RL["V"][max(0,DMcount-9):DMcount+1])/10   # First few years, strengh is decreased on purpose.  
                 DivReqRef = DivReqRef + Vavg*Lr_c*5     # Scale to 5 Lr_c in [0,1]
-
+                DivReqRef = min(MaxYDiv, max(DivReqRef, MinYDiv))       # Bound by Max and Min
                 # Save
                 RL["y"][DMcount] = y
                 RL["DivReqRef"][DMcount] = DivReqRef
