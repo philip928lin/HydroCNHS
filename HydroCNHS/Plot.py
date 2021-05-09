@@ -265,6 +265,7 @@ class Plot():
         Pop = Caliobj.Pop
         ParName = Caliobj.Inputs["ParName"]
         Bound = Caliobj.Inputs["ParBound"]
+        ParWeight = Caliobj.Inputs["ParWeight"]
         if SelectedPar is None:
             SelectedPar = ParName
         
@@ -311,8 +312,12 @@ class Plot():
                 else:
                     silhouette_avg = silhouette_score(df[SelectedPar], cluster_labels)
                     SilhouetteAvg.append(silhouette_avg)
-            plt.plot(SilhouetteAvg, title = "Silhouette Score", xticks = np.arange(KClusterMin, KClusterMax+1))
-            plt.plot(KExplainedVar, title = "Explained Var", xticks = np.arange(KClusterMin, KClusterMax+1))
+            fig, ax = plt.subplots()
+            x = np.arange(KClusterMin, KClusterMax+1)
+            ax.plot(x, SilhouetteAvg, "+-", label = "Silhouette Score")
+            ax.plot(x, KExplainedVar, "+-", label = "Explained Var")
+            ax.legend() 
+            plt.show()
         else:
             # Run Kmeans
             ParWeight = Caliobj.Inputs["ParWeight"]
