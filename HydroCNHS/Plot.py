@@ -1,9 +1,11 @@
 
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import argmin
 from scipy import stats
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from .Indicators import Indicator
 
 class Plot():
@@ -253,3 +255,91 @@ class Plot():
                 ax.set_title(i)
             if ylim is not None:
                 ax.set_ylim(ylim)
+                
+    @staticmethod
+    def getEquifinalModels(Caliobj, KClusterMin = 1, KClusterMax = 10, k = None, SelectedPar = None, q = 0.01, TakeBest = True):
+        KPopResult = Caliobj.KPopRes
+        MaxGen = Caliobj.Config["MaxGen"]
+        PopSize = Caliobj.Config["PopSize"]
+        NumPar = Caliobj.NumPar
+        Pop = Caliobj.Pop
+        ParName = Caliobj.Inputs["ParName"]
+        Bound = Caliobj.Inputs["ParBound"]
+        if SelectedPar is None:
+            SelectedPar = ParName
+        
+        # Get feasible loss
+        Loss = np.zeros((MaxGen+1)*PopSize)
+        PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
+        for i in range(MaxGen+1):
+            Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+            PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+        df = pd.DataFrame(PopAll, columns = ParName)
+        df["Loss"] = Loss
+        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        Loss_q = np.quantile(df["Loss"], q)
+
+        
+        # Get feasible pop
+        df = df[df["Loss"] <= Loss_q]
+        df = df[SelectedPar + ["Loss"]]
+
+        # Get best
+        Bestpop = Caliobj.descale(Caliobj.Result["GlobalOptimum"]["Solutions"])
+        
+        # Run Kmeans
+        ParWeight = Caliobj.Inputs["ParWeight"]
+        km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
+        df["Label"] = km.labels_
+        
+        if k is None:
+            KClusterMax = 10
+            KClusterMin = 1
+            KmeansModel = {}
+            KDistortions = []
+            KExplainedVar = []
+            SilhouetteAvg = []
+            SSE = np.sum(np.var(df[SelectedPar], axis = 0))*df[SelectedPar].shape[0]
+            for k in range(KClusterMin, KClusterMax+1):
+                km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
+                KmeansModel[k] = km
+                # Calculate some indicators for kmeans
+                ## inertia_: Sum of squared distances of samples to their closest cluster center.
+                KDistortions.append(km.inertia_)
+                KExplainedVar.append((SSE - KDistortions[-1])/SSE)
+                ## The silhouette_score gives the average value for all the samples.
+                ## This gives a perspective into the density and separation of the formed clusters
+                ## The coefficient varies between -1 and 1. A value close to 1 implies that the instance is close to its cluster is a part of the right cluster. 
+                cluster_labels = km.labels_
+                if k == 1:  # If given k == 1, then assign the worst value.
+                    SilhouetteAvg.append(-1) 
+                else:
+                    silhouette_avg = silhouette_score(df[SelectedPar], cluster_labels)
+                    SilhouetteAvg.append(silhouette_avg)
+            plt.plot(SilhouetteAvg, title = "Silhouette Score", xticks = np.arange(KClusterMin, KClusterMax+1))
+            plt.plot(KExplainedVar, title = "Explained Var", xticks = np.arange(KClusterMin, KClusterMax+1))
+        else:
+            # Run Kmeans
+            ParWeight = Caliobj.Inputs["ParWeight"]
+            km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
+            df["Label"] = km.labels_
+            Centers = km.cluster_centers_
+            
+            # Take out the best-performed model in each kmeans group.
+            # If multiple equal loss model, then select the most closed to the center one.
+            EquifinalDF = pd.DataFrame(index=ParName)
+            for g in range(k):
+                center = Centers[g]
+                dff = df[df["Label"] == g]
+                if TakeBest:
+                    minLoss = min(dff["Loss"])
+                    dff = dff[dff["Loss"] == minLoss]
+                dff = dff.reset_index(drop=True)
+                # Calculate distance to the center
+                selectpar = dff[SelectedPar].to_numpy()
+                Dist = []
+                for i in selectpar:
+                    Dist.append(np.linalg.norm(selectpar-center))
+                index = argmin(Dist)
+                EquifinalDF[g] = Caliobj.scale(dff.loc[index, ParName])
+            return EquifinalDF
