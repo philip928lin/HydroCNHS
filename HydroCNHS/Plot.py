@@ -287,11 +287,6 @@ class Plot():
         # Get best
         Bestpop = Caliobj.descale(Caliobj.Result["GlobalOptimum"]["Solutions"])
         
-        # Run Kmeans
-        ParWeight = Caliobj.Inputs["ParWeight"]
-        km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
-        df["Label"] = km.labels_
-        
         if k is None:
             KClusterMax = 10
             KClusterMin = 1
