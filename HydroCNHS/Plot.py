@@ -177,7 +177,21 @@ class Plot():
         return ax
     
     @staticmethod
-    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 30):
+    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 90, AdjustText = True, FigSize = None):
+        """
+        Args:
+            Caliobj (object): Calibration object.
+            k (int): Number of cluster/group.
+            SelectedPar (list, optional): List of selected parameters for kmeans. Defaults to None.
+            q (float, optional): Quantile, a threshold for determining feasible models. Defaults to 0.01.
+            SavePath (str, optional): Save figure to. Defaults to None.
+            Rotation (int, optional): Rotate xticks' labels. Defaults to 90.
+            AdjustText (bool, optional): To avoid overlapping texts. Defaults to True.
+            FigSize (tuple, optional): Figure size. Defaults to None.
+
+        Returns:
+            ax object
+        """
         KPopResult = Caliobj.KPopRes
         MaxGen = Caliobj.Config["MaxGen"]
         PopSize = Caliobj.Config["PopSize"]
@@ -213,7 +227,10 @@ class Plot():
         df["Label"] = km.labels_
         
         # Plot
-        fig, ax = plt.subplots()
+        if FigSize is not None:
+            fig, ax = plt.subplots(figsize = FigSize)
+        else:
+            fig, ax = plt.subplots()
         
         dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
         dfBound = dfBound.loc[SelectedPar,:]
@@ -233,10 +250,21 @@ class Plot():
         ax.axhline(1, color = "black", lw = 0.5)
         ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(1-Loss_q,3)))
         ax.set_ylim([-0.1,1.1])
+        Texts = []
         for x in range(len(SelectedPar)):
-            ax.text(x, -0.05, dfBound["LB"][x], horizontalalignment='center', fontsize=6)
-            ax.text(x, 1.05, dfBound["UB"][x], horizontalalignment='center', fontsize=6)
+            def sn(num):
+                '''Control length of printing number'''
+                Num = ('%f' % num).rstrip('0').rstrip('.')
+                if len(Num) > 4:
+                    Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
+                return Num
+            Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=6))
+            Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=6))
             ax.axvline(x, color = "grey", lw = 0.1)
+        # Auto adjust label position.
+        if AdjustText:
+            print("Auto text position adjustment might take some time.")
+            adjust_text(Texts, only_move={"points":"y", "text":"y", "objects":"y"}, expand_text =(1,1))
             
         if SavePath is not None:
             fig.savefig(SavePath)
