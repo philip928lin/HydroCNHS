@@ -177,7 +177,7 @@ class Plot():
         return ax
     
     @staticmethod
-    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 90, AdjustText = True, FigSize = None):
+    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 90, AdjustText = True, Sep = False):
         
         if isinstance(Caliobj, list):
             Name = "Collective Caliobj"
@@ -250,71 +250,128 @@ class Plot():
         #     fig, ax = plt.subplots(figsize = FigSize)
         # else:
         #     fig, ax = plt.subplots()
-        
-        Height = 8
-        FigSize=((len(SelectedPar)+1)/16*Height, Height)
-        fig, ax = plt.subplots(figsize = FigSize)
-        
-        dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
-        dfBound = dfBound.loc[SelectedPar,:]
-        
-        
-        for i in range(k):
-            df_k = df[df["Label"] == i][SelectedPar + ["Loss"]].T
-            df_k.plot(lw = 0.5, color = "C{}".format(i%10), alpha = 0.2, legend = False, ax=ax)
+        if Sep is False:
+            Height = 8
+            FigSize=((len(SelectedPar)+1)/16*Height, Height)
+            fig, ax = plt.subplots(figsize = FigSize)
             
-            dff = df[df["Label"] == i]
-            minLoss = min(dff["Loss"])
-            center = Centers[i]
-            dff = dff[dff["Loss"] == minLoss]
-            dff = dff.reset_index(drop=True)
-            # Calculate distance to the center
-            selectpar = dff[SelectedPar].to_numpy()
-            Dist = []
-            for i in selectpar:
-                Dist.append(np.linalg.norm(i-center))
-            index = argmin(Dist)
-            ax.plot(dff.loc[index, SelectedPar + ["Loss"]].to_numpy().T,lw = 1, color = "black", linestyle = "-")
-
+            dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
+            dfBound = dfBound.loc[SelectedPar,:]
             
             
-        ax.plot(Bestpop.to_numpy().T,lw = 1.2, color = "red", linestyle = "--")
-        
-        
-        ax.set_xticks(np.arange(len(SelectedPar) + 1)) 
-        ax.set_xticklabels(SelectedPar + ["Loss"], fontsize=12)
-        ax.set_yticks([])
-        ax.tick_params(axis='x', rotation=Rotation, labelsize = 12)
-        ax.axhline(0, color = "black", lw = 0.5)
-        ax.axhline(1, color = "black", lw = 0.5)
-        ax.set_title(Name + "    Thres: {}".format(round(Loss_q,3)))    # Use the original Loss from Caliobj
-        ax.set_ylim([-0.1,1.1])
-        def sn(num):
-            '''Control length of printing number'''
-            Num = ('%f' % num).rstrip('0').rstrip('.')
-            if len(Num) > 4:
-                Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
-            return Num
-        Texts = []
-        for x in range(len(SelectedPar)):
-            Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=10))
-            Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=10))
+            for i in range(k):
+                df_k = df[df["Label"] == i][SelectedPar + ["Loss"]].T
+                df_k.plot(lw = 0.5, color = "C{}".format(i%10), alpha = 0.2, legend = False, ax=ax)
+                
+                dff = df[df["Label"] == i]
+                minLoss = min(dff["Loss"])
+                center = Centers[i]
+                dff = dff[dff["Loss"] == minLoss]
+                dff = dff.reset_index(drop=True)
+                # Calculate distance to the center
+                selectpar = dff[SelectedPar].to_numpy()
+                Dist = []
+                for i in selectpar:
+                    Dist.append(np.linalg.norm(i-center))
+                index = argmin(Dist)
+                ax.plot(dff.loc[index, SelectedPar + ["Loss"]].to_numpy().T,lw = 1, color = "black", linestyle = "-")
+    
+                
+                
+            ax.plot(Bestpop.to_numpy().T,lw = 1.2, color = "red", linestyle = "--")
+            
+            
+            ax.set_xticks(np.arange(len(SelectedPar) + 1)) 
+            ax.set_xticklabels(SelectedPar + ["Loss"], fontsize=12)
+            ax.set_yticks([])
+            ax.tick_params(axis='x', rotation=Rotation, labelsize = 12)
+            ax.axhline(0, color = "black", lw = 0.5)
+            ax.axhline(1, color = "black", lw = 0.5)
+            ax.set_title(Name + "    Thres: {}".format(round(Loss_q,3)))    # Use the original Loss from Caliobj
+            ax.set_ylim([-0.1,1.1])
+            def sn(num):
+                '''Control length of printing number'''
+                Num = ('%f' % num).rstrip('0').rstrip('.')
+                if len(Num) > 4:
+                    Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
+                return Num
+            Texts = []
+            for x in range(len(SelectedPar)):
+                Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=10))
+                Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=10))
+                ax.axvline(x, color = "grey", lw = 0.2)
+            # Add Loss
+            x = len(SelectedPar)
+            Texts.append(ax.text(x, -0.05, sn(MinLoss), horizontalalignment='center', fontsize=10))
+            Texts.append(ax.text(x, 1.05, sn(MaxLoss), horizontalalignment='center', fontsize=10))
             ax.axvline(x, color = "grey", lw = 0.2)
-        # Add Loss
-        x = len(SelectedPar)
-        Texts.append(ax.text(x, -0.05, sn(MinLoss), horizontalalignment='center', fontsize=10))
-        Texts.append(ax.text(x, 1.05, sn(MaxLoss), horizontalalignment='center', fontsize=10))
-        ax.axvline(x, color = "grey", lw = 0.2)
+                
+            # Auto adjust label position.
+            if AdjustText:
+                print("Auto text position adjustment might take some time.")
+                adjust_text(Texts, only_move={"points":"y", "text":"y", "objects":"y"}, expand_text =(1,1))
+                
+            if SavePath is not None:
+                fig.savefig(SavePath)
+            return ax
+        else:
+            for i in range(k):
+                Height = 8
+                FigSize=((len(SelectedPar)+1)/16*Height, Height)
+                fig, ax = plt.subplots(figsize = FigSize)
+                
+                dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
+                dfBound = dfBound.loc[SelectedPar,:]
             
-        # Auto adjust label position.
-        if AdjustText:
-            print("Auto text position adjustment might take some time.")
-            adjust_text(Texts, only_move={"points":"y", "text":"y", "objects":"y"}, expand_text =(1,1))
-            
-        if SavePath is not None:
-            fig.savefig(SavePath)
+                df_k = df[df["Label"] == i][SelectedPar + ["Loss"]].T
+                df_k.plot(lw = 0.5, color = "C{}".format(i%10), alpha = 0.2, legend = False, ax=ax)
+                
+                dff = df[df["Label"] == i]
+                minLoss = min(dff["Loss"])
+                center = Centers[i]
+                dff = dff[dff["Loss"] == minLoss]
+                dff = dff.reset_index(drop=True)
+                # Calculate distance to the center
+                selectpar = dff[SelectedPar].to_numpy()
+                Dist = []
+                for i in selectpar:
+                    Dist.append(np.linalg.norm(i-center))
+                index = argmin(Dist)
+                ax.plot(dff.loc[index, SelectedPar + ["Loss"]].to_numpy().T,lw = 1, color = "black", linestyle = "-")
+    
+                #ax.plot(Bestpop.to_numpy().T,lw = 1.2, color = "red", linestyle = "--")
+                
+                ax.set_xticks(np.arange(len(SelectedPar) + 1)) 
+                ax.set_xticklabels(SelectedPar + ["Loss"], fontsize=12)
+                ax.set_yticks([])
+                ax.tick_params(axis='x', rotation=Rotation, labelsize = 12)
+                ax.axhline(0, color = "black", lw = 0.5)
+                ax.axhline(1, color = "black", lw = 0.5)
+                ax.set_title(Name + "  Group: {}  Thres: {}".format(k+1, round(Loss_q,3)))    # Use the original Loss from Caliobj
+                ax.set_ylim([-0.1,1.1])
+                def sn(num):
+                    '''Control length of printing number'''
+                    Num = ('%f' % num).rstrip('0').rstrip('.')
+                    if len(Num) > 4:
+                        Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
+                    return Num
+                Texts = []
+                for x in range(len(SelectedPar)):
+                    Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=10))
+                    Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=10))
+                    ax.axvline(x, color = "grey", lw = 0.2)
+                # Add Loss
+                x = len(SelectedPar)
+                Texts.append(ax.text(x, -0.05, sn(MinLoss), horizontalalignment='center', fontsize=10))
+                Texts.append(ax.text(x, 1.05, sn(MaxLoss), horizontalalignment='center', fontsize=10))
+                ax.axvline(x, color = "grey", lw = 0.2)
+                    
+                # Auto adjust label position.
+                if AdjustText:
+                    print("Auto text position adjustment might take some time.")
+                    adjust_text(Texts, only_move={"points":"y", "text":"y", "objects":"y"}, expand_text =(1,1))
+                    
         
-        return ax
     
     @staticmethod
     def YearPlot(df, ylim = None, **kwargs):
@@ -331,7 +388,7 @@ class Plot():
                 ax.set_ylim(ylim)
                 
     @staticmethod
-    def getEquifinalModels(Caliobj, KClusterMin = 1, KClusterMax = 10, k = None, SelectedPar = None, q = 0.01, TakeBest = True):
+    def getEquifinalModels(Caliobj, KClusterMin = 1, KClusterMax = 10, k = None, SelectedPar = None, q = 0.01, TakeBest = True, bins = 50):
         
         if isinstance(Caliobj, list):
             df = pd.DataFrame()
@@ -382,8 +439,15 @@ class Plot():
         Loss_q = np.quantile(df["Loss"], q)
 
         # Get feasible pop
+        # plt.hist(df["Loss"], bins = bins)
+        # plt.title("Histogram with all simulations ({})".format(len(df["Loss"])))
+        # plt.show()
+        
         df = df[df["Loss"] <= Loss_q]
         df = df[SelectedPar + ["Loss"]]
+        plt.hist(df["Loss"], bins = bins)
+        plt.title("Histogram ({})".format(len(df["Loss"])))
+        plt.show()
         
         if k is None:
             KClusterMax = 10
@@ -437,5 +501,5 @@ class Plot():
                 for i in selectpar:
                     Dist.append(np.linalg.norm(selectpar-center))
                 index = argmin(Dist)
-                EquifinalDF[g] = Caliobj.scale(dff.loc[index, ParName])
+                EquifinalDF[g] = caliobj.scale(dff.loc[index, ParName].to_numpy().flatten())
             return EquifinalDF
