@@ -251,7 +251,7 @@ class IrrDiv_AgType(object):
         #--- Load ObvDf from ObvDfPath.
         self.ObvDf = {}
         for k, v in self.Attributions["ObvDfPath"].items():
-            if k == "InitDiv":
+            if k == "InitDiv" or k == "AssignedBehavior":
                 self.ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
             else:
                 self.ObvDf[k] = pd.read_csv(v, index_col=0)
@@ -360,7 +360,7 @@ class IrrDiv_RWS_AgType(object):
         for ag in self.AgList:
             ObvDf = {}
             for k, v in self.AgConfig[ag]["Attributions"]["ObvDfPath"].items():
-                if k == "InitDiv":
+                if k == "InitDiv" or k == "AssignedBehavior":
                     ObvDf[k] = pd.read_csv(v, parse_dates=True, index_col=0, infer_datetime_format = True)
                 else:
                     ObvDf[k] = pd.read_csv(v, index_col=0)

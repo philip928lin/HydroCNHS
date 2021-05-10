@@ -176,7 +176,7 @@ class Plot():
         return ax
     
     @staticmethod
-    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None):
+    def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 30):
         KPopResult = Caliobj.KPopRes
         MaxGen = Caliobj.Config["MaxGen"]
         PopSize = Caliobj.Config["PopSize"]
@@ -227,7 +227,7 @@ class Plot():
         ax.set_xticks(np.arange(len(SelectedPar))) 
         ax.set_xticklabels(SelectedPar, fontsize=10)
         ax.set_yticks([])
-        ax.tick_params(axis='x', rotation=30, labelsize = 8)
+        ax.tick_params(axis='x', rotation=Rotation, labelsize = 6)
         ax.axhline(0, color = "black", lw = 0.5)
         ax.axhline(1, color = "black", lw = 0.5)
         ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(1-Loss_q,3)))

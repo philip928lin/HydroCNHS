@@ -7,7 +7,7 @@ setup(name='HydroCNHS',
       author_email='philip928lin@gmail.com',
       license='NotOpenYet',
       packages=['HydroCNHS'],
-      install_requires = ["ruamel.yaml", "tqdm", "numpy", "pandas", "joblib", "scipy", "matplotlib", "sklearn"],
+      install_requires = ["ruamel.yaml", "tqdm", "numpy", "pandas", "joblib", "scipy", "matplotlib", "sklearn", "adjustText"],
       zip_safe=False,
       include_package_data = True,        # Enable MANIFEST.in  https://python-packaging.readthedocs.io/en/latest/non-code-files.html
       python_requires='>=3.7')
