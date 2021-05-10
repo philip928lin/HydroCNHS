@@ -178,89 +178,134 @@ class Plot():
     
     @staticmethod
     def EquifinalPlot(Caliobj, k, SelectedPar = None, q = 0.01, SavePath = None, Rotation = 90, AdjustText = True, FigSize = None):
-        """
-        Args:
-            Caliobj (object): Calibration object.
-            k (int): Number of cluster/group.
-            SelectedPar (list, optional): List of selected parameters for kmeans. Defaults to None.
-            q (float, optional): Quantile, a threshold for determining feasible models. Defaults to 0.01.
-            SavePath (str, optional): Save figure to. Defaults to None.
-            Rotation (int, optional): Rotate xticks' labels. Defaults to 90.
-            AdjustText (bool, optional): To avoid overlapping texts. Defaults to True.
-            FigSize (tuple, optional): Figure size. Defaults to None.
-
-        Returns:
-            ax object
-        """
-        KPopResult = Caliobj.KPopRes
-        MaxGen = Caliobj.Config["MaxGen"]
-        PopSize = Caliobj.Config["PopSize"]
-        NumPar = Caliobj.NumPar
-        Pop = Caliobj.Pop
-        ParName = Caliobj.Inputs["ParName"]
-        Bound = Caliobj.Inputs["ParBound"]
-        if SelectedPar is None:
-            SelectedPar = ParName
         
-        # Get feasible loss
-        Loss = np.zeros((MaxGen+1)*PopSize)
-        PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
-        for i in range(MaxGen+1):
-            Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
-            PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
-        df = pd.DataFrame(PopAll, columns = ParName)
-        df["Loss"] = Loss
+        if isinstance(Caliobj, list):
+            Name = "Collective Caliobj"
+            df = pd.DataFrame()
+            for caliobj in Caliobj:
+                KPopResult = caliobj.KPopRes
+                MaxGen = caliobj.Config["MaxGen"]
+                PopSize = caliobj.Config["PopSize"]
+                NumPar = caliobj.NumPar
+                Pop = caliobj.Pop
+                ParName = caliobj.Inputs["ParName"]
+                Bound = caliobj.Inputs["ParBound"]
+                ParWeight = caliobj.Inputs["ParWeight"]
+                if SelectedPar is None:
+                    SelectedPar = ParName
+                
+                # Get feasible loss
+                Loss = np.zeros((MaxGen+1)*PopSize)
+                PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
+                for i in range(MaxGen+1):
+                    Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+                    PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+                dff = pd.DataFrame(PopAll, columns = ParName)
+                dff["Loss"] = Loss
+                df = pd.concat([df,dff], axis = 0)
+        else:
+            KPopResult = Caliobj.KPopRes
+            MaxGen = Caliobj.Config["MaxGen"]
+            PopSize = Caliobj.Config["PopSize"]
+            NumPar = Caliobj.NumPar
+            Pop = Caliobj.Pop
+            ParName = Caliobj.Inputs["ParName"]
+            Bound = Caliobj.Inputs["ParBound"]
+            ParWeight = Caliobj.Inputs["ParWeight"]
+            Name = Caliobj.__name__
+            if SelectedPar is None:
+                SelectedPar = ParName
+            
+            # Get feasible loss
+            Loss = np.zeros((MaxGen+1)*PopSize)
+            PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
+            for i in range(MaxGen+1):
+                Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+                PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+            df = pd.DataFrame(PopAll, columns = ParName)
+            df["Loss"] = Loss
+        
         df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
         Loss_q = np.quantile(df["Loss"], q)
-
         
         # Get feasible pop
         df = df[df["Loss"] <= Loss_q]
         df = df[SelectedPar + ["Loss"]]
-
+        
+        # Normalize Loss for plotting.
+        MaxLoss = round(max(df["Loss"])*1.2, 1)
+        MinLoss = round(min(df["Loss"])*0.8, 1)
+        df["Loss"] = (df["Loss"] - MinLoss)/(MaxLoss - MinLoss)
+        
         # Get best
-        Bestpop = Caliobj.descale(Caliobj.Result["GlobalOptimum"]["Solutions"])
+        Bestpop = df[df["Loss"] == min(df["Loss"])][SelectedPar + ["Loss"]]
         
         # Run Kmeans
-        ParWeight = Caliobj.Inputs["ParWeight"]
         km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
         df["Label"] = km.labels_
+        Centers = km.cluster_centers_
         
         # Plot
-        if FigSize is not None:
-            fig, ax = plt.subplots(figsize = FigSize)
-        else:
-            fig, ax = plt.subplots()
+        # if FigSize is not None:
+        #     fig, ax = plt.subplots(figsize = FigSize)
+        # else:
+        #     fig, ax = plt.subplots()
+        
+        Height = 8
+        FigSize=((len(SelectedPar)+1)/16*Height, Height)
+        fig, ax = plt.subplots(figsize = FigSize)
         
         dfBound = pd.DataFrame(Bound, index = ParName, columns = ["LB", "UB"])
         dfBound = dfBound.loc[SelectedPar,:]
         
         
         for i in range(k):
-            df_k = df[df["Label"] == i][SelectedPar].T
-            #df_k = df_k[SelectedPar + ["Loss"]]
-            df_k.plot(lw = 0.3, color = "C{}".format(i%10), alpha = 0.3, legend = False, ax=ax)
+            df_k = df[df["Label"] == i][SelectedPar + ["Loss"]].T
+            df_k.plot(lw = 0.5, color = "C{}".format(i%10), alpha = 0.2, legend = False, ax=ax)
             
-        ax.plot(Bestpop,lw = 0.5, color = "red", linestyle = "--")
-        ax.set_xticks(np.arange(len(SelectedPar))) 
-        ax.set_xticklabels(SelectedPar, fontsize=10)
+            dff = df[df["Label"] == i]
+            minLoss = min(dff["Loss"])
+            center = Centers[i]
+            dff = dff[dff["Loss"] == minLoss]
+            dff = dff.reset_index(drop=True)
+            # Calculate distance to the center
+            selectpar = dff[SelectedPar].to_numpy()
+            Dist = []
+            for i in selectpar:
+                Dist.append(np.linalg.norm(i-center))
+            index = argmin(Dist)
+            ax.plot(dff.loc[index, SelectedPar + ["Loss"]].to_numpy().T,lw = 1, color = "black", linestyle = "-")
+
+            
+            
+        ax.plot(Bestpop.to_numpy().T,lw = 1.2, color = "red", linestyle = "--")
+        
+        
+        ax.set_xticks(np.arange(len(SelectedPar) + 1)) 
+        ax.set_xticklabels(SelectedPar + ["Loss"], fontsize=12)
         ax.set_yticks([])
-        ax.tick_params(axis='x', rotation=Rotation, labelsize = 6)
+        ax.tick_params(axis='x', rotation=Rotation, labelsize = 12)
         ax.axhline(0, color = "black", lw = 0.5)
         ax.axhline(1, color = "black", lw = 0.5)
-        ax.set_title(Caliobj.__name__ + "    Thres: {}".format(round(1-Loss_q,3)))
+        ax.set_title(Name + "    Thres: {}".format(round(Loss_q,3)))    # Use the original Loss from Caliobj
         ax.set_ylim([-0.1,1.1])
+        def sn(num):
+            '''Control length of printing number'''
+            Num = ('%f' % num).rstrip('0').rstrip('.')
+            if len(Num) > 4:
+                Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
+            return Num
         Texts = []
         for x in range(len(SelectedPar)):
-            def sn(num):
-                '''Control length of printing number'''
-                Num = ('%f' % num).rstrip('0').rstrip('.')
-                if len(Num) > 4:
-                    Num = str(np.format_float_scientific(num, exp_digits=1, trim = "-"))
-                return Num
-            Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=6))
-            Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=6))
-            ax.axvline(x, color = "grey", lw = 0.1)
+            Texts.append(ax.text(x, -0.05, sn(dfBound["LB"][x]), horizontalalignment='center', fontsize=10))
+            Texts.append(ax.text(x, 1.05, sn(dfBound["UB"][x]), horizontalalignment='center', fontsize=10))
+            ax.axvline(x, color = "grey", lw = 0.2)
+        # Add Loss
+        x = len(SelectedPar)
+        Texts.append(ax.text(x, -0.05, sn(MinLoss), horizontalalignment='center', fontsize=10))
+        Texts.append(ax.text(x, 1.05, sn(MaxLoss), horizontalalignment='center', fontsize=10))
+        ax.axvline(x, color = "grey", lw = 0.2)
+            
         # Auto adjust label position.
         if AdjustText:
             print("Auto text position adjustment might take some time.")
@@ -287,35 +332,58 @@ class Plot():
                 
     @staticmethod
     def getEquifinalModels(Caliobj, KClusterMin = 1, KClusterMax = 10, k = None, SelectedPar = None, q = 0.01, TakeBest = True):
-        KPopResult = Caliobj.KPopRes
-        MaxGen = Caliobj.Config["MaxGen"]
-        PopSize = Caliobj.Config["PopSize"]
-        NumPar = Caliobj.NumPar
-        Pop = Caliobj.Pop
-        ParName = Caliobj.Inputs["ParName"]
-        Bound = Caliobj.Inputs["ParBound"]
-        ParWeight = Caliobj.Inputs["ParWeight"]
-        if SelectedPar is None:
-            SelectedPar = ParName
         
-        # Get feasible loss
-        Loss = np.zeros((MaxGen+1)*PopSize)
-        PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
-        for i in range(MaxGen+1):
-            Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
-            PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
-        df = pd.DataFrame(PopAll, columns = ParName)
-        df["Loss"] = Loss
+        if isinstance(Caliobj, list):
+            df = pd.DataFrame()
+            for caliobj in Caliobj:
+                KPopResult = caliobj.KPopRes
+                MaxGen = caliobj.Config["MaxGen"]
+                PopSize = caliobj.Config["PopSize"]
+                NumPar = caliobj.NumPar
+                Pop = caliobj.Pop
+                ParName = caliobj.Inputs["ParName"]
+                Bound = caliobj.Inputs["ParBound"]
+                ParWeight = caliobj.Inputs["ParWeight"]
+                if SelectedPar is None:
+                    SelectedPar = ParName
+                
+                # Get feasible loss
+                Loss = np.zeros((MaxGen+1)*PopSize)
+                PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
+                for i in range(MaxGen+1):
+                    Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+                    PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+                dff = pd.DataFrame(PopAll, columns = ParName)
+                dff["Loss"] = Loss
+                df = pd.concat([df,dff], axis = 0)
+        else:
+            KPopResult = Caliobj.KPopRes
+            MaxGen = Caliobj.Config["MaxGen"]
+            PopSize = Caliobj.Config["PopSize"]
+            NumPar = Caliobj.NumPar
+            Pop = Caliobj.Pop
+            ParName = Caliobj.Inputs["ParName"]
+            Bound = Caliobj.Inputs["ParBound"]
+            ParWeight = Caliobj.Inputs["ParWeight"]
+            if SelectedPar is None:
+                SelectedPar = ParName
+            
+            # Get feasible loss
+            Loss = np.zeros((MaxGen+1)*PopSize)
+            PopAll = np.zeros(((MaxGen+1)*PopSize, NumPar))
+            for i in range(MaxGen+1):
+                Loss[i*PopSize:(i+1)*PopSize] = KPopResult[i]["Loss"]
+                PopAll[i*PopSize:(i+1)*PopSize,:] = Pop[i]
+            df = pd.DataFrame(PopAll, columns = ParName)
+            df["Loss"] = Loss
+            
+        # Process
         df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
         Loss_q = np.quantile(df["Loss"], q)
 
-        
         # Get feasible pop
         df = df[df["Loss"] <= Loss_q]
         df = df[SelectedPar + ["Loss"]]
-
-        # Get best
-        Bestpop = Caliobj.descale(Caliobj.Result["GlobalOptimum"]["Solutions"])
         
         if k is None:
             KClusterMax = 10
@@ -349,7 +417,6 @@ class Plot():
             plt.show()
         else:
             # Run Kmeans
-            ParWeight = Caliobj.Inputs["ParWeight"]
             km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
             df["Label"] = km.labels_
             Centers = km.cluster_centers_
