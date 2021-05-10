@@ -4,6 +4,7 @@ from numpy.core.fromnumeric import argmin
 from scipy import stats
 import numpy as np
 import pandas as pd
+from adjustText import adjust_text
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from .Indicators import Indicator
