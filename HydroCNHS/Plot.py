@@ -414,6 +414,7 @@ class Plot():
                 dff["Loss"] = Loss
                 df = pd.concat([df,dff], axis = 0)
         else:
+            caliobj = Caliobj
             KPopResult = Caliobj.KPopRes
             MaxGen = Caliobj.Config["MaxGen"]
             PopSize = Caliobj.Config["PopSize"]

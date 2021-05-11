@@ -53,6 +53,8 @@ class DivDM(object):
                                  "YDivReq": [None]*DMNum },
                            "Init": {"DivReqRef": self.AgInputs[ag]["InitYDivRef"]},
                            "DailyAction": list(InitDiv[ag])}
+        self.IncreaseMinFlow = 0
+        
         #--- Flowtarget
         FlowTarget = pd.read_csv(self.Path["FlowTarget"], index_col=0)
         self.FlowTarget = FlowTarget.to_dict('dict')["FlowTarget"]
@@ -114,6 +116,7 @@ class DivDM(object):
                 mask = [True if i.month in [7,8,9] and (i.year == CurrentDate.year - 1) else False for i in self.rng]
                 y = np.mean(self.Q["G"][mask])
             
+            IncreaseMinFlow = []
             for ag in AgList:
                 Init = self.Ag[ag]["Init"]
                 RL = self.Ag[ag]["RL"]
@@ -144,7 +147,9 @@ class DivDM(object):
                 RL["y"][DMcount] = y
                 RL["DivReqRef"][DMcount] = DivReqRef
                 RL["Vavg"][DMcount] = Vavg
+                IncreaseMinFlow.append(DivReqRef - self.AgInputs[ag]["InitYDivRef"])
                 self.Ag[ag]["RL"] = RL
+            self.IncreaseMinFlow = sum(IncreaseMinFlow)
         #==================================================
 
 
@@ -171,14 +176,21 @@ class DivDM(object):
             MinYDiv = self.AgInputs[ag]["MinYDiv"]
             DivReqRef = RL["DivReqRef"][DMcount]
             ProratedRatio = Pars["ProratedRatio"]
-            a = Pars["a"]
-            b = Pars["b"]
-            sig = Pars["Sig"]
-            if x <= 0.583:      # Emergency Operation (Drought year proration) 
-                Mu = DivReqRef * ProratedRatio
-            else:               # Adaptive behavoir under normal year.
-                Mu = DivReqRef + a*x+b
-            YDivReq = Mu + rn[i]*sig
+            
+            if self.BehaviorType == "Static":
+                # No stochastic, No adaptive, A constant.
+                b = Pars["b"]
+                YDivReq = DivReqRef + b
+            else:
+                a = Pars["a"]
+                b = Pars["b"]
+                sig = Pars["Sig"]
+                if x <= 0.583:      # Emergency Operation (Drought year proration) 
+                    Mu = DivReqRef * ProratedRatio
+                else:               # Adaptive behavoir under normal year.
+                    Mu = DivReqRef + a*x+b
+                YDivReq = Mu + rn[i]*sig
+                
             # Hard constraint for MaxYDiv and MinYDiv
             if MaxYDiv is not None and MinYDiv is not None:
                 YDivReq = min(MaxYDiv, max(YDivReq, MinYDiv))       # Bound by Max and Min
@@ -310,7 +322,7 @@ class IrrDiv_AgType(object):
             RemainMonthlyDiv = self.MidResult["RemainMonthlyDiv"]
             
             RequestDiv = (-Factor * Output["DailyAction"][t]) + RemainMonthlyDiv
-            MinFlowTarget = 0   # cms
+            MinFlowTarget = 3.53 + DM.IncreaseMinFlow  # cms
             AvailableWater = self.Q[node][t] - MinFlowTarget
             
             if AvailableWater <= 0:
@@ -426,7 +438,7 @@ class IrrDiv_RWS_AgType(object):
         #==================================================
         #==================================================
         #--- Proportional discount
-        MinFlowTarget = 0   # cms
+        MinFlowTarget = 3.53 + DM.IncreaseMinFlow # cms
         TotalRequest = np.sum(RequestDivList)
         AvailableWater = self.Q[node][t] - MinFlowTarget
         if AvailableWater <= 0:
