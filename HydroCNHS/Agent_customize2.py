@@ -450,7 +450,7 @@ class IrrDiv_RWS_AgType(object):
                 AgOutput[ag] = Output
                 AgMidResult[ag] = MidResult
             Qt = self.Q[node][t]
-        elif AvailableWater - TotalRequest >= MinFlowTarget:
+        elif AvailableWater - TotalRequest >= MinFlowTarget or TotalRequest == 0:
             for i, ag in enumerate(AgList):
                 MidResult = AgMidResult[ag]
                 Output = AgOutput[ag]
