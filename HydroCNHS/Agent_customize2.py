@@ -150,6 +150,10 @@ class DivDM(object):
                 IncreaseMinFlow.append(DivReqRef - self.AgInputs[ag]["InitYDivRef"])
                 self.Ag[ag]["RL"] = RL
             self.IncreaseMinFlow = sum(IncreaseMinFlow)
+        else:
+            for ag in AgList:
+                self.Ag[ag]["RL"]["DivReqRef"][DMcount] = self.AgInputs[ag]["InitYDivRef"]
+            
         #==================================================
 
 
