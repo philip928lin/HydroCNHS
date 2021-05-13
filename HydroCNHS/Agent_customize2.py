@@ -185,6 +185,7 @@ class DivDM(object):
                 # No stochastic, No adaptive, A constant.
                 b = Pars["b"]
                 YDivReq = DivReqRef + b
+                Mu = YDivReq
             else:
                 a = Pars["a"]
                 b = Pars["b"]
