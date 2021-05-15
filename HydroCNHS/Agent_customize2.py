@@ -14,6 +14,11 @@ class DivDM(object):
                      "CCurves": r"C:\Users\ResearchPC\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\Data",
                      "AgCor": os.path.join(BasicPath, "AgCor.csv"),
                      "InitDiv": os.path.join(BasicPath, "Diversion_D_cms.csv") }
+        # Input preci scenario
+        DatabaseScenarioPath = ABM["Inputs"].get("Database")
+        if DatabaseScenarioPath is not None:
+            self.Path["Database"] = DatabaseScenarioPath
+        
         self.AgList = ['Kittitas', 'Roza', 'Wapato', 'Sunnyside', 'Tieton']
         self.Obv = {}
         self.Ag = {}
