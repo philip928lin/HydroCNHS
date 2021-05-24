@@ -375,6 +375,7 @@ class Plot():
     
     @staticmethod
     def YearPlot(df, ylim = None, **kwargs):
+        axs = []
         for i in df:
             fig, ax = plt.subplots()
             x = np.arange(1, 13)
@@ -386,6 +387,8 @@ class Plot():
                 ax.set_title(i)
             if ylim is not None:
                 ax.set_ylim(ylim)
+            axs.append(ax)
+        return axs
                 
     @staticmethod
     def getEquifinalModels(Caliobj, KClusterMin = 1, KClusterMax = 10, k = None, SelectedPar = None, q = 0.01, TakeBest = True, bins = 50):
@@ -436,7 +439,9 @@ class Plot():
             df["Loss"] = Loss
             
         # Process
-        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        # Sort by Loss, so we can keep the better Loss of same par set in next step.
+        df = df.sort_values(by='Loss', ascending=False).reset_index(drop=True)     
+        df = df.drop_duplicates().reset_index(drop=True)    # Remove the duplicates (keep the first one)
         Loss_q = np.quantile(df["Loss"], q)
 
         # Get feasible pop
