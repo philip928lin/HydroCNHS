@@ -225,7 +225,9 @@ class Plot():
             df = pd.DataFrame(PopAll, columns = ParName)
             df["Loss"] = Loss
         
-        df = df.drop_duplicates().reset_index(drop=True)   # Remove the duplicates
+        # Sort by Loss, so we can keep the better Loss of same par set in next step.
+        df = df.sort_values(by='Loss', ascending=False).reset_index(drop=True)     
+        df = df.drop_duplicates().reset_index(drop=True)    # Remove the duplicates (keep the first one)
         Loss_q = np.quantile(df["Loss"], q)
         
         # Get feasible pop
@@ -239,7 +241,10 @@ class Plot():
         
         # Get best
         Bestpop = df[df["Loss"] == min(df["Loss"])][SelectedPar + ["Loss"]]
-        
+        if Bestpop.shape[0] > 1:
+            print("We have {} Bestpop with same loss value. We will pick the first one to plot.".format(Bestpop.shape[0]))
+            Bestpop = Bestpop.iloc[0,:]
+            
         # Run Kmeans
         km = KMeans(n_clusters = k, random_state=0).fit(df[SelectedPar], ParWeight)
         df["Label"] = km.labels_
