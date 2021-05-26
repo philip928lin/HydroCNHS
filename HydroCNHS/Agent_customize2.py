@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from scipy.stats import norm, truncnorm, multivariate_normal, uniform, beta
+from dateutil.relativedelta import relativedelta
 import logging
 
 logger = logging.getLogger("ABM") 
@@ -9,15 +10,22 @@ logger = logging.getLogger("ABM")
 class DivDM(object):
     def __init__(self, StartDate, DataLength, ABM):
         BasicPath = r"C:\Users\ResearchPC\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\YRBModel\INPUT"
+        
+        # These are default path
         self.Path = {"FlowTarget": os.path.join(BasicPath, "FlowTarget_Cali.csv"),
                      "Database": os.path.join(BasicPath, "Database_1959_2013.csv"),
                      "CCurves": r"C:\Users\ResearchPC\OneDrive\Lehigh\0_Proj2_UA-SA-Equifinality\Data",
                      "AgCor": os.path.join(BasicPath, "AgCor.csv"),
                      "InitDiv": os.path.join(BasicPath, "Diversion_D_cms.csv") }
-        # Input preci scenario
+        # Input prec scenario
         DatabaseScenarioPath = ABM["Inputs"].get("Database")
         if DatabaseScenarioPath is not None:
             self.Path["Database"] = DatabaseScenarioPath
+        
+        # FlowTarget
+        FlowTargetPath = ABM["Inputs"].get("FlowTarget")
+        if DatabaseScenarioPath is not None:
+            self.Path["FlowTarget"] = FlowTargetPath
         
         self.AgList = ['Kittitas', 'Roza', 'Wapato', 'Sunnyside', 'Tieton']
         self.Obv = {}
@@ -43,11 +51,17 @@ class DivDM(object):
                     self.AgInputs[ag] = ABM[agType][ag]["Inputs"]
         
         #--- InitDiv
-        InitDiv = pd.read_csv(self.Path["InitDiv"], parse_dates=True, index_col=0, infer_datetime_format = True)["1959-1-1":"1959-2-28"]
+        InitDivPath = ABM["Inputs"].get("InitDiv")
+        if InitDivPath is not None:
+            self.Path["InitDiv"] = InitDivPath
+        # Only consider when start year is nonleap year
+        InitDiv = pd.read_csv(self.Path["InitDiv"], parse_dates=True, index_col=0, \
+                              infer_datetime_format = True)["{}-1-1".format(StartDate.year):"{}-2-28".format(StartDate.year)]
         
         #--- Store space
-        self.rng = pd.date_range(start = StartDate, periods = DataLength, freq = "D")
-        DMNum = 55      # 1959~2013 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        rng = pd.date_range(start = StartDate, periods = DataLength, freq = "D")
+        self.rng = rng
+        DMNum = len(pd.date_range(start = rng[0], end = rng[-1], freq = "Y"))
         for ag in self.AgList:
             self.Ag[ag] = {"RL":{"y": [None]*DMNum,
                                  "x": [None]*DMNum,
@@ -235,7 +249,7 @@ class DivDM(object):
             MDivReq = YDivReq * 12 * MRatio
 
             #--- To daily. Uniformly assign those monthly average diversion to each day.
-            if (CurrentDate.year + 1)%4 == 0:
+            if (CurrentDate + relativedelta(years=1)).is_leap_year :
                 DayInMonth = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29]   # From Mar to Feb
                 NumDay = 366
             else:
@@ -406,7 +420,7 @@ class IrrDiv_RWS_AgType(object):
             else:
                 self.AssignValue = False
                 # Load initial assigned daily diversion.
-                self.AgOutput[ag]["DailyAction"][:180] = self.AgObvDf[ag]["InitDiv"].loc[self.rng[:180]  , ag]   
+                self.AgOutput[ag]["DailyAction"][:180] = self.AgObvDf[ag]["InitDiv"].loc[self.rng[:180], ag]   
             
         logger.info("Initialize irrigation diversion agent: {}".format(self.Name))
         
