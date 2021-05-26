@@ -226,8 +226,9 @@ class Plot():
             df["Loss"] = Loss
         
         # Sort by Loss, so we can keep the better Loss of same par set in next step.
-        df = df.sort_values(by='Loss', ascending=False).reset_index(drop=True)     
-        df = df.drop_duplicates().reset_index(drop=True)    # Remove the duplicates (keep the first one)
+        df = df.sort_values(by='Loss', ascending=True).reset_index(drop=True)     
+        # Remove the duplicates (keep the first one (smallest) if same par but different loss)
+        df.drop_duplicates(subset=list(df)[:-1], keep='first', inplace=True, ignore_index=True)
         Loss_q = np.quantile(df["Loss"], q)
         
         # Get feasible pop
@@ -445,8 +446,9 @@ class Plot():
             
         # Process
         # Sort by Loss, so we can keep the better Loss of same par set in next step.
-        df = df.sort_values(by='Loss', ascending=False).reset_index(drop=True)     
-        df = df.drop_duplicates().reset_index(drop=True)    # Remove the duplicates (keep the first one)
+        df = df.sort_values(by='Loss', ascending=True).reset_index(drop=True)     
+        # Remove the duplicates (keep the first one (smallest) if same par but different loss)
+        df.drop_duplicates(subset=list(df)[:-1], keep='first', inplace=True, ignore_index=True)
         Loss_q = np.quantile(df["Loss"], q)
 
         # Get feasible pop
