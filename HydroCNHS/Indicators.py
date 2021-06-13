@@ -13,13 +13,6 @@ class Indicator():
     KGE : Kling–Gupta efficiency
     iKGE: KGE with inverse transformed Q.
     """
-    # r = r
-    # r2 = r2
-    # rmse = rmse
-    # NSE = NSE
-    # CP = CP
-    # RSR = RSR
-    # KGE = KGE
     
     def __init__(self) -> None:
         pass

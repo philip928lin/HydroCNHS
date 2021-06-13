@@ -275,7 +275,7 @@ class KGCA(object):
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
-            ParalCores = self.SysConfig["Parallelization"]["Cores_KGCA"]
+            ParalCores = self.SysConfig["Parallelization"]["Cores_GA"]
         ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
         
         #---------- Evaluation (Min) ----------

@@ -1,10 +1,15 @@
 #%%
 # Diverse model calibrations (DMC) genetic algorithm (GA).
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# DMC algorithm is based on (Williams et al., 2020) https://doi.org/10.1016/j.envsoft.2020.104831.
+
+# DMC algorithm is based on (Williams et al., 2020) 
+# https://doi.org/10.1016/j.envsoft.2020.104831.
+# The module is designed to work with Convertor.py.
+
+# Note:
 # We generalized the code and add a mutation method call mutation_middle.
-# However, we deactivate mutation_middle for DMC. This function helps convergence but restricts exploration in DMC case.
-# Also, beside DMCGA class, we create GA_Convertor class to help user convert back and forth between 1D array used by DMCGA and original parameter dataframes.
+# However, we deactivate mutation_middle for DMC. This function helps 
+# convergence but restricts exploration in DMC case.
 # 2021/02/11
 
 from joblib import Parallel, delayed                # For parallelization
@@ -14,9 +19,8 @@ import pickle
 import os
 import logging
 import time
-logger = logging.getLogger("HydroCNHS.DMC") # Get logger 
-
-from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
+logger = logging.getLogger("HydroCNHS.DMC")         # Get logger 
+from ..SystemConrol import loadConfig, Dict2String  # HydroCNHS module
 
 r"""
 Need to be added sometime.
@@ -26,24 +30,25 @@ Timeout (function)
 """
 
 r"""
-Inputs = {"ParName":[], 
-          "ParBound":[],  # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
-          "ParType":[],   # real or categorical
-          "ParWeight":[], # An array with length equal to number of parameters.
-          "WD":}   
+Inputs = {"ParName":    [],     # List of parameters name.
+          "ParBound":   [],     # [lower, upper]
+          "ParType":    [],     # Only "real" is allowed.
+          #"ParWeight": [],     # (Future option) An array with length equal to number of parameters.
+          "WD":         r""}    # Working directory. (Can be the same as HydroCNHS model.)   
+# Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
           
-Config = {"NumSP":1,                # Number of sub-populations.
+Config = {"NumSP":1,                # Number of sub-populations. At least 1.
           "PopSize": 30,            # Population size. Must be even.
           "MaxGen": 100,            # Maximum generation.
-          "SamplingMethod": "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "Tolerance":1.2,          # >= 1 
+          "SamplingMethod": "LHC",  # Initial population sampling method. MC: Monte Carlo sampling method. LHC: Latin Hyper Cube.
+          "Tolerance":1.2,          # Has to be >= 1.
           "NumEllite": 1,           # Ellite number for each SP. At least 1.
           "MutProb": 0.3,           # Mutation probability.
           "DropRecord": True,       # Population record will be dropped. However, ALL simulated results will remain. 
-          "ParalCores": 2/None,     # This will overwrite system config.
+          "ParalCores": 2/None,     # If it is not given, Cores_DMC in system Config.yaml will be adopted as default.
           "AutoSave": True,         # Automatically save a model snapshot after each generation.
           "Printlevel": 10,         # Print out level. e.g. Every ten generations.
-          "Plot": True              # Plot loss with Printlevel frequency.
+          "Plot": True              # Plot objective values' timeseries based on Printlevel frequency.
           }
 """
 
@@ -219,7 +224,7 @@ class DMC(object):
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
-            ParalCores = self.SysConfig["Parallelization"]["Cores_DMCGA"]
+            ParalCores = self.SysConfig["Parallelization"]["Cores_DMC"]
         ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
         
         #---------- Evaluation (Min) ----------

@@ -1,9 +1,11 @@
-#%%
-# Kmeans Genetic Calibration Algorithm (KGCA).
-# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# The algorithm is based on the idea of (Poikolainen et al., 2015) DOI: 10.1016/j.ins.2014.11.026.
-# However, we simplify and modify the idea to fit our need for identifying equifinal model representatives (EMRs). 
-# 2021/03/13
+# Genetic Algorithm (GA) for Calibration with EMRs identification function.
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com).
+
+# Description:
+# This module provides user a simple way to calibrate their models with genetic
+# algorithm in parallel. The module is designed to work with Convertor.py.
+# GA algorithm aims to minimize the objective/loss function to zero.
+# Please see the document for detailed instructions.
 
 from joblib import Parallel, delayed                    # For parallelization.
 import matplotlib.pyplot as plt
@@ -12,37 +14,36 @@ import logging
 import pickle
 import time
 import os
-logger = logging.getLogger("HydroCNHS.KGCA")            # Get logger 
-
+logger = logging.getLogger("HydroCNHS.GA")              # Get logger 
 from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
 
 r"""
 Inputs = {"ParName":    [],     # List of parameters name.
-          "ParBound":   [],     # [upper, low] or [4, 6, 9] Even for categorical type, it has to be numbers!
-          "ParType":    [],     # real or categorical
-          #"ParWeight": [],     # An array with length equal to number of parameters.
-          "WD":         r""}    # Working directory. (Can be same as HydroCNHS model.)   
+          "ParBound":   [],     # [lower, upper]
+          "ParType":    [],     # Only "real" is allowed.
+          #"ParWeight": [],     # (Future option) An array with length equal to number of parameters.
+          "WD":         r""}    # Working directory. (Can be the same as HydroCNHS model.)   
 # Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
 
-Config = {"PopSize":            100,     # Population size. Must be even.
-          "ParantProportion":   0.3,
-          "NumEllites":         1,
-          "CrossProb":          0.5,
+Config = {"PopSize":            100,    # Population size. Must be even.
+          "ParantProportion":   0.3,    # Define the number of parents.
+          "NumEllites":         1,      # Number of ellites.
+          "CrossProb":          0.5,    # Probability of crossover. 
           "MutProb":            0.1,    # Mutation probability.
-          "Stochastic":         False,
+          "Stochastic":         False,  # If True, program will evaluate all members including ellites in each generation.
           "MaxGen":             100,    # Maximum generation.
-          "SamplingMethod":     "LHC",  # MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. (for initial pop)
-          "DropRecord":         False,   # Population record will be dropped. However, ALL simulated results will still be kept. 
-          "ParalCores":         -2/None, # This will replace system config.
-          "AutoSave":           True,   # Automatically save a model snapshot after each generation.
-          "Printlevel":         1,     # Print out level. e.g. Every ten generations.
-          "Plot":               True    # Plot loss and cluster number selection with Printlevel frequency.
+          "SamplingMethod":     "LHC",  # Initial population sampling method. MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. 
+          "DropRecord":         False,  # Population record will be dropped. However, ALL simulated results will still be kept. 
+          "ParalCores":         -2/None, # If it is not given, Cores_GA in system Config.yaml will be adopted as default.
+          "AutoSave":           True,   # Automatically save a model snapshot (pickle) after each generation.
+          "Printlevel":         1,      # Print level. e.g. Every ten generations.
+          "Plot":               True    # Plot objective values' timeseries based on Printlevel frequency.
           }
 """
 
-class KGCASimple(object):
+class GA(object):
     def __init__(self):
-        print("1. set or load (Autosave file).\n2. run.")
+        print("GA Calibration Guide\nStep 1: set or load (Autosave file).\nStep 2: run.")
         
     def load(self, ContinueFile):
         """Load AutoSave.pickle file to continue the run.
@@ -51,7 +52,7 @@ class KGCASimple(object):
             ContinueFile (str): AutoSave.pickle file path.
         """
         # If ContinueFile is given, load auto-saved pickle file.
-        with open(ContinueFile, "rb") as f:     # Load autoSave pickle file!
+        with open(ContinueFile, "rb") as f:     # Load autoSave pickle file.
             Snapshot = pickle.load(f)
         for key in Snapshot:                    # Load back all the previous class attributions.
             setattr(self, key, Snapshot[key])
@@ -76,11 +77,9 @@ class KGCASimple(object):
             Best["Loss"][:orgMaxGen+1] = self.Best["Loss"]
             Best["Index"][:orgMaxGen+1] = self.Best["Index"]
             self.Best = Best
-        
-
                     
     def set(self, LossFunc, Inputs, Config, Formatter = None, Name = "Calibration"):
-        """Kmeans Genetic Calibration Algorithm (KGCA)
+        """Genetic Algorithm for Calibration (GA)
 
         Args:
             LossFunc (function): Loss function => LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0. SubWDInfo = (CaliWD, CurrentGen, sp, k).
@@ -256,7 +255,7 @@ class KGCASimple(object):
         # Load parallelization setting (from user or system config)
         ParalCores = self.Config.get("ParalCores")
         if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
-            ParalCores = self.SysConfig["Parallelization"]["Cores_KGCA"]
+            ParalCores = self.SysConfig["Parallelization"]["Cores_GA"]
             logger.info("ParalCores is not detected. Default value is applied. ParalCores = {}.".format(ParalCores))
         ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
         
