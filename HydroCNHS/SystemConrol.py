@@ -1,6 +1,5 @@
-#%%
 # System control file for HydroCNHS.
-# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com).
 # 2021/02/05
 
 import logging
@@ -12,8 +11,8 @@ import ruamel.yaml      # For round trip modification (keep comments)
 import os 
 import ast
 import numpy as np
-from copy import deepcopy   # For deepcopy dictionary.
-logger = logging.getLogger("HydroCNHS.SC") # Get logger 
+from copy import deepcopy                   # For deepcopy dictionary.
+logger = logging.getLogger("HydroCNHS.SC")  # Get logger 
 
 r"""
 We need to modify yaml, which we can load and write the file while keeping comments.
@@ -29,7 +28,7 @@ def loadConfig():
     Returns:
         dict: Dictionary of model config.
     """
-    #print(os.path.join(this_dir, 'Config.yaml'))
+    # print(os.path.join(this_dir, 'Config.yaml'))
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
         config = yaml.safe_load(file.read())
     return config
@@ -38,15 +37,15 @@ def updateConfig(ModifiedConfig):
     """Given the dictionary of modified setting, this funciton will over write Config.yaml.
 
     Args:
-        Config (dict): Dictionary of modified config setting
+        ModifiedConfig (dict): Dictionary of modified config setting
     """
     yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
         config = yaml_round.load(file.read())
         
-    # Replace values
+    # Replace nesting values
     for key in ModifiedConfig:
-        if isinstance(ModifiedConfig, dict):    # Second level
+        if isinstance(ModifiedConfig[key], dict):    # Second level
             for key2 in ModifiedConfig[key]:
                 config[key][key2] = ModifiedConfig[key][key2]
         else:                                   # First level
@@ -54,15 +53,28 @@ def updateConfig(ModifiedConfig):
             
     with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
         yaml_round.dump(config, file)
+    logger.info("Update system Config to:\n{}".format(Dict2String(config)))
 
 def defaultConfig():
-    """Repalce Config.yaml back to default setting.
+    """Set Config.yaml back to default setting.
     """
-    yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
-    with open(os.path.join(this_dir, 'Config_default.yaml'), 'rt') as file:
-        Config_default = yaml_round.load(file.read())
-    with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
-        yaml_round.dump(Config_default, file)
+    DefaultConfig = {
+        "LogHandlers": ["console"],   
+
+        "Parallelization": {
+            "verbose": 0,           
+            "Cores_formUH_Lohmann": 1,
+            "Cores_runGWLF": 1,
+            "Cores_DMC": 1,
+            "Cores_GA": -2}
+        }
+    updateConfig(DefaultConfig)
+    logger.info("Set system Config to default.")
+    #yaml_round = ruamel.yaml.YAML()  # defaults to round-trip if no parameters given
+    #with open(os.path.join(this_dir, 'Config_default.yaml'), 'rt') as file:
+    #    Config_default = yaml_round.load(file.read())
+    #with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
+    #    yaml_round.dump(Config_default, file)
 
 def loadModel(model, Checked = False, Parsed = False):
     """Load model and conduct initial check for its setting consistency.
