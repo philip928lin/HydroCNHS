@@ -8,8 +8,7 @@
 
 import numpy as np
 from pandas import date_range, to_datetime, to_numeric, DataFrame
-#import logging
-#logger = logging.getLogger("HydroCNHS.HP") # Get logger for logging msg.
+import logging
 
 r"""
 # HYMOD model
@@ -32,7 +31,7 @@ HYMODPars:                                    ## For HYMOD, we have 6 parameters
     Ks:                                       # Residence time of the quick release reservoirs. [0.01, 0.5]
     Df:                                       # [cm] Snow storage.
 """
-def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
+def runHYMOD(HYMODPars, Inputs, Tt, Pt, PEt, DataLength):
     """HYMOD for rainfall runoff simulation with additional snow module.
         Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
         Code: https://github.com/bartnijssen/pythonlib/blob/master/hymod.py
@@ -109,7 +108,7 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
 
 
 r"""
-def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
+def runHYMOD(HYMODPars, Inputs, Tt, Pt, PEt, DataLength):
     HYMOD for rainfall runoff simulation with additional snow module.
         Paper: https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf
         Code: https://github.com/bartnijssen/pythonlib/blob/master/hymod.py
@@ -196,32 +195,30 @@ def runHYMOD(HYMODPars, Inputs, Pt, Tt, PEt, DataLength):
     return CMS
 """
 
+# The ABCD model is mainly follow (Guillermo et al., 2010); however, with 
+# different snow module. 
+# https://doi.org/10.1029/2009WR008294
+def runABCD(ABCDPars, Inputs, Tt, Pt, PEt, DataLength):
+    """ABCD for rainfall runoff simulation.
 
-r"""
-# GWLF model
-Weather:
-    T:                                        # [degC] Daily mean temperature.
-    P:                                        # [cm] Daily precipitation.
-    PE:                                       # [cm] Daily potential evapotranspiration.
-Inputs:
-    Area:                                     # [ha] Sub-basin area.
-    S0:     10                                # [cm] Shallow saturated soil water content.
-    U0:     10                                # [cm] Unsaturated soil water content
-    SnowS:  5                                 # [cm] Snow storage.
-GWLFPars:                                       # For GWLF, we have 9 parameters.
-    CN2:                                      # Curve number
-    IS:                                       # Interception coefficient 0.05 ~ 0.2
-    Res:                                      # Recession coefficient
-    Sep:                                      # Deep seepage coefficient
-    Alpha:                                    # Baseflow coefficient (Eq 4 in Luo et al. (2012))
-    Beta:                                     # Deep seepage coefficient (Eq 2 in Luo et al. (2012))
-    Ur:                                       # [cm] Avaliable/Soil water capacity (Root zone)
-    Df:                                       # [cm/degC] Degree-day coefficient for snowmelt.
-    Kc:                                       # Land cover coefficient.
-"""
-
-def runABCD(ABCDPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
+    Args:
+        ABCDPars (dict): Contain 5 parameters.  
+        Inputs (dict): Contain 3 inputs
+        Tt (Array): [degC] Daily mean temperature.
+        Pt (Array): [cm] Daily precipitation.
+        PEt (Array): [cm] Daily potential evaportranspiration.
+        DataLength (int): Total data length.
+        
+    Returns:
+        [Array]: [cms] Discharge
+    """
     
+    r"""
+    Inputs:
+        Area:                   # [ha] Sub-basin area.
+        XL:     10              # [cm] Initial saturated soil water content. [0, 400]
+        SnowS:  5               # [cm] Snow storage.
+    """
     # Data
     Tt = np.array(Tt)                   # [degC] Daily mean temperature.
     Pt = np.array(Pt)                   # [cm] Daily precipitation.
@@ -231,15 +228,15 @@ def runABCD(ABCDPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     SnowSt = Inputs["SnowS"]            # [cm] Initial snow storage.
     QU = 0                              # [cm] Runoff.
     QL = 0                              # [cm] Baseflow.
-    XL = Inputs["XL"]                   # [cm] Initial saturated soil water content.
+    XL = Inputs["XL"]                   # [cm] Initial saturated soil water content. [0, 400]
     XU = 0                              # [cm] Soil water storage (Antecedent Moisture).
     
     # Pars
     a = ABCDPars["a"]
-    b = ABCDPars["b"]
-    c = ABCDPars["c"]
-    d = ABCDPars["d"]
-    Df = ABCDPars["Df"]
+    b = ABCDPars["b"]                   # [cm] [0, 400]
+    c = ABCDPars["c"]                   # [0, 1]
+    d = ABCDPars["d"]                   # [0, 1]
+    Df = ABCDPars["Df"]                 # [0, 1]
     
     #----- Loop through all days (Python for loop ending needs +1) ------------
     CMS = np.zeros(DataLength) # Create a 1D array to store results
@@ -267,8 +264,14 @@ def runABCD(ABCDPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         # ET opportunity (Guillermo et al., 2010)
         Pb = P+b
         a2 = 2*a
-        EO = Pb/a2 - ( (Pb/a2)**2 - Pb/a )**0.5
+        In = (Pb/a2)**2 - Pb/a
+        if In < 0:
+            logger = logging.getLogger("HydroCNHS.ABCD")
+            logger.error("Invalid parameter set. Highly likely that b is too small.")
+            return None
+        EO = Pb/a2 - In**0.5
         
+        # EO = EO.real
         #----------------------------------------------------------------------
         # Actual evapotranspiration (E)
         E = EO * ( 1-np.exp(-PEt[i]/b) )
@@ -278,14 +281,15 @@ def runABCD(ABCDPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         XL = (XL + c*AW) / (1+d)
         QL = d * XL
         QU = (1-c) * AW
-        
+        Q = QL + QU
         #----------------------------------------------------------------------
         # Change unit to cms (m^3/sec)-----------------------------------------
         # Area [ha]
-        CMS[i] = (QU * 0.01 * Inputs["Area"] * 10000) / 86400
+        CMS[i] = (Q * 0.01 * Inputs["Area"] * 10000) / 86400
     return CMS
         
         
+                
 def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
     """GWLF for rainfall runoff simulation.
 
@@ -299,19 +303,45 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         DataLength (int): Total data length.
         
     Returns:
-        [Array]: [cms] CMS (Qt)
+        [Array]: [cms] Discharge
     """
-    #----- Setup initial values -----------------------------------------------
-    Gt =  GWLFPars["Res"]*Inputs["S0"]  # [cm] Initialize saturated zone discharge to the stream.
-    BFt = Gt						    # [cm] Initialize baseflow to stream.
-    St = Inputs["S0"]                   # [cm] Initialize shallow saturated soil water content.
-    Ut = Inputs["U0"]                   # [cm] Initialize unsaturated soil water content.
-    SnowSt = Inputs["SnowS"]            # [cm] Initial snow storage.
-    AnteMois = [0, 0, 0, 0, 0]          # [cm] Define the initial Antecedent Moisture (5 days) as 0.
-    Tt = np.array(Tt)                   # [degC] Daily mean temperature.
-    Pt = np.array(Pt)                   # [cm] Daily precipitation.
-    PEt = np.array(PEt)                 # [cm] Daily potential evapotranspiration.
+    #----- Setup  -------------------------------------------------------------
     
+    r"""
+    Inputs:
+        Area:                   # [ha] Sub-basin area.
+        S0:     10              # [cm] Shallow saturated soil water content.
+        U0:     10              # [cm] Unsaturated soil water content
+        SnowS:  5               # [cm] Snow storage.
+    """
+    
+    # Data
+    Tt = np.array(Tt)           # [degC] Daily mean temperature.
+    Pt = np.array(Pt)           # [cm] Daily precipitation.
+    PEt = np.array(PEt)         # [cm] Daily potential evapotranspiration.
+    
+    # Pars
+    CN2 = GWLFPars["CN2"]       # Curve number
+    IS = GWLFPars["IS"]         # Interception coefficient 0.05 ~ 0.2
+    Res = GWLFPars["Res"]       # Recession coefficient
+    Sep = GWLFPars["Sep"]       # Deep seepage coefficient
+    Alpha = GWLFPars["Alpha"]   # Baseflow coefficient (Eq 4 in Luo et al. (2012))
+    Beta = GWLFPars["Beta"]     # Deep seepage coefficient (Eq 2 in Luo et al. (2012))
+    Ur = GWLFPars["Ur"]         # [cm] Avaliable/Soil water capacity (Root zone)
+    Df = GWLFPars["Df"]         # [cm/degC] Degree-day coefficient for snowmelt.
+    Kc = GWLFPars["Kc"]         # Land cover coefficient.
+    
+    # Variables
+    Gt =  Res*Inputs["S0"]      # [cm] Initialize saturated zone discharge to the stream.
+    BFt = Gt					# [cm] Initialize baseflow to stream.
+    St = Inputs["S0"]           # [cm] Initialize shallow saturated soil water content.
+    Ut = Inputs["U0"]           # [cm] Initialize unsaturated soil water content.
+    SnowSt = Inputs["SnowS"]    # [cm] Initial snow storage.
+    AnteMois = [0, 0, 0, 0, 0]  # [cm] Define the initial Antecedent Moisture (5 days) as 0.
+
+    
+
+
     # Calculate monthly mean temperature for distinguishing growing season purpose.
     StartDate = to_datetime(StartDate, format="%Y/%m/%d")                               # to Datetime
     pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")   # gen pd dateIndex
@@ -345,7 +375,7 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         #----------------------------------------------------------------------	
         # Determine snowmelt (Degree-day method)-------------------------------
         if Tt[i] > 0:           # Temperature above 0 degC
-            Mt = min(SnowSt, GWLFPars["Df"] * Tt[i])   # Snowmelt (cm) capped by snow storage
+            Mt = min(SnowSt, Df * Tt[i])   # Snowmelt (cm) capped by snow storage
             SnowSt = SnowSt - Mt              # Update snow storage
         else:	
             Mt = 0
@@ -355,54 +385,54 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         at = np.sum(AnteMois)                   # Five days antecedent moisture
         #----------------------------------------------------------------------
         # CN calculation (Following GWLF2 setting)-----------------------------
-        CN1 = (4.2 * GWLFPars["CN2"]) / (10 - 0.058 * GWLFPars["CN2"])
-        CN3 = (23 * GWLFPars["CN2"]) / (10 + 0.13 * GWLFPars["CN2"])
+        CN1 = (4.2 * CN2) / (10 - 0.058 * CN2)
+        CN3 = (23 * CN2) / (10 + 0.13 * CN2)
         CN = None
         if at < am1:
-            CN = CN1 + ((GWLFPars["CN2"] - CN1) / am1) * at
+            CN = CN1 + ((CN2 - CN1) / am1) * at
             
         if (am1 < at and at < am2):
-            CN = GWLFPars["CN2"] + ((CN3 - GWLFPars["CN2"]) / (am2 - am1)) * (at - am1)       
+            CN = CN2 + ((CN3 - CN2) / (am2 - am1)) * (at - am1)       
             
         if am2 < at: 
             CN = CN3	
         #----------------------------------------------------------------------
         # Calculate runoff (Qt)------------------------------------------------
         DSkt = (2540 / CN) - 25.4               # Detention parameter (cm)
-        if (Rt + Mt) > GWLFPars["IS"] * DSkt:
-            Qt = (((Rt + Mt) - (GWLFPars["IS"] * DSkt))**2) / ((Rt + Mt) + ((1-GWLFPars["IS"]) * DSkt))
+        if (Rt + Mt) > IS * DSkt:
+            Qt = (((Rt + Mt) - (IS * DSkt))**2) / ((Rt + Mt) + ((1-IS) * DSkt))
         else:
             Qt = 0	
         #----------------------------------------------------------------------
         # Calculate Evapotranspiration (Et)------------------------------------
         # Consider water stress (Ks) and land cover (Kc).
-        if (Ut >= GWLFPars["Ur"]*0.5):
+        if (Ut >= Ur*0.5):
             Ks = 1
         else:
-            Ks = Ut/(GWLFPars["Ur"]*0.5)
-        Et = min((Ut+ Rt + Mt - Qt), Ks*GWLFPars["Kc"]*PEt[i])
+            Ks = Ut/(Ur*0.5)
+        Et = min((Ut+ Rt + Mt - Qt), Ks*Kc*PEt[i])
         #----------------------------------------------------------------------
         # Calculate Percolation (Pct) from unsaturated zone (Ut) to shallow saturated zone (St)------- 
-        PCt = max((Ut+ Rt + Mt - Qt - Et - GWLFPars["Ur"]), 0)
+        PCt = max((Ut+ Rt + Mt - Qt - Et - Ur), 0)
         #----------------------------------------------------------------------
         # Update unsaturated zone soil moistures (Ut)--------------------------
         Ut = Ut + Rt + Mt - Qt - Et - PCt       # Rt+Mt-Qt is infiltration
         #----------------------------------------------------------------------
         # Calculate groundwater discharge (Gt) and deep seepage (Dt)-----------
-        Gt = GWLFPars["Res"] * St
-        Dt = GWLFPars["Sep"] * St
+        Gt = Res * St
+        Dt = Sep * St
         #----------------------------------------------------------------------
         # Update shallow saturated zone soil moistures (St)--------------------
         St = St + PCt - Gt - Dt
         #----------------------------------------------------------------------
         # Groundwater: Deep seepage loss (Dset)--------------------------------
-        Dset = GWLFPars["Beta"] * Dt #Eq 2 in Luo et al. (2012)
+        Dset = Beta * Dt    #Eq 2 in Luo et al. (2012)
         #----------------------------------------------------------------------
         # Groundwater: Recharge (Ret)------------------------------------------
-        Ret = Dt - Dset #Eq 3 in Luo et al. (2012)
+        Ret = Dt - Dset     #Eq 3 in Luo et al. (2012)
         #----------------------------------------------------------------------
         # Groundwater:Baseflow (BFt)-------------------------------------------
-        BFt = BFt * np.exp(-GWLFPars["Alpha"]) + Ret * (1-np.exp(-GWLFPars["Alpha"])) #Eq 4 in Luo et al. (2012)
+        BFt = BFt * np.exp(-Alpha) + Ret * (1-np.exp(-Alpha)) #Eq 4 in Luo et al. (2012)
         #----------------------------------------------------------------------
         # Calculate streamflow (SF) and Monthly Qt, Pt, Et, Gt and SF----------
         SF = Qt + Gt + BFt #Streamflow = surface quick flow + subsurface flow + baseflow
@@ -412,7 +442,6 @@ def runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength):
         CMS[i] = (SF * 0.01 * Inputs["Area"] * 10000) / 86400
         #----------------------------------------------------------------------
     # return the result array	
-    #logger.info("[GWLF] Complete runoff simulation.")
     return CMS
 
 # More ET method code can be found at https://github.com/phydrus/PyEt 
@@ -451,32 +480,3 @@ def calPEt_Hamon(Tt, Lat, StartDate, dz = None):
     PEt[np.where(Tt <= 0)] = 0              # Force PEt = 0 when temperature is below 0.
     #logger.info("[Hamon] Complete potential evapotranspiration (PEt) calculation.")
     return PEt      # [cm/day]
-
-#%% Test function
-r"""
-Inputs = {}
-Inputs["Area"] = 5000
-Inputs["S0"] = 10
-Inputs["U0"] = 10
-Inputs["SnowS"] = 5 
-Inputs["MonthlyTavg"] = [-5.74, -4.35, 1.06, 7.73, 14.24, 19.37, 21.71, 20.60, 16.54, 10.19, 3.65, -2.75] 
-
-GWLFPars = {}
-GWLFPars["CN2"] = 33.18
-GWLFPars["IS"] = 0.0527
-GWLFPars["Res"] = 0.196
-GWLFPars["Sep"] = 0.0975
-GWLFPars["Alpha"] = 0.058
-GWLFPars["Beta"] = 0.766
-GWLFPars["Ur"] = 14.387
-GWLFPars["Df"] = 0.176
-GWLFPars["Kc"] = 1
-
-Tt = np.array([0.598333333,-3.431666667,-0.888333333,2.29,4.785,3.48,1.618333333,0.285,-0.055,1.373333333,4.43333333,3.49,5.736666667,6.253333333,11.50666667,3.038333333,0.443333333,3.64,6.84,7.631666667,12.8666667,9.028333333,11.17833333,13.99333333,7.828333333,6.051666667,8.681666667,5.953333333,4.07,7.41666667,5.8,2.835,7.77,8.365,8.22,12.02833333,16.90833333,16.50833333,10.41333333,6.968333333,11.64,17.99666667,19.80333333,21.53833333,18.13833333,10.99,8.765,8.92,10.31333333,13.015,10.87666667,8.381666667,12.62333333,15.88333333,13.96166667,4.89,8.785,16.26666667,12.81,11.50333333,16.365])
-Pt = np.array([0.598333333,-3.431666667,-0.888333333,2.29,4.785,3.48,1.618333333,0.285,-0.055,1.373333333,4.543333333,3.49,5.736666667,6.253333333,11.50666667,3.038333333,0.443333333,3.64,6.84,7.631666667,12.38666667,9.028333333,11.17833333,13.99333333,7.828333333,6.051666667,8.681666667,5.953333333,4.07,7.141666667,5.8,2.835,7.77,8.365,8.22,12.02833333,16.90833333,16.50833333,10.41333333,6.968333333,11.64,17.99666667,19.80333333,21.53833333,18.13833333,10.99,8.765,8.92,10.31333333,13.015,10.87666667,8.381666667,12.62333333,15.88333333,13.96166667,4.89,8.785,16.26666667,12.81,11.50333333,16.365])
-StartDate = "1961/04/05"
-PEt = calPEt_Hamon(Tt, Lat = 42.648, StartDate = StartDate, dz = None)
-DataLength = 61
-
-Qt = runGWLF(GWLFPars, Inputs, Tt, Pt, PEt, StartDate, DataLength)
-"""
