@@ -11,7 +11,7 @@ import numpy as np
 import time
 import logging
 
-from .LSM import runGWLF, calPEt_Hamon, runHYMOD
+from .LSM import runGWLF, calPEt_Hamon, runHYMOD, runABCD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel
 from .Agent_customize2 import *                    # AgType_Reservoir, AgType_IrrDiversion
@@ -115,7 +115,7 @@ class HydroCNHSModel(object):
             self.logger.info("Start GWLF for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets)    
-            QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
+            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
                             ( delayed(runGWLF)\
                                 (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
@@ -126,8 +126,19 @@ class HydroCNHSModel(object):
             self.logger.info("Start HYMOD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
             # Load weather and calculate PEt with Hamon's method.
             self.loadWeatherData(T, P, PE, Outlets)    
-            QParel = Parallel(n_jobs = Paral["Cores_runGWLF"], verbose = Paral["verbose"]) \
+            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
                             ( delayed(runHYMOD)\
+                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["P"][sb], self.Weather["T"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
+                                for sb in Outlets ) 
+        
+        # Start ABCD simulation in parallel.
+        # Not verify this model yet.
+        if self.LSM["Model"] == "ABCD":
+            self.logger.info("Start ABCD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
+            # Load weather and calculate PEt with Hamon's method.
+            self.loadWeatherData(T, P, PE, Outlets)    
+            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
+                            ( delayed(runABCD)\
                                 (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["P"][sb], self.Weather["T"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
 

@@ -64,7 +64,7 @@ def defaultConfig():
         "Parallelization": {
             "verbose": 0,           
             "Cores_formUH_Lohmann": 1,
-            "Cores_runGWLF": 1,
+            "Cores_LSM": 1,
             "Cores_DMC": 1,
             "Cores_GA": -2}
         }
