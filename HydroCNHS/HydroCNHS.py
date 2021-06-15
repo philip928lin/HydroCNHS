@@ -143,8 +143,7 @@ class HydroCNHSModel(object):
                                 (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
 
-
-        # Add user assigned Q first.
+        # Add user assigned Q first. ------------------------------------------
         self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
         # Collect QParel results
         for i, sb in enumerate(Outlets):
@@ -171,7 +170,7 @@ class HydroCNHSModel(object):
                             (self.RR[pair[1]][pair[0]]["Inputs"], self.RR[pair[1]][pair[0]]["Pars"]) \
                             for pair in UH_List_Lohmann )     # pair = (Outlet, GaugedOutlet)
 
-            # Form UH
+            # Form UH ---------------------------------------------------------
             # Add user assigned UH first.
             self.UH_Lohmann = deepcopy(AssignedUH)  # Necessary deepcopy!
             for i, pair in enumerate(UH_List_Lohmann):
@@ -181,10 +180,16 @@ class HydroCNHSModel(object):
 
         
         # ----- Load Agents from ABM ------------------------------------------
-        # Note: we will automatically detect whether the ABM section is 
-        # available. If ABM section is not found, then we consider it as 
-        # none coupled model.
-        # AgGroup = {"AgType":{"Name": []}}
+        # We will automatically detect whether the ABM section is available. 
+        # If ABM section is not found, then we consider it as none coupled 
+        # model.
+        # Technical note:
+        #   We will load user-defined modules (e.g., AgentType.py) into 
+        # HydroCNHS and store them under the UserModules class. Then, User 
+        # object is created for Hydro CNHS to apply those user-defined classes.
+        # We use eval() to turn string into python variable.
+        #   Detailed instruction for designing proper modules for HydroCNHS, 
+        # please check the documentation. Certain protocals have to be followed.
         
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
         DataLength = self.WS["DataLength"]
@@ -206,12 +211,23 @@ class HydroCNHSModel(object):
             
             # Initialize DMFuncs ----------------------------------------------
             for dmfunc in ABM["Inputs"]["DMFuncs"]:
-                try:
-                    self.DMFuncs[dmfunc] = eval("User."+dmfunc)(.....)
+                try:        # Try to load from user-defined module first.
+                    self.DMFuncs[dmfunc] = eval("User."+dmfunc)(StartDate, DataLength, ABM)
                 except Exception as e:
-                    self.logger.error(traceback.format_exc())
-                    raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmfunc))
-            # Initialize agent groups -----------------------------------------
+                    try:    # Detect if it is a built-in class.
+                        self.DMFuncs[dmfunc] = eval(dmfunc)(StartDate, DataLength, ABM)
+                        self.logger.info("Load {} from the built-in classes.".format(dmfunc))
+                    except Exception as e:
+                        self.logger.error(traceback.format_exc())
+                        raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmfunc))
+                
+            # Initialize agent action groups ----------------------------------
+            # The agent action groups is different from the DMFunc. Action 
+            # group do actions (e.g., divert water) together based on their 
+            # original decisions (e.g., diversion request) from DMFunc. 
+            # This could be used in a situation, where agents share the water 
+            # deficiency together. 
+            # AgGroup = {"AgType":{"Name": []}}   (in Model.yaml)
             AgGroup = ABM["Inputs"].get("AgGroup")
             if AgGroup is not None:
                 for agType in AgGroup:
@@ -220,26 +236,32 @@ class HydroCNHSModel(object):
                         agConfig = {}
                         for ag in agList:
                             agConfig[ag] = ABM[agType][ag]
-                        try:
+                        try:        # Try to load from user-defined module first.
                             self.Agents[agG] = eval("User."+agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
                         except Exception as e:
-                            self.logger.error(traceback.format_exc())
-                            raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(agType))
+                            try:    # Detect if it is a built-in class.
+                                self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                                self.logger.info("Load {} from the built-in classes.".format(agType))
+                            except Exception as e:
+                                self.logger.error(traceback.format_exc())
+                                raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(agG, agType))
             else:
                 AgGroup = []
                 
-            # Initialize agents not belong to any groups ----------------------
+            # Initialize agents not belong to any action groups ---------------
             for agType, Ags in ABM.items():
                 if agType == "Inputs" or agType in AgGroup:
                         continue
                 for ag, agConfig in Ags.items():
-                    # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
-                    try:
-                        # Initialize agent object from agent-type class defined in Agent.py.
+                    try:        # Try to load from user-defined module first.
                         self.Agents[ag] = eval("User."+agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
                     except Exception as e:
-                        self.logger.error(traceback.format_exc())
-                        raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(ag, agType))
+                        try:    # Detect if it is a built-in class.
+                            self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                            self.logger.info("Load {} from the built-in classes.".format(agType))
+                        except Exception as e:
+                            self.logger.error(traceback.format_exc())
+                            raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(ag, agType))
         # ---------------------------------------------------------------------
         
         
@@ -247,22 +269,23 @@ class HydroCNHSModel(object):
         # Obtain datetime index -----------------------------------------------
         pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")
         self.pdDatedateIndex = pdDatedateIndex  # So users can use it directly.    
+        
+        # Load system-parsed data ---------------------------------------------
         SimSeq = self.SysPD["SimSeq"]
         AgSimSeq = self.SysPD["AgSimSeq"]
         InStreamAgents = self.SysPD["InStreamAgents"]   
         
-        # Add instream agent to Q_routed. It will be populated after instream agent make their decisions.
-        # InStreamAgents = ResDamAgentTypes & DamDivAgentTypes
+        # Add instream agent to Q_routed --------------------------------------
+        # InStreamAgents include ResDamAgentTypes & DamDivAgentTypes
         for isag in InStreamAgents:
             self.Q_routed[isag] = np.zeros(DataLength)
         
-        # Run time step routing and agent simulation to update Q_LSM.
-        for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
-            CurrentDate = pdDatedateIndex[t]
-            
-            # Only a semi-distributed hydrological model ######################
-            # (Only LSM and Routing)
-            if self.ABM is None: 
+        ##### Only a semi-distributed hydrological model ######################
+        #####                     (Only LSM and Routing)
+        if self.ABM is None: 
+            # Run step-wise routing to update Q_routed ------------------------
+            for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
+                CurrentDate = pdDatedateIndex[t]
                 for node in SimSeq:
                     if node in RoutingOutlets:
                         #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
@@ -271,57 +294,75 @@ class HydroCNHSModel(object):
                         #----- Store Qt to final output.
                         self.Q_routed[node][t] = Qt 
                         
-            # HydroCNHS model (Coupled model) #################################           
-            else: 
+        ##### HydroCNHS model (Coupled model) #################################
+        # We create four interfaces for "two-way coupling" between natural  
+        # model and human model. However, the user-defined human model has to 
+        # follow specific protocal. See the documantation for details.
+        else:
+            for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
+                CurrentDate = pdDatedateIndex[t]
                 for node in SimSeq:
+                    # Load active agent for current node at time t ------------
                     RiverDivAgents_Plus = AgSimSeq["AgSimPlus"][node].get("RiverDivAgents")
                     RiverDivAgents_Minus = AgSimSeq["AgSimMinus"][node].get("RiverDivAgents")
                     InsituDivAgents_Minus = AgSimSeq["AgSimMinus"][node].get("InsituDivAgents")
                     DamDivAgents_Plus = AgSimSeq["AgSimPlus"][node].get("DamDivAgents")
                     ResDamAgents_Plus = AgSimSeq["AgSimPlus"][node].get("ResDamAgents")
 
-                    # Note for the first three if, we should only enter one of them at each node.
+                    # Note for the first three if, we should only enter one of 
+                    # them at each node.
                     if InsituDivAgents_Minus is not None or RiverDivAgents_Plus is not None:
                         r"""
-                        For InsituDivAgents, they divert water directly from the runoff in each sub-basin or grid.
+                        For InsituDivAgents, they divert water directly from 
+                        the runoff in each sub-basin or grid.
                         Note that InsituDivAgents has no return flow option.
-                        After updating Q generated by LSM and plus the return flow, we run the routing to calculate the routing streamflow at the routing outlet stored in Q_routed.
-                        Note that we need to use the "self.Q_LSM - Div + return flow" for the routing outlet to run the routing model.
-                        That means return flow will join the in grid-routing!!
-                        Therefore, we feed in both self.Q_routed and self.Q_LSM
+                        After updating Q generated by LSM and plus the return 
+                        flow, we run the routing to calculate the routing 
+                        streamflow at the routing outlet stored in Q_routed.
+                        Note that we need to use the updated self.Q_LSM = 
+                                self.Q_LSM - Div + return flow
+                        for the routing outlet to run the routing model.
+                        That means return flow will join the in-grid routing!
+                        Therefore, in this section, both self.Q_routed and 
+                        self.Q_LSM will be updated.
                         """
                         if InsituDivAgents_Minus is not None:
                             for ag in InsituDivAgents_Minus:
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
                                 # self.Q_LSM - Div
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
                                 self.Q_LSM[node][t] = self.Q_routed[node][t]
                                 
                         if RiverDivAgents_Plus is not None:    
-                            ##### Customize DM
+                            # e.g., add return flow
                             for ag in RiverDivAgents_Plus:
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
-                                # self.Q_LSM + return flow   => return flow will join the in-grid routing. 
+                                # self.Q_LSM + return flow   
+                                # => return flow will join the in-grid routing. 
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
                                 self.Q_LSM[node][t] = self.Q_routed[node][t]
                     
                     elif ResDamAgents_Plus is not None:
                         r"""
-                        For ResDamAgents, we simply add the release water to self.Q_routed[isag].
-                        No minus action is needed.
+                        For ResDamAgents, we simply add the release water to 
+                        self.Q_routed[isag]. No minus action is needed for its 
+                        upstream inflow outlet.
                         """
                         for ag in ResDamAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = None)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
                     
                     elif DamDivAgents_Plus is not None:
                         r"""
-                        For DamDivAgents_Plus, we simply add the release water to self.Q_routed[isag].
-                        No minus action is needed.
-                        Note that even the DM is diversion, the action should be converted to release (code in agent class). 
+                        For DamDivAgents_Plus, we simply add the release water 
+                        to self.Q_routed[isag]. No minus action is needed.
+                        Note that even the DM is diversion, the action should 
+                        be converted to release Q (code in agent class). 
+                        Diversion dam.
                         """
                         for ag in DamDivAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
                     
                     if node in RoutingOutlets:
-                        #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
+                        #----- Run Lohmann routing model for one routing outlet
+                        # (node) for 1 time step (day).
                         if self.RR["Model"] == "Lohmann":
                             Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_routed, self.Q_LSM, t)
                         #----- Store Qt to final output.
@@ -330,13 +371,11 @@ class HydroCNHSModel(object):
                     
                     if RiverDivAgents_Minus is not None:
                         r"""
-                        For RiverDivAgents_Minus, we divert water from the routed river flow.
-                        No minus action is needed.
-                        Note that even the DM is diversion, the action should be converted to release (code in agent class). 
+                        For RiverDivAgents_Minus, we divert water from the 
+                        routed river flow at agent-associated routing outlet.
                         """
-                        ##### Customize DM
                         for ag in RiverDivAgents_Minus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DivDM_KTRWS)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
                     
 
         # ----------------------------------------------------------------------
