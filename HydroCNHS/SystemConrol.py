@@ -12,6 +12,7 @@ import os
 import ast
 import numpy as np
 from copy import deepcopy                   # For deepcopy dictionary.
+import importlib.util                       # For importing customized module.
 logger = logging.getLogger("HydroCNHS.SC")  # Get logger 
 
 r"""
@@ -290,7 +291,25 @@ def loadDFToModelDict(modelDict, DF, Section, Key):
                     
     return modelDict
 
+def loadCustomizedModule2Class(Class, moduleName, path):
+    """Load classes and functions in a user defined module (.py) into a Class.
 
+    Args:
+        Class (class): A class to collect classes and functions in a given module.
+        moduleName (string): filename.py or filename.
+        path (string): Path to filename.py.
+    """
+    spec = importlib.util.spec_from_file_location(moduleName, 
+                                              os.path.join(moduleName, path))
+    module = importlib.util.module_from_spec(spec) 
+    spec.loader.exec_module(User)
+    
+    # Add class and function to a Class.
+    namespace = vars(module)
+    public = (name for name in namespace if name[:1] != "_")
+    for name in getattr(module, "__all__", public):
+        setattr(Class, name, namespace[name])
+    # globals().update(module.__dict__)   # Load all classes to globel.
 
 #-----------------------------------------
 #---------- Auxiliary Functions ----------

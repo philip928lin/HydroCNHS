@@ -1,11 +1,13 @@
-#%%
-# Form the water system using a semi distribution hydrological model and agent-based model.
+# Main HydroCNHS simulator.
+# This module is design to couple the human model with semi-distributed 
+# hydrological model to form a coupled natural human system.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # 2021/02/05
-from joblib import Parallel, delayed    # For parallelization
+
+from joblib import Parallel, delayed        # For parallelization
 from pandas import date_range, to_datetime
 from tqdm import tqdm
-from copy import Error, deepcopy   # For deepcopy dictionary.
+from copy import Error, deepcopy            # For deepcopy dictionary.
 import traceback
 import numpy as np
 import time
@@ -13,8 +15,8 @@ import logging
 
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD, runABCD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
-from .SystemConrol import loadConfig, loadModel
-from .Agent_customize2 import *                    # AgType_Reservoir, AgType_IrrDiversion
+from .SystemConrol import loadConfig, loadModel, loadCustomizedModule2Class
+from .Agent_customize2 import *        # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
@@ -41,7 +43,6 @@ class HydroCNHSModel(object):
         Model = loadModel(model)    # We design model to be str or dictionary.
         
         # Need to verify Model contain all following keys.
-        
         try:                   
             self.Path = Model["Path"]
             self.WS = Model["WaterSystem"]     # WS: Water system
@@ -142,12 +143,14 @@ class HydroCNHSModel(object):
                                 (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
                                 for sb in Outlets ) 
 
+
         # Add user assigned Q first.
-        # Q_routed will be continuously updated for routing.
         self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
         # Collect QParel results
         for i, sb in enumerate(Outlets):
             self.Q_LSM[sb] = QParel[i]
+            
+        # Q_routed will be continuously updated for routing.
         self.Q_routed = deepcopy(self.Q_LSM)        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage pointer!
         self.logger.info("Complete LSM simulation. [{}]".format(getElapsedTime()))
         # ---------------------------------------------------------------------    
@@ -167,9 +170,9 @@ class HydroCNHSModel(object):
                             ( delayed(formUH_Lohmann)\
                             (self.RR[pair[1]][pair[0]]["Inputs"], self.RR[pair[1]][pair[0]]["Pars"]) \
                             for pair in UH_List_Lohmann )     # pair = (Outlet, GaugedOutlet)
-            # Add user assigned UH first.
 
             # Form UH
+            # Add user assigned UH first.
             self.UH_Lohmann = deepcopy(AssignedUH)  # Necessary deepcopy!
             for i, pair in enumerate(UH_List_Lohmann):
                 self.UH_Lohmann[pair] = UHParel[i]
@@ -177,47 +180,71 @@ class HydroCNHSModel(object):
         # ---------------------------------------------------------------------
 
         
-        # ----- Load Agents from ABM -----
-        # Note: we will automatically detect whether the ABM section is available. If ABM section is not found,
-        # then we consider it as none coupled model.
+        # ----- Load Agents from ABM ------------------------------------------
+        # Note: we will automatically detect whether the ABM section is 
+        # available. If ABM section is not found, then we consider it as 
+        # none coupled model.
         # AgGroup = {"AgType":{"Name": []}}
         
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
         DataLength = self.WS["DataLength"]
-        self.Agents = {}     # Here we store all agent objects with key = agent name.
+        self.Agents = {}     # Store all agent objects with key = agentname.
+        self.DMFuncs = {}    # Store all DM function Ex {"DMFunc": DMFunc()}
+        # self.AgDMFunc = {}   # Store all agent associated DMFunc. Ex {agentname: "DMFunc"}
+
         if self.ABM is not None: 
-            #====== Customize part ======
-            self.DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
-            #============================
-            # Create agent group
-            AgGroup = self.ABM["Inputs"].get("AgGroup")
+            ABM = self.ABM
+            # Import user-defined module --------------------------------------
+            MPath = self.Path.get("Modules")
+            if MPath is not None:
+                # User class will store all user-defined modules' classes and functions.
+                class UserModules:
+                    pass
+                for moduleName in ABM["Inputs"]["Modules"]:
+                    loadCustomizedModule2Class(UserModules, moduleName, MPath)
+                User = UserModules()  # Create an user object.
+            
+            # Initialize DMFuncs ----------------------------------------------
+            for dmfunc in ABM["Inputs"]["DMFuncs"]:
+                try:
+                    self.DMFuncs[dmfunc] = eval("User."+dmfunc)(.....)
+                except Exception as e:
+                    self.logger.error(traceback.format_exc())
+                    raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmfunc))
+            # Initialize agent groups -----------------------------------------
+            AgGroup = ABM["Inputs"].get("AgGroup")
             if AgGroup is not None:
                 for agType in AgGroup:
                     for agG in AgGroup[agType]:
                         agList = AgGroup[agType][agG]
                         agConfig = {}
                         for ag in agList:
-                            agConfig[ag] = self.ABM[agType][ag]
-                        self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                            agConfig[ag] = ABM[agType][ag]
+                        try:
+                            self.Agents[agG] = eval("User."+agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                        except Exception as e:
+                            self.logger.error(traceback.format_exc())
+                            raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(agType))
             else:
                 AgGroup = []
-            # Create agent
-            for agType, Ags in self.ABM.items():
+                
+            # Initialize agents not belong to any groups ----------------------
+            for agType, Ags in ABM.items():
                 if agType == "Inputs" or agType in AgGroup:
                         continue
                 for ag, agConfig in Ags.items():
                     # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
                     try:
                         # Initialize agent object from agent-type class defined in Agent.py.
-                        self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                        self.Agents[ag] = eval("User."+agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
                     except Exception as e:
                         self.logger.error(traceback.format_exc())
-                        raise Error("Fail to load {} as agent type {}.".format(ag, agType))
-        # --------------------------------
+                        raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(ag, agType))
+        # ---------------------------------------------------------------------
         
         
-        # ----- Time step simulation (Coupling hydrological model and ABM) -----
-        # Obtain datetime index
+        # ----- Time step simulation (Coupling hydrological model and ABM) ----
+        # Obtain datetime index -----------------------------------------------
         pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")
         self.pdDatedateIndex = pdDatedateIndex  # So users can use it directly.    
         SimSeq = self.SysPD["SimSeq"]
@@ -232,7 +259,10 @@ class HydroCNHSModel(object):
         # Run time step routing and agent simulation to update Q_LSM.
         for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
             CurrentDate = pdDatedateIndex[t]
-            if self.ABM is None: # Only LSM and Routing.
+            
+            # Only a semi-distributed hydrological model ######################
+            # (Only LSM and Routing)
+            if self.ABM is None: 
                 for node in SimSeq:
                     if node in RoutingOutlets:
                         #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
@@ -241,7 +271,8 @@ class HydroCNHSModel(object):
                         #----- Store Qt to final output.
                         self.Q_routed[node][t] = Qt 
                         
-            else: # Coupled model
+            # HydroCNHS model (Coupled model) #################################           
+            else: 
                 for node in SimSeq:
                     RiverDivAgents_Plus = AgSimSeq["AgSimPlus"][node].get("RiverDivAgents")
                     RiverDivAgents_Minus = AgSimSeq["AgSimMinus"][node].get("RiverDivAgents")
@@ -318,3 +349,46 @@ class HydroCNHSModel(object):
     def getModelObject(self):
         return self.__dict__
     
+    
+    
+r"""
+# ----- Load Agents from ABM -----
+        # Note: we will automatically detect whether the ABM section is 
+        # available. If ABM section is not found, then we consider it as 
+        # none coupled model.
+        # AgGroup = {"AgType":{"Name": []}}
+        
+        StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
+        DataLength = self.WS["DataLength"]
+        self.Agents = {}     # Store all agent objects with key = agentname.
+
+        if self.ABM is not None: 
+            #====== Customize part ======
+            self.DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
+            #============================
+            # Create agent group
+            AgGroup = self.ABM["Inputs"].get("AgGroup")
+            if AgGroup is not None:
+                for agType in AgGroup:
+                    for agG in AgGroup[agType]:
+                        agList = AgGroup[agType][agG]
+                        agConfig = {}
+                        for ag in agList:
+                            agConfig[ag] = self.ABM[agType][ag]
+                        self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+            else:
+                AgGroup = []
+            # Create agent
+            for agType, Ags in self.ABM.items():
+                if agType == "Inputs" or agType in AgGroup:
+                        continue
+                for ag, agConfig in Ags.items():
+                    # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
+                    try:
+                        # Initialize agent object from agent-type class defined in Agent.py.
+                        self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                    except Exception as e:
+                        self.logger.error(traceback.format_exc())
+                        raise Error("Fail to load {} as agent type {}.".format(ag, agType))
+        # --------------------------------
+"""
