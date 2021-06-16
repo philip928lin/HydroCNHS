@@ -300,11 +300,11 @@ def loadCustomizedModule2Class(Class, moduleName, path):
         path (string): Path to filename.py.
     """
     spec = importlib.util.spec_from_file_location(moduleName, 
-                                              os.path.join(moduleName, path))
+                                              os.path.join(path, moduleName))
     module = importlib.util.module_from_spec(spec) 
-    spec.loader.exec_module(User)
+    spec.loader.exec_module(module)
     
-    # Add class and function to a Class.
+    # Add classes and functions to a class.
     namespace = vars(module)
     public = (name for name in namespace if name[:1] != "_")
     for name in getattr(module, "__all__", public):

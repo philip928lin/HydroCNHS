@@ -16,7 +16,9 @@ import logging
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD, runABCD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemConrol import loadConfig, loadModel, loadCustomizedModule2Class
-from .Agent_customize2 import *        # AgType_Reservoir, AgType_IrrDiversion
+
+# The customized agent file will be imported externally
+from .Agent_customize3 import *        # AgType_Reservoir, AgType_IrrDiversion
 
 class HydroCNHSModel(object):
     """Main HydroCNHS simulation object.
@@ -54,8 +56,8 @@ class HydroCNHSModel(object):
             self.logger.error("Model file is incomplete for HydroCNHS.")
             
         # Initialize output
-        self.Q_routed = {}     # [cms] Streamflow for routing outlets (Gauged outlets and inflow outlets of in-stream agents).
-        # self.A = {}     # Collect agent's output for each AgentType.
+        self.Q_routed = {}     # [cms] Streamflow for routing outlets.
+
     
     def loadWeatherData(self, T, P, PE = None, LSMOutlets = None):
         """[Include in run] Load temperature and precipitation data.
@@ -86,7 +88,7 @@ class HydroCNHSModel(object):
             AssignedUH (dict, optional): If user want to manually assign UH (Lohmann) (value, Array) for certain outlet (key, str). Defaults to None.
         """
         
-        # Set a timer here
+        # Start a timer -------------------------------------------------------
         start_time = time.monotonic()
         self.elapsed_time = 0
         def getElapsedTime():
@@ -96,18 +98,20 @@ class HydroCNHSModel(object):
         
         Paral = self.Config["Parallelization"]
         Outlets = self.WS["Outlets"]
-        self.Q_LSM = {}  # Temporily store Q result from land surface simulation.
+        self.Q_LSM = {}     # Store Q result for land surface simulation.
         
         # ----- Land surface simulation ---------------------------------------
-        # Remove sub-basin that don't need to be simulated. Not preserving element order in the list.
+        # Remove sub-basin that don't need to be simulated. 
+        # Not preserving element order in the list.
         Outlets = list(set(Outlets) - set(AssignedQ.keys()))  
         if AssignedQ != {}:
             RoutingOutlets = self.SysPD["RoutingOutlets"]
             for ro in RoutingOutlets:
                 for sb in self.RR[ro]:
                     if sb in AssignedQ:
-                        self.RR[ro][sb]["Pars"]["GShape"] = None   # No in-grid routing.
-                        self.RR[ro][sb]["Pars"]["GRate"] = None   # No in-grid routing.
+                        # No in-grid routing.
+                        self.RR[ro][sb]["Pars"]["GShape"] = None  
+                        self.RR[ro][sb]["Pars"]["GRate"] = None   
                         self.logger.info("Turn {}'s GShape and GRate to None in the routing setting. There is no in-grid time lag with given observed Q.".format((sb, ro)))
         
         # Start GWLF simulation in parallel.
@@ -194,15 +198,15 @@ class HydroCNHSModel(object):
         StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
         DataLength = self.WS["DataLength"]
         self.Agents = {}     # Store all agent objects with key = agentname.
-        self.DMFuncs = {}    # Store all DM function Ex {"DMFunc": DMFunc()}
-        # self.AgDMFunc = {}   # Store all agent associated DMFunc. Ex {agentname: "DMFunc"}
+        self.DMClasses= {}   # Store all DM function Ex {"DMFunc": DMFunc()}
 
         if self.ABM is not None: 
             ABM = self.ABM
             # Import user-defined module --------------------------------------
             MPath = self.Path.get("Modules")
             if MPath is not None:
-                # User class will store all user-defined modules' classes and functions.
+                # User class will store all user-defined modules' classes and 
+                # functions.
                 class UserModules:
                     pass
                 for moduleName in ABM["Inputs"]["Modules"]:
@@ -210,16 +214,17 @@ class HydroCNHSModel(object):
                 User = UserModules()  # Create an user object.
             
             # Initialize DMFuncs ----------------------------------------------
-            for dmfunc in ABM["Inputs"]["DMFuncs"]:
+            for dmclass in ABM["Inputs"]["DMClasses"]:
                 try:        # Try to load from user-defined module first.
-                    self.DMFuncs[dmfunc] = eval("User."+dmfunc)(StartDate, DataLength, ABM)
+                    self.DMClasses[dmclass] = eval("User."+dmclass)(StartDate, DataLength, ABM)
+                    self.logger.info("Load {} from the user-defined classes.".format(dmclass))
                 except Exception as e:
                     try:    # Detect if it is a built-in class.
-                        self.DMFuncs[dmfunc] = eval(dmfunc)(StartDate, DataLength, ABM)
-                        self.logger.info("Load {} from the built-in classes.".format(dmfunc))
+                        self.DMClasses[dmclass] = eval(dmclass)(StartDate, DataLength, ABM)
+                        self.logger.info("Load {} from the built-in classes.".format(dmclass))
                     except Exception as e:
                         self.logger.error(traceback.format_exc())
-                        raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmfunc))
+                        raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmclass))
                 
             # Initialize agent action groups ----------------------------------
             # The agent action groups is different from the DMFunc. Action 
@@ -236,15 +241,16 @@ class HydroCNHSModel(object):
                         agConfig = {}
                         for ag in agList:
                             agConfig[ag] = ABM[agType][ag]
-                        try:        # Try to load from user-defined module first.
+                        try:      # Try to load from user-defined module first.
                             self.Agents[agG] = eval("User."+agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                            self.logger.info("Load {} for {} from the user-defined classes.".format(agType, agG))
                         except Exception as e:
-                            try:    # Detect if it is a built-in class.
+                            try:  # Detect if it is a built-in class.
                                 self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                                self.logger.info("Load {} from the built-in classes.".format(agType))
+                                self.logger.info("Load {} for {} from the built-in classes.".format(agType, agG))
                             except Exception as e:
                                 self.logger.error(traceback.format_exc())
-                                raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(agG, agType))
+                                raise Error("Fail to load {} for {}.\nMake sure the class is well-defined in given modules.".format(agType, agG))
             else:
                 AgGroup = []
                 
@@ -255,13 +261,14 @@ class HydroCNHSModel(object):
                 for ag, agConfig in Ags.items():
                     try:        # Try to load from user-defined module first.
                         self.Agents[ag] = eval("User."+agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
+                        self.logger.info("Load {} for {} from the user-defined classes.".format(agType, ag))
                     except Exception as e:
                         try:    # Detect if it is a built-in class.
                             self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                            self.logger.info("Load {} from the built-in classes.".format(agType))
+                            self.logger.info("Load {} for {} from the built-in classes.".format(agType, ag))
                         except Exception as e:
                             self.logger.error(traceback.format_exc())
-                            raise Error("[{}] Fail to load {}.\nMake sure the class is well-defined in given modules.".format(ag, agType))
+                            raise Error("Fail to load {} for {}.\nMake sure the class is well-defined in given modules.".format(agType, ag))
         # ---------------------------------------------------------------------
         
         
@@ -329,7 +336,7 @@ class HydroCNHSModel(object):
                         if InsituDivAgents_Minus is not None:
                             for ag in InsituDivAgents_Minus:
                                 # self.Q_LSM - Div
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
                                 self.Q_LSM[node][t] = self.Q_routed[node][t]
                                 
                         if RiverDivAgents_Plus is not None:    
@@ -337,7 +344,7 @@ class HydroCNHSModel(object):
                             for ag in RiverDivAgents_Plus:
                                 # self.Q_LSM + return flow   
                                 # => return flow will join the in-grid routing. 
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
+                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
                                 self.Q_LSM[node][t] = self.Q_routed[node][t]
                     
                     elif ResDamAgents_Plus is not None:
@@ -347,7 +354,7 @@ class HydroCNHSModel(object):
                         upstream inflow outlet.
                         """
                         for ag in ResDamAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
                     
                     elif DamDivAgents_Plus is not None:
                         r"""
@@ -358,7 +365,7 @@ class HydroCNHSModel(object):
                         Diversion dam.
                         """
                         for ag in DamDivAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
                     
                     if node in RoutingOutlets:
                         #----- Run Lohmann routing model for one routing outlet
@@ -375,7 +382,7 @@ class HydroCNHSModel(object):
                         routed river flow at agent-associated routing outlet.
                         """
                         for ag in RiverDivAgents_Minus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DM = self.DMFuncs)
+                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
                     
 
         # ----------------------------------------------------------------------
