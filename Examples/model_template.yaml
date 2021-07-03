@@ -18,7 +18,7 @@ Path:
 # The consistency with other sections will be checked accordingly.
 WaterSystem:    
   StartDate: 2000/1/1                           # yyyy/mm/dd
-  NumSubbasin:  2                               # Number of sub-basins in the watershed.
+  NumSubbasins:  2                               # Number of sub-basins in the watershed.
   NumGauges:    1                               # Number of gauges/gauged outlets. (Calibration)
   NumAgents:    0                               # Number of agents
   Outlets: ["A", "B"]                           # A list of outlets' names or indices for their corresponding sub-basins. != routing outlets in RR.

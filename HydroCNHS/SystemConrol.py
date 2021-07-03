@@ -347,9 +347,11 @@ def checkModel(Model):
     # Need to make sure simulation period is longer than a month (GWLF part)
     # Name of keys (Agent and subbasin name) cannot be dulicated.
     # Name of keys (Agent and subbasin name) cannot have "." 
+    Pass = checkWS(Model)
+    Pass = checkLSM(Model)
     
     if Model.get("Routing") is not None and Model.get("ABM") is not None:
-        Pass = checkInStreamAgentInRouting(Model)
+        Pass = checkAgentInRouting(Model)
     return Pass
 
 def parseModel(Model):
@@ -366,23 +368,98 @@ def parseModel(Model):
     if Model.get("Routing") is not None :
         Model = parseSimulationSeqence(Model)
     return Model    
-    
 
-def checkInStreamAgentInRouting(Model):
+def checkWS(Model):
+    Pass = True
+    WS = Model["WaterSystem"]
+    
+    #--- Check keys
+    IdealKeys = ["NumSubbasins", "NumGauges", "NumAgents", "Outlets", "GaugedOutlets"]
+    if IdealKeys not in WS.keys():
+        logger.error("Missing items in WaterSystem setting. {}".format(IdealKeys))
+        Pass = False
+        
+    DataLength = WS.get("DataLength")
+    EndDate = WS.get("EndDate")
+    if DataLength is not None:
+        EndDate = (pd.to_datetime(WS["EndDate"], format='%Y/%m/%d') + pd.DateOffset(DataLength-1))
+        Model["WaterSystem"]["EndDate"] = EndDate.strftime('%Y/%m/%d')
+    elif EndDate is not None:
+        EndDate = pd.to_datetime(WS["EndDate"], format='%Y/%m/%d')
+        StartDate = pd.to_datetime(WS["StartDate"], format='%Y/%m/%d')
+        Model["WaterSystem"]["DataLength"] = (EndDate - StartDate).days + 1
+    else:
+        logger.error("Either DataLength or EndDate has to be provided.")
+        Pass = False
+    
+    Outlets = WS["Outlets"]
+    GaugedOutlets = WS["GaugedOutlets"]
+    if len(Outlets) != WS["NumSubbasins"]:
+        logger.error("Outlets is inconsist to NumSubbasins.")
+        Pass = False
+    if len(GaugedOutlets) != WS["NumGauges"]:
+        logger.error("GaugedOutlets is inconsist to NumGauges.")
+        Pass = False
+    # We did not check the NumAgents.
+        
+    if len(Outlets) != len(set(Outlets)):
+        logger.error("Duplicates exist in Outlets.")
+        Pass = False
+        
+    if any("." in o for o in Outlets):
+        logger.error("\".\" is not allowed in outlet's name.")
+        Pass = False
+    
+    if GaugedOutlets not in Outlets:
+        logger.error("Some GaugedOutlets are not defined in Outlets.")
+        Pass = False
+    
+    return Pass
+def checkLSM(Model):
+    LSM = Model["LSM"]
+    Pass = True
+    #--- Check keys
+    IdealKeys = set(Model["WaterSystem"]["Outlets"] + ["Model"])
+    LSMKeys = set(Model["LSM"])
+    if LSMKeys != IdealKeys:
+        logger.error("Inconsist LSM keys {}\nto {}".format(LSMKeys, IdealKeys) )
+        Pass = False
+        
+    #--- Check selected LSM model.
+    model = LSM["Model"]
+    LSMOptions = ["GWLF", "ABCD", "HYMOD"]
+    if model not in LSMOptions:
+        logger.error("Invlid LSM model {}. Acceptable options: {}".format(model, LSMOptions))
+        Pass = False
+    return Pass
+def checkAgentInRouting(Model):
     """To make sure InStreamAgentInflows outlets are assigned in the routing section.
+    Missing InsituAgent.
     """
+    Pass = True
     Routing = Model["Routing"]
     
-    #--- Check In-stream agents:  ResDamAgentTypes & DamDivAgentTypes are eligble in the routing setting. These two types of agents will completely split the system into half.
+    #--- Check In-stream agents' Links and collect InstreamAgentInflows:  
+    # ResDamAgentTypes & DamDivAgentTypes are eligble in the routing setting. 
+    # These two types of agents will completely split the water system into 
+    # half.
     InstreamAgentInflows = []        
     InstreamAgentTypes = Model["ABM"]["Inputs"]["ResDamAgentTypes"]+ \
                          Model["ABM"]["Inputs"]["DamDivAgentTypes"]
     for ISagType in InstreamAgentTypes:
         for ag in Model["ABM"][ISagType]:
             Links = Model["ABM"][ISagType][ag]["Inputs"]["Links"]
-            InstreamAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
-    InstreamAgentInflows = list(set(InstreamAgentInflows))        # Eliminate duplicates.
-    #Model["SystemParsedData"]["InStreamAgentInflows"] = InStreamAgentInflows   # Add to system parsed data.
+            InflowOutlets = [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
+            if InflowOutlets == []:
+                logger.error("[Check model failed] No inflow outlets (e.g., Links:{InflowOutlet: -1}) are found for {}.".format(ag))
+                Pass = False
+            if  Links.get(ag) is None:
+                logger.info("Auto-fill outflow link for {}.".format(ag))
+                Model["ABM"][ISagType][ag]["Inputs"]["Links"][ag] = 1
+            InstreamAgentInflows += InflowOutlets
+    # Eliminate duplicates.
+    InstreamAgentInflows = list(set(InstreamAgentInflows)) 
+    # Model["SystemParsedData"]["InStreamAgentInflows"] = InStreamAgentInflows   # Add to system parsed data.
 
     #--- Check InStreamAgents' inflow outlets are in RoutingOutlets.
     RoutingOutlets = list(Routing.keys())
@@ -390,33 +467,41 @@ def checkInStreamAgentInRouting(Model):
     for vro in InstreamAgentInflows:
         if vro not in RoutingOutlets:
             logger.error("[Check model failed] Cannot find in-stream agent's inflow outlets in the Routing section. Routing outlets should include {}.".format(vro))
-            return False
-        else:
+            Pass = False
+        else:   # Check if start belong to others RoutingOutlets' starts.
             for start in Routing[vro]:
-                # Check if start belong to others RoutingOutlets' starts.
                 for ro in RoutingOutlets:
                     if ro != vro:
                         if any( start in others for others in Routing[ro] ):
-                            if ro in Routing[vro]:  # If it is in the upstream of VirROutlet, it is fine.
+                            # If it is in the upstream of VirROutlet, it's fine.
+                            if ro in Routing[vro]:  
                                 pass
                             else:
                                 logging.error("[Check model failed] {} sub-basin outlet shouldn't be in {}'s (routing outlet) catchment outlets due to the seperation of in-stream control agents.".format(start, vro, ro))
-                                return False 
-    #--- RiverDivAgentTypes will not add a new routing outlet (agent itself) like ResDamAgentTypes & DamDivAgentTypes do to split the system into half but their diverting outlet must be in  routing outlets.
+                                Pass = False
+                            
+    #--- RiverDivAgentTypes will not add a new routing outlet (agent itself) 
+    # like ResDamAgentTypes & DamDivAgentTypes do to split the system into half 
+    # but their diverting outlet must be in routing outlets.
     RiverDivAgentInflows = []
     for RiverDivType in Model["ABM"]["Inputs"]["RiverDivAgentTypes"]:
         for ag in Model["ABM"][RiverDivType]:
             Links = Model["ABM"][RiverDivType][ag]["Inputs"]["Links"]
-            RiverDivAgentInflows += [outlet for outlet in Links if Links[outlet] == -1 and outlet != ag]
-    RiverDivAgentInflows = list(set(RiverDivAgentInflows))        # Eliminate duplicates.
+            DivertOutlet = [outlet for outlet in Links if Links[outlet] <= -1 and outlet != ag]
+            if DivertOutlet == []:
+                logger.error("[Check model failed] No diverted outlets (e.g., Links:{DivertOutlet: -1}) are found for {}.".format(ag))
+                Pass = False
+            RiverDivAgentInflows += DivertOutlet
+    # Eliminate duplicates.
+    RiverDivAgentInflows = list(set(RiverDivAgentInflows))
     
     #--- Check RiverDivAgents' diverting outlets are in RoutingOutlets.
     for vro in RiverDivAgentInflows:
         if vro not in RoutingOutlets:
             logger.error("[Check model failed] Cannot find RiverDivAgent diverting outlets in the Routing section. Routing outlets should include {}.".format(vro))
-            return False    
+            Pass = False   
               
-    return True
+    return Pass
 
 def parseSimulationSeqence(Model):
     Model["SystemParsedData"]["SimSeq"] = None

@@ -136,7 +136,7 @@ class ModelBuilder(object):
         self.Model["Path"] = {"WD": WD}
         self.Model["WaterSystem"] = {}
         self.Model["WaterSystem"]["StartDate"]      = StartDate
-        self.Model["WaterSystem"]["NumSubbasin"]    = 0
+        self.Model["WaterSystem"]["NumSubbasins"]    = 0
         self.Model["WaterSystem"]["NumGauges"]      = 0
         self.Model["WaterSystem"]["NumAgents"]      = 0
         self.Model["WaterSystem"]["Outlets"]        = []
@@ -151,7 +151,7 @@ class ModelBuilder(object):
             model (str, optional): LSM model. GWLF or HYMOD. Defaults to "GWLF".
         """
         self.Model["WaterSystem"]["Outlets"] = OutletLists
-        self.Model["WaterSystem"]["NumSubbasin"] = len(OutletLists)
+        self.Model["WaterSystem"]["NumSubbasins"] = len(OutletLists)
         
         # Select LSM templete.
         if model == "GWLF":

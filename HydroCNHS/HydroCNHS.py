@@ -290,6 +290,7 @@ class HydroCNHSModel(object):
         ##### Only a semi-distributed hydrological model ######################
         #####                     (Only LSM and Routing)
         if self.ABM is None: 
+            self.logger.info("Start the non-coupled simulation.")
             # Run step-wise routing to update Q_routed ------------------------
             for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
                 CurrentDate = pdDatedateIndex[t]
@@ -306,6 +307,7 @@ class HydroCNHSModel(object):
         # model and human model. However, the user-defined human model has to 
         # follow specific protocal. See the documantation for details.
         else:
+            self.logger.info("Start the HydroCNHS simulation.")
             for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
                 CurrentDate = pdDatedateIndex[t]
                 for node in SimSeq:

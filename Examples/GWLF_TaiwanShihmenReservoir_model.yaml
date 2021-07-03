@@ -18,7 +18,7 @@ Path:
 # The consistency with other sections will be checked accordingly.
 WaterSystem:    
   StartDate: 2008/1/1                           # yyyy/mm/dd
-  NumSubbasin:  1                               # Number of sub-basins in the watershed.
+  NumSubbasins:  1                               # Number of sub-basins in the watershed.
   NumGauges:    1                               # Number of gauges/gauged outlets. (Calibration)
   NumAgents:    0                               # Number of agents
   Outlets: ["Shihmen"]                          # A list of outlets' names or indices for their corresponding sub-basins.
