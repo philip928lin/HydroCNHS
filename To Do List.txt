@@ -1,0 +1,148 @@
+Modeling scope:
+    A watershed with a single basin outlet.
+    Semi-distributed model (not grid).
+
+
+About agents:
+As the original design, we will have four agent apis:
+(1) InsituDivAgents: Directly divert water from subbasin before routing.
+(2) RiverDivAgents: Add water to outlets before routing or divert water from
+    outlets after routing.
+(3) DamDivAgents (Not necessary) : Divert water from outlets after routing but
+    in the form of adding.
+(4) ResDamAgents : Complete redifine instream water after upstream rounting.
+
+Here we define an agent as an actor which associates with a unique name and 
+setting dict in the model.yaml. Each agent is belong to one agent type and one 
+decision-making class (DMClass). An agent type is a user-defined class followed
+by a basic structure defined below:
+
+Class AgType():
+    def __init__(self, Name, Config, StartDate, DataLength):
+        # Initialization
+        pass
+    def act(self, Q, AgentDict, node, CurrentDate, t, DM):
+        # Action when agent is called at every HydroCNHS simulation time step 
+        # (day). This is not the decision-making (DM) step. When to exercute DM
+        # will need to be explicilty defined here. 
+        return self.Q
+
+As mentioned above each agent will be assigned with a DMClass, which has 
+its structure defined below:
+
+class DMClass():
+    def __init__(self, StartDate, DataLength, ABM):
+        # Initialization
+        pass
+    def __call__(self, Q, t, CurrentDate, ag, Output, AssignValue = False):
+        # Double-check whether to run DMFunc, especially for group agents,
+        # which they make their desicions together. Therfore, their DMFunc only
+        # need to be exercuted once in a simulation (decision) time step.
+        return Output
+    def DMFunc(self):
+        # Main decision-making function.
+        pass
+
+The second layer of the ABM is so-called agent group. Agents belong to a group
+will be exercute together. Namely, the unique group name will be use as a call
+name in the HydroCNHS. Therefore, the agent group agent type should contain a 
+for loop to go over each within-group agent. The group infomation is defined in
+Inputs under ABM settings.
+
+In some cases, we need to have a jointly operated reservoirs, which means we 
+need those reservoirs' upstream routing to be done. Namely, we need to ensure 
+the routing outlets' simulation order is correct. Therefore, the grouped dam
+-type agent type will be automatically detected and reorder the sorted 
+simulation sequence.
+
+Naming system==================================================================
+Modules: module_name
+Classes: ClassName
+Functions: verb_XXX_XXX()
+Internal variables: InternalVariable
+Arguments: argument_of_the_function
+Name in yaml: ItemName
+
+Package (hydrocnhs) structure==================================================
+__init__.py
+hydrocnhs.py
+routing.py
+util.py
+plot.py
+land_surface_model
+    __init__.py
+    gwlf.py
+    abcd.py
+    hymod.py
+    hamon.py
+calibration
+    __init__.py
+    convertor.py
+    # DEAP
+tests
+    __init__.py
+
+
+YAML structure=================================================================
+Path: 
+    WD: str
+    Modules: str
+WaterSystem:
+    StartDate: str
+    NumSubbasins: int
+    NumGauges: int
+    NumAgents: int
+    Outlets: []
+    GaugedOutlets: [] ### Use only for auto-calibration and auto-plot.
+    DataLength: int
+LSM:
+  Model: str
+  subbasinName:
+    Inputs: {}
+    Pars: {}
+
+Routing:
+  Model: str
+  ToOutlet:
+    FromOutlet1:
+        Inputs: {}
+        Pars: {}
+    FromOutlet2:
+        Inputs: {}
+        Pars: {}
+
+ABM:
+  Inputs:
+  ### Thinking about shrink to three api.
+    ResDamAgentTypes: []
+    RiverDivAgentTypes: []
+    DamDivAgentTypes: []
+    InsituDivAgentTypes: []
+    DMClasses: []
+    Modules: []
+    AgGroup:
+      AgentTypeForAgGroup:
+        GroupName: [Roza, Wapato, Sunnyside]
+  AgentType:
+    AgentName:
+        Attributes:
+        Inputs:
+            Piority: 0
+            Links: {FromOutletName: -1, ToOutletName: 1}
+            # We have a special case for return flow.
+        Pars:
+
+
+To do==========================================================================
+Test sim sequence: Make sure your back tracking is workable for cross sub basin
+                   but same human group.
+Test DEAP
+Turn to three apis
+Rename YAML => Attributes
+Test run, then Correct all naming issues and code style.
+Function documentation
+Maybe initiate data collector
+    https://github.com/projectmesa/mesa/blob/main/mesa/datacollection.py
+test function
+User guide
+Technical report

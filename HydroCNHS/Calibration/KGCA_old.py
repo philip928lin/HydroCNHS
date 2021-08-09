@@ -15,7 +15,7 @@ import time
 from sklearn.cluster import KMeans
 logger = logging.getLogger("HydroCNHS.KGCA") # Get logger 
 
-from ..SystemConrol import loadConfig, Dict2String   # HydroCNHS module
+from ..SystemControl import loadConfig, Dict2String   # HydroCNHS module
 
 r"""
 Need to be added sometime.

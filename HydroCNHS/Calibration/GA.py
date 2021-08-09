@@ -15,7 +15,7 @@ import pickle
 import time
 import os
 logger = logging.getLogger("HydroCNHS.GA")              # Get logger 
-from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
+from ..SystemControl import loadConfig, Dict2String      # HydroCNHS module
 
 r"""
 Inputs = {"ParName":    [],     # List of parameters name.

@@ -15,7 +15,7 @@ import logging
 
 from .LSM import runGWLF, calPEt_Hamon, runHYMOD, runABCD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
-from .SystemConrol import loadConfig, loadModel, loadCustomizedModule2Class
+from .SystemControl import loadConfig, loadModel, loadCustomizedModule2Class
 
 # The customized agent file will be imported externally
 from .Agent_customize3 import *        # AgType_Reservoir, AgType_IrrDiversion

@@ -18,7 +18,7 @@ import time
 import os
 logger = logging.getLogger("HydroCNHS.KGCA")            # Get logger 
 
-from ..SystemConrol import loadConfig, Dict2String      # HydroCNHS module
+from ..SystemControl import loadConfig, Dict2String      # HydroCNHS module
 
 r"""
 Inputs = {"ParName":    [],     # List of parameters name.

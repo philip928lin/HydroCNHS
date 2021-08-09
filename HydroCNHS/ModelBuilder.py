@@ -14,7 +14,7 @@ from copy import deepcopy
 import pandas as pd
 import os
 
-from .SystemConrol import loadModel, writeModel, loadDFToModelDict, writeModelToCSV
+from .SystemControl import loadModel, writeModel, loadDFToModelDict, writeModelToCSV
 
 GWLF = {"Inputs": {"Area":      "Required",
                    "Latitude":  "Required",

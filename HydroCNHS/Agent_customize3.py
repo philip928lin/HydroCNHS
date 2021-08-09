@@ -315,7 +315,7 @@ class IrrDiv_AgType(object):
             
         logger.info("Initialize irrigation diversion agent: {}".format(self.Name))
         
-    def act(self, Q, AgentDict, node, CurrentDate, t, DMs):
+     
         self.Q = Q
         self.CurrentDate = CurrentDate
         self.t = t

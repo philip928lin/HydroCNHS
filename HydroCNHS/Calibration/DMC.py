@@ -20,7 +20,7 @@ import os
 import logging
 import time
 logger = logging.getLogger("HydroCNHS.DMC")         # Get logger 
-from ..SystemConrol import loadConfig, Dict2String  # HydroCNHS module
+from ..SystemControl import loadConfig, Dict2String  # HydroCNHS module
 
 r"""
 Need to be added sometime.
