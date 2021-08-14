@@ -13,7 +13,7 @@ import numpy as np
 import time
 import logging
 
-from .LSM import runGWLF, calPEt_Hamon, runHYMOD, runABCD
+from .LSM import runGWLF, cal_pet_Hamon, runHYMOD, runABCD
 from .Routing import formUH_Lohmann, runTimeStep_Lohmann
 from .SystemControl import loadConfig, loadModel, loadCustomizedModule2Class
 
@@ -72,7 +72,7 @@ class HydroCNHSModel(object):
             PE = {}
             # Default to calculate PE with Hamon's method and no dz adjustment.
             for sb in LSMOutlets:
-                PE[sb] = calPEt_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
+                PE[sb] = cal_pet_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
             self.logger.info("Compute PEt by Hamon method. Users can improve the efficiency by assigning pre-calculated PEt.")
         self.Weather = {"T":T, "P":P, "PE":PE}
         self.logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))

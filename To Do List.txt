@@ -59,7 +59,7 @@ Naming system==================================================================
 Modules: module_name
 Classes: ClassName
 Functions: verb_XXX_XXX()
-Internal variables: InternalVariable
+Internal variables: internal_variable
 Arguments: argument_of_the_function
 Name in yaml: ItemName
 
@@ -68,17 +68,18 @@ __init__.py
 hydrocnhs.py
 routing.py
 util.py
+indicators.py
 plot.py
 land_surface_model
     __init__.py
     gwlf.py
     abcd.py
     hymod.py
-    hamon.py
+    pet_hamon.py
 calibration
     __init__.py
     convertor.py
-    # DEAP
+    ga_deap.py
 tests
     __init__.py
 
@@ -89,12 +90,14 @@ Path:
     Modules: str
 WaterSystem:
     StartDate: str
+    EndDate: str            # Optional if given DataLength
     NumSubbasins: int
     NumGauges: int
-    NumAgents: int
+    NumAgents: int   ### Redundent
     Outlets: []
     GaugedOutlets: [] ### Use only for auto-calibration and auto-plot.
-    DataLength: int
+    DataLength: int         # Optional if given EndDate
+    GroupNodes = [[], []]   # Optional
 LSM:
   Model: str
   subbasinName:
@@ -114,10 +117,9 @@ Routing:
 ABM:
   Inputs:
   ### Thinking about shrink to three api.
-    ResDamAgentTypes: []
+    DamAgentTypes: []
     RiverDivAgentTypes: []
-    DamDivAgentTypes: []
-    InsituDivAgentTypes: []
+    HydroUnitDivAgentTypes: []
     DMClasses: []
     Modules: []
     AgGroup:
@@ -134,10 +136,6 @@ ABM:
 
 
 To do==========================================================================
-Test sim sequence: Make sure your back tracking is workable for cross sub basin
-                   but same human group.
-Test DEAP
-Turn to three apis
 Rename YAML => Attributes
 Test run, then Correct all naming issues and code style.
 Function documentation
@@ -146,3 +144,10 @@ Maybe initiate data collector
 test function
 User guide
 Technical report
+default_config()
+
+Done list======================================================================
+Test sim sequence: Make sure your back tracking is workable for cross sub basin
+                   but same human group.
+Test DEAP
+Turn to three apis
