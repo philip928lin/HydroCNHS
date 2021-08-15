@@ -1,7 +1,7 @@
 import numpy as np 
 import pandas as pd
 
-class Indicator():
+class Indicator(object):
     """
     r   : Correlation of correlation
     r2  : Coefficient of determination
@@ -18,172 +18,178 @@ class Indicator():
         pass
     
     @staticmethod
-    def calIndicatorDF(xObv, ySim, IndicatorsList = None):
-        Dict = {"r"   : Indicator.r(xObv, ySim),
-                "r2"  : Indicator.r2(xObv, ySim),
-                "rmse": Indicator.rmse(xObv, ySim),
-                "NSE" : Indicator.NSE(xObv, ySim),
-                "iNSE": Indicator.iNSE(xObv, ySim),
-                "KGE" : Indicator.KGE(xObv, ySim),
-                "iKGE": Indicator.iKGE(xObv, ySim),
-                "CP"  : Indicator.CP(xObv, ySim),
-                "RSR" : Indicator.RSR(xObv, ySim)}
-        DF = pd.DataFrame(Dict, index = ["Value"])
-        if IndicatorsList is None:
-            return DF
+    def cal_indicator_df(x_obv, y_sim, indicators_list=None):
+        dict = {"r"   : Indicator.r(x_obv, y_sim),
+                "r2"  : Indicator.r2(x_obv, y_sim),
+                "rmse": Indicator.rmse(x_obv, y_sim),
+                "NSE" : Indicator.NSE(x_obv, y_sim),
+                "iNSE": Indicator.iNSE(x_obv, y_sim),
+                "KGE" : Indicator.KGE(x_obv, y_sim),
+                "iKGE": Indicator.iKGE(x_obv, y_sim),
+                "CP"  : Indicator.CP(x_obv, y_sim),
+                "RSR" : Indicator.RSR(x_obv, y_sim)}
+        df = pd.DataFrame(dict, index=["Value"])
+        if indicators_list is None:
+            return df
         else:
-            return DF.loc[:, IndicatorsList]
+            return df.loc[:, indicators_list]
     
     @staticmethod
-    def r(xObv, ySim):
+    def r(x_obv, y_sim):
         """Correlation of correlation
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        r = np.corrcoef(xObv, ySim)[0,1]
+        r = np.corrcoef(x_obv, y_sim)[0,1]
         if np.isnan(r):
             # We don't consider 2 identical horizontal line as r = 1!
             r = 0
         return r
     
     @staticmethod
-    def r2(xObv, ySim):
+    def r2(x_obv, y_sim):
         """Coefficient of determination
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        r = Indicator.r(xObv, ySim)
+        r = Indicator.r(x_obv, y_sim)
         return r**2
     
     @staticmethod
-    def rmse(xObv, ySim):
+    def rmse(x_obv, y_sim):
         """Root mean square error
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        return np.nanmean((xObv-ySim)**2)**0.5
+        return np.nanmean((x_obv - y_sim)**2)**0.5
     
     @staticmethod
-    def NSE(xObv, ySim):
+    def NSE(x_obv, y_sim):
         """Nash–Sutcliffe efficiency
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        mu_xObv = np.nanmean(xObv)
-        return 1 - np.nansum((xObv-ySim)**2)/np.nansum((xObv-mu_xObv)**2) # Nash
+        mu_xObv = np.nanmean(x_obv)
+        return 1 - np.nansum((x_obv-y_sim)**2) / np.nansum((x_obv-mu_xObv)**2)
     
     @staticmethod
-    def iNSE(xObv, ySim):
+    def iNSE(x_obv, y_sim):
         """Nash–Sutcliffe efficiency
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
         # Prevent dividing zero.
-        if np.nanmean(xObv) == 0:
-            xObv = 1/(xObv + 0.0000001)
+        if np.nanmean(x_obv) == 0:
+            x_obv = 1 / (x_obv + 0.0000001)
         else:
-            xObv = 1/(xObv + 0.01*np.nanmean(xObv))
+            x_obv = 1 / (x_obv + 0.01*np.nanmean(x_obv))
             
-        if np.nanmean(ySim) == 0:
-            ySim = 1/(ySim + 0.0000001)
+        if np.nanmean(y_sim) == 0:
+            y_sim = 1 / (y_sim + 0.0000001)
         else:
-            ySim = 1/(ySim + 0.01*np.nanmean(ySim))
-        mu_xObv = np.nanmean(xObv)
-        return 1 - np.nansum((xObv-ySim)**2)/np.nansum((xObv-mu_xObv)**2) # Nash
+            y_sim = 1 / (y_sim + 0.01*np.nanmean(y_sim))
+        mu_xObv = np.nanmean(x_obv)
+        return 1 - np.nansum((x_obv-y_sim)**2) / np.nansum((x_obv-mu_xObv)**2)
     
     @staticmethod
-    def CP(xObv, ySim):
+    def CP(x_obv, y_sim):
         """Correlation of persistence
         
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        a = np.nansum((xObv[1:]-xObv[:-1])**2)
+        a = np.nansum((x_obv[1:] - x_obv[:-1])**2)
         if a == 0:
             a = 0.0000001
-        return 1 - np.nansum((xObv[1:]-ySim[1:])**2)/a
+        return 1 - np.nansum((x_obv[1:] - y_sim[1:])**2) / a
     
     @staticmethod
-    def RSR(xObv, ySim):
+    def RSR(x_obv, y_sim):
         """RMSE-observations standard deviation ratio 
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        sig_xObv = np.nanstd(xObv)
-        return Indicator.rmse(xObv, ySim)/sig_xObv
+        sig_xObv = np.nanstd(x_obv)
+        return Indicator.rmse(x_obv, y_sim) / sig_xObv
     
     @staticmethod
-    def KGE(xObv, ySim):
+    def KGE(x_obv, y_sim):
         """Kling–Gupta efficiency
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
-        mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
-        sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
-        return 1 - ((Indicator.r(xObv, ySim)-1)**2 + (sig_ySim/sig_xObv - 1)**2 + (mu_ySim/mu_xObv - 1)**2)**0.5
+        mu_ySim = np.nanmean(y_sim); mu_xObv = np.nanmean(x_obv)
+        sig_ySim = np.nanstd(y_sim); sig_xObv = np.nanstd(x_obv)
+        kge = 1 - ((Indicator.r(x_obv, y_sim) - 1)**2 
+                    + (sig_ySim/sig_xObv - 1)**2
+                    + (mu_ySim/mu_xObv - 1)**2)**0.5
+        return kge
     
     @staticmethod
-    def iKGE(xObv, ySim):
+    def iKGE(x_obv, y_sim):
         """Kling–Gupta efficiency with inverse transformed flow.
             https://www.fs.fed.us/nrs/pubs/jrnl/2015/nrs_2015_thirel_001.pdf
 
         Args:
-            xObv (Array): x or obv
-            ySim (Array): y or sim
+            x_obv (Array): x or obv
+            y_sim (Array): y or sim
 
         Returns:
             float
         """
         # Prevent dividing zero.
-        if np.nanmean(xObv) == 0:
-            xObv = 1/(xObv + 0.0000001)
+        if np.nanmean(x_obv) == 0:
+            x_obv = 1/(x_obv + 0.0000001)
         else:
-            xObv = 1/(xObv + 0.01*np.nanmean(xObv))
+            x_obv = 1/(x_obv + 0.01*np.nanmean(x_obv))
             
-        if np.nanmean(ySim) == 0:
-            ySim = 1/(ySim + 0.0000001)
+        if np.nanmean(y_sim) == 0:
+            y_sim = 1/(y_sim + 0.0000001)
         else:
-            ySim = 1/(ySim + 0.01*np.nanmean(ySim))
+            y_sim = 1/(y_sim + 0.01*np.nanmean(y_sim))
             
-        mu_ySim = np.nanmean(ySim); mu_xObv = np.nanmean(xObv)
-        sig_ySim = np.nanstd(ySim); sig_xObv = np.nanstd(xObv)
-        return 1 - ((Indicator.r(xObv, ySim)-1)**2 + (sig_ySim/sig_xObv - 1)**2 + (mu_ySim/mu_xObv - 1)**2)**0.5
+        mu_ySim = np.nanmean(y_sim); mu_xObv = np.nanmean(x_obv)
+        sig_ySim = np.nanstd(y_sim); sig_xObv = np.nanstd(x_obv)
+        ikge = 1 - ((Indicator.r(x_obv, y_sim) - 1)**2
+                    + (sig_ySim/sig_xObv - 1)**2
+                    + (mu_ySim/mu_xObv - 1)**2)**0.5
+        return ikge

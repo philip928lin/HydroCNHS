@@ -4,7 +4,7 @@ import logging
 # The ABCD model is mainly follow (Guillermo et al., 2010); however, with 
 # different snow module. 
 # https://doi.org/10.1029/2009WR008294
-def runABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
+def run_ABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
     """ABCD for rainfall runoff simulation.
 
     Args:

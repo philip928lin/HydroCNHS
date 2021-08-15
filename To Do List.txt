@@ -63,26 +63,31 @@ Internal variables: internal_variable
 Arguments: argument_of_the_function
 Name in yaml: ItemName
 
-Package (hydrocnhs) structure==================================================
-__init__.py
-hydrocnhs.py
-routing.py
-util.py
-indicators.py
-plot.py
-land_surface_model
-    __init__.py
-    gwlf.py
-    abcd.py
-    hymod.py
-    pet_hamon.py
-calibration
-    __init__.py
-    convertor.py
-    ga_deap.py
-tests
-    __init__.py
+Package (HydroCNHS) structure==================================================
+                            Rename  Test    Doc
+__init__.py                 OK
+hydrocnhs.py                OK
+routing.py                  OK
+util.py                     OK
+indicators.py               OK
+visual.py                   ~OK
+model_builder.py
+land_surface_model          OK
+    __init__.py             OK
+    gwlf.py                 OK
+    abcd.py                 OK
+    hymod.py                OK
+    pet_hamon.py            OK
+calibration                 OK
+    __init__.py             OK
+    convertor.py            OK
+    ga_deap.py              OK
 
+==================================================
+HydroCNHS
+Example
+Tests
+setup.py
 
 YAML structure=================================================================
 Path: 
@@ -93,9 +98,9 @@ WaterSystem:
     EndDate: str            # Optional if given DataLength
     NumSubbasins: int
     NumGauges: int
-    NumAgents: int   ### Redundent
+    NumAgents: int          ### Redundent
     Outlets: []
-    GaugedOutlets: [] ### Use only for auto-calibration and auto-plot.
+    GaugedOutlets: []       ### Use only for auto-calibration and auto-plot.
     DataLength: int         # Optional if given EndDate
     GroupNodes = [[], []]   # Optional
 LSM:
@@ -108,7 +113,7 @@ Routing:
   Model: str
   ToOutlet:
     FromOutlet1:
-        Inputs: {}
+        Inputs: {FlowLength: , InstreamControl: }
         Pars: {}
     FromOutlet2:
         Inputs: {}
@@ -145,6 +150,8 @@ test function
 User guide
 Technical report
 default_config()
+plot_equifinal()
+get_equifinal_models()
 
 Done list======================================================================
 Test sim sequence: Make sure your back tracking is workable for cross sub basin

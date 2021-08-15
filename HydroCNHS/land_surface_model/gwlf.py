@@ -1,7 +1,7 @@
 import numpy as np
 from pandas import date_range, to_datetime, DataFrame
 
-def runGWLF(GWLF_pars, inputs, temp, prec, pet, start_date, data_length):
+def run_GWLF(GWLF_pars, inputs, temp, prec, pet, start_date, data_length):
     """GWLF for rainfall runoff simulation.
 
     Args:

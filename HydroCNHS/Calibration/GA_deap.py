@@ -1,60 +1,47 @@
-# Genetic Algorithm (GA) for Calibration with EMRs identification function.
-# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com).
-
-# Description:
-# This module provides user a simple way to calibrate their models with genetic
-# algorithm in parallel. The module is designed to work with Convertor.py.
-# GA algorithm aims to minimize the objective/loss function to zero.
-# Please see the document for detailed instructions.
-
-from joblib import Parallel, delayed                    # For parallelization.
-import matplotlib.pyplot as plt
-import numpy as np
-import logging
-import pickle
-import time
 import os
-logger = logging.getLogger("HydroCNHS.GA")              # Get logger 
-from ..SystemControl import loadConfig, Dict2String      # HydroCNHS module
+import time
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from joblib import Parallel, delayed
+from deap import base, creator, tools
+import logging
+logger = logging.getLogger("HydroCNHS.GA")              
 
 r"""
-Inputs = {"ParName":    [],     # List of parameters name.
-          "ParBound":   [],     # [lower, upper]
-          "ParType":    [],     # Only "real" is allowed.
-          #"ParWeight": [],     # (Future option) An array with length equal to number of parameters.
-          "WD":         r""}    # Working directory. (Can be the same as HydroCNHS model.)   
-# Note: A more convenient way to generate the Inputs dictionary is to use "Convertor" provided by HydroCNHS.Cali.
+inputs = {"par_name":    ["a","b","c"],     
+          "par_bound":   [[1,2],[1,2],[1,2]],    
+          #"par_type":   ["real"]*3,     
+          "wd":          r""}    
 
-Config = {"PopSize":            100,    # Population size. Must be even.
-          "ParantProportion":   0.3,    # Define the number of parents.
-          "NumEllites":         1,      # Number of ellites.
-          "CrossProb":          0.5,    # Probability of crossover. 
-          "MutProb":            0.1,    # Mutation probability.
-          "Stochastic":         False,  # If True, program will evaluate all members including ellites in each generation.
-          "MaxGen":             100,    # Maximum generation.
-          "SamplingMethod":     "LHC",  # Initial population sampling method. MC: Monte Carlo sampling method. LHC: Latin Hyper Cube. 
-          "DropRecord":         False,  # Population record will be dropped. However, ALL simulated results will still be kept. 
-          "ParalCores":         -2/None, # If it is not given, Cores_GA in system Config.yaml will be adopted as default.
-          "AutoSave":           True,   # Automatically save a model snapshot (pickle) after each generation.
-          "Printlevel":         1,      # Print level. e.g. Every ten generations.
-          "Plot":               True    # Plot objective values' timeseries based on Printlevel frequency.
+config = {"min_or_max":         "min",
+          "pop_size":           100,    
+          "num_ellite":          1,     
+          "prob_cross":          0.5,  
+          "prob_mut":            0.1,   
+          "stochastic":         False,  
+          "max_gen":             100,    
+          "sampling_method":     "LHC",  
+          "drop_record":         False,  
+          "paral_cores":         2, 
+          "paral_verbose":        0,
+          "auto_save":           True,   
+          "print_level":         10,      
+          "plot":               False    
           }
 """
-
-
-import numpy as np
-from deap import base, creator, tools
-
-# Create deep associated class
-## Minimization
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
-
-# Define initial popution
-## tb stand for toolbox
-size = (100, 3)
-tb = base.Toolbox()
-
+def scale(individual, bound_scale, lower_bound):
+    """individual is 1d ndarray."""
+    individual = individual.reshape(bound_scale.shape)
+    scaled_individual = np.multiply(individual, bound_scale)
+    scaled_individual = np.add(scaled_individual, lower_bound)
+    return scaled_individual.flatten()
+def descale(individual, bound_scale, lower_bound):
+    """individual is 1d array ndarray."""
+    individual = individual.reshape(bound_scale.shape)
+    descaled_individual = np.subtract(individual, lower_bound)
+    descaled_individual = np.divide(descaled_individual, bound_scale)
+    return descaled_individual.flatten()
 def sample_by_MC(size):
     return np.random.uniform(0, 1, size)
 def sample_by_LHC(size):
@@ -95,19 +82,18 @@ def gen_init_pop(creator, size, method="LHC", guess_pop=None):
         individual = pop[i,:]
         individuals.append(creator(individual))
     return individuals
-def mut_uniform(individual, mut_prob):
+def mut_uniform(individual, prob_mut):
     num_par = len(individual)
-    mut = np.random.binomial(n = 1, p=mut_prob, size=num_par) == 1
+    mut = np.random.binomial(n = 1, p=prob_mut, size=num_par) == 1
     new_sample = np.random.uniform(0, 1, num_par)
     individual[mut] = new_sample.flatten()[mut] 
-    return individual
-        
-def mut_middle(individual, p1, p2, mut_prob):
+    return individual      
+def mut_middle(individual, p1, p2, prob_mut):
     num_par = len(individual)
     new_sample = np.random.uniform(0, 1, num_par)
-    for i in range(individual):                           
+    for i in range(num_par):                           
         rnd = np.random.random()
-        if rnd < mut_prob:   
+        if rnd < prob_mut:   
             if p1[i] < p2[i]:
                 individual[i] = p1[i] + np.random.random() * (p2[i] - p1[i])  
             elif p1[i] > p2[i]:
@@ -116,539 +102,264 @@ def mut_middle(individual, p1, p2, mut_prob):
                 individual[i] = new_sample[i] 
     return individual
 
-tb.register("population", gen_init_pop, creator.Individual)
-pop = tb.population(size)
-
-# Define operator
-tb.register("crossover", tools.cxUniform)
-tb.register("mutate_uniform", mut_uniform)
-tb.register("mutate_middle", mut_middle)
-tb.register("select", tools.selRoulette)
-tb.register("ellite", tools.selBest)
-
-def evaluate(individual):
-    return sum(individual),
-
-tb.register("evaluate", evaluate)
-
-
-
-def main():
-    pop = tb.population(size)
-
-    # Evaluate the entire population
-    fitnesses = map(tb.evaluate, pop)
-    for ind, fit in zip(pop, fitnesses):
-        ind.fitness.values = fit
-
-    for g in range(NGEN):
-        # Select the next generation individuals
-        offspring = toolbox.select(pop, len(pop))
-        # Clone the selected individuals
-        offspring = map(toolbox.clone, offspring)
-
-        # Apply crossover and mutation on the offspring
-        for child1, child2 in zip(offspring[::2], offspring[1::2]):
-            if random.random() < CXPB:
-                toolbox.mate(child1, child2)
-                del child1.fitness.values
-                del child2.fitness.values
-
-        for mutant in offspring:
-            if random.random() < MUTPB:
-                toolbox.mutate(mutant)
-                del mutant.fitness.values
-
-        # Evaluate the individuals with an invalid fitness
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
-
-        # The population is entirely replaced by the offspring
-        pop[:] = offspring
-
-    return pop
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class GA(object):
+class GA_DEAP(object):
     def __init__(self):
-        print("GA Calibration Guide\nStep 1: set or load (Autosave file).\nStep 2: run.")
-        
-    def load(self, ContinueFile):
-        """Load AutoSave.pickle file to continue the run.
-
-        Args:
-            ContinueFile (str): AutoSave.pickle file path.
-        """
-        # If ContinueFile is given, load auto-saved pickle file.
-        with open(ContinueFile, "rb") as f:     # Load autoSave pickle file.
-            Snapshot = pickle.load(f)
-        for key in Snapshot:                    # Load back all the previous class attributions.
-            setattr(self, key, Snapshot[key])
-        self.Continue = True                    # No initialization is needed in "run", when self.Continue = True.
-        
-        if self.CurrentGen > self.Config["MaxGen"]:
-            self.Pop[self.CurrentGen] = self.ForExtendRun["Pop"]
-            self.KPopRes[self.CurrentGen] = self.ForExtendRun["KPopRes"]
+        print("GA Calibration Guide\n",
+              "Step 1: set or load (Autosave file).\nStep 2: run.")
+    
+    def load(self, GA_auto_save_file):
+        with open(GA_auto_save_file, "rb") as f:
+            snap_shot = pickle.load(f)
+        for key in snap_shot:  # Load back all the previous class attributions.
+            setattr(self, key, snap_shot[key])
             
-        # Ask for extension.            
-        print("Enter the new MaxGen (original MaxGen = {}) or Press Enter to continue.".format(self.Config["MaxGen"]))
+        # Ask for extension of max_gen.  
+        config = self.config
+        max_gen = config["max_gen"]
+        print("Enter the new max_gen (original max_gen = {})".format(max_gen)
+              +" or Press Enter to continue.")
         ans1 = input()
         if ans1 != "":
             ans2 = int(ans1)
-            if ans2 <= self.Config["MaxGen"]:
-                print("Fail to update MaxGen. Note that new MaxGen must be larger than original MaxGen.")
-            orgMaxGen = self.Config["MaxGen"]
-            self.Config["MaxGen"] = ans2
-            # Extend Best storage space.
-            Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
-                    "Index": np.empty(self.Config["MaxGen"]+1)}
-            Best["Loss"][:orgMaxGen+1] = self.Best["Loss"]
-            Best["Index"][:orgMaxGen+1] = self.Best["Index"]
-            self.Best = Best
-                    
-    def set(self, LossFunc, Inputs, Config, Formatter = None, Name = "Calibration"):
-        """Genetic Algorithm for Calibration (GA)
+            if ans2 <= max_gen:
+                print("Fail to update MaxGen. Note that new max_gen must be"
+                      +" larger than original max_gen. Please reload.")
+            else:
+                self.config["max_gen"] = ans2
 
-        Args:
-            LossFunc (function): Loss function => LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0. SubWDInfo = (CaliWD, CurrentGen, sp, k).
-            Inputs (dict): Inputs dictionary, which can be generated by Convertor. It contains ParName, ParBound, ParType, ParWeight, and WD.
-            Config (dict): Config dictionary
-            Formatter (dict, optional): Formatter dictionary created by Convertor. This will be fed to LossFunc for users to convert 1D array (pop) back to original format to run HydroCNHS. Defaults to None.
-            ContinueFile (str, optional): AutoSave.pickle directory to continue the previous run. Defaults to None.
-            Name (str, optional): Name of the KGCA object. The sub-folder will be created accordingly. Defaults to "Calibration".
-        """
-               
-        # Populate class attributions.
-        self.LossFunc = LossFunc                # Loss function LossFunc(pop, Formatter, SubWDInfo = None) return loss, which has lower bound 0.
-                                                    # pop is a parameter vector. 
-                                                    # Formatter can be obtained from class Convertor.
-                                                    # SubWDInfo = (CaliWD, CurrentGen, sp, k).
-                                                    # Lower bound of return value, which has to be 0.
-        self.Inputs = Inputs                    # Input ductionary.
-        self.Inputs["ParWeight"] = np.array(Inputs["ParWeight"])    # Make sure it is an array.
-        self.Config = Config                    # Configuration for KGCA.
-        self.Formatter = Formatter              # Formatter is to convert 1D pop back into list of dataframe dictionaries for HydroCNHS simulation. (see class Convertor) 
-        self.SysConfig = loadConfig()           # Load system config => Config.yaml (Default parallelization setting)
-        self.NumPar = len(Inputs["ParName"])    # Number of calibrated parameters.
-        self.ParantSize = int(self.Config["ParantProportion"]*self.Config["PopSize"])
-        trl = self.Config["PopSize"] - self.ParantSize
-        if trl % 2 != 0: 
-            self.ParantSize -= 1  # To guarentee even number 
+    def set(self, evaluation_func, inputs, config, formatter=None,
+            name="Calibration"):
+        self.name = name
+        self.config = config
+        self.inputs = inputs
+        self.formatter = formatter
+        #self.system_config = loadConfig()
+        self.size = (config["pop_size"], len(inputs["par_name"]))
         
-        #---------- Auto save section ----------
-        self.Continue = False                   # Initialization is required in "run", when self.Continue = False.            
-        self.CurrentGen = 0                     # Populate initial counter for generation.
+        # Continue run setup
+        self.done_ini = False                       
+        self.current_gen = 0              
         
-        # Initialize variables storage.
-        self.Pop = {}           # Population of parameter set. Pop[gen][sp]: [k,s] (2D array); k is index of members, and s is index of parameters.
-        self.PopRes = {}        # Simulation results of each members. PopRes[gen][sp][Loss/Dmin/Feasibility/SelfD]: 1D array with length of population size.
-        self.KPopRes = {}       # Store Kmeans results
+        # Record
+        self.records = {}
+        self.solution = {}
+        self.summary = {}
+        self.summary["max_fitness"] = []
+        self.summary["min_fitness"] = []
+        self.summary["avg"] = []
+        self.summary["std"] = []
         
-        # Best loss value and index of corresponding member in Pop[gen][sp]. Best[Loss/Index][sp]: 1D array with length of MaxGen.
-        self.Best = {"Loss":  np.empty(self.Config["MaxGen"]+1),    # +1 since including gen 0.
-                     "Index": np.empty(self.Config["MaxGen"]+1)}
-        
-        # Calculate scales for parameter normalization.
-        # We assume categorical type is still number kind list (e.g. [1,2,3,4] and scale = 4-1 = 3).  
-        self.BoundScale = []
-        self.LowerBound = []
-        for i, ty in enumerate(Inputs["ParType"]):
-            if ty == "real":
-                self.BoundScale.append(Inputs["ParBound"][i][1] - Inputs["ParBound"][i][0])
-                self.LowerBound.append(Inputs["ParBound"][i][0])
-            # elif ty == "categorical":
-            #     self.BoundScale.append(np.max(Inputs["ParBound"][i]) - np.min(Inputs["ParBound"][i]))
-            #     self.LowerBound.append(Inputs["ParBound"][i][0])
-        self.BoundScale = np.array(self.BoundScale).reshape((-1,self.NumPar))     # Store in an array type. 
-        self.LowerBound = np.array(self.LowerBound).reshape((-1,self.NumPar))
-        
+        # Scale setting 
+        bound_scale = []
+        lower_bound = []
+        par_bound = inputs["par_bound"]
+        for i in range(self.size[1]):
+        # for i, ty in enumerate(inputs["par_type"]):
+            # if ty == "real": Only allow real number for now.
+            bound_scale.append(par_bound[i][1] - par_bound[i][0])
+            lower_bound.append(par_bound[i][0])
+        self.bound_scale = np.array(bound_scale).reshape((-1, self.size[1]))     
+        self.lower_bound = np.array(lower_bound).reshape((-1, self.size[1]))        
+
+        # Initialize DEAP setup
+        # Setup creator
+        if config["min_or_max"] == "min":
+            creator.create("Fitness", base.Fitness, weights=(-1.0,))
+        else:
+            creator.create("Fitness", base.Fitness, weights=(1.0,))
+        creator.create("Individual", np.ndarray,
+                            fitness=creator.Fitness)
+        # Setup toolbox
+        tb = base.Toolbox()
+        tb.register("population", gen_init_pop, creator.Individual)
+        tb.register("evaluate", evaluation_func)
+        tb.register("scale", scale, bound_scale=self.bound_scale,
+                         lower_bound=self.lower_bound)
+        tb.register("descale", descale, bound_scale=self.bound_scale,
+                         lower_bound=self.lower_bound)
+        tb.register("crossover", tools.cxUniform)
+        tb.register("mutate_uniform", mut_uniform)
+        tb.register("mutate_middle", mut_middle)
+        tb.register("select", tools.selRoulette)
+        tb.register("ellite", tools.selBest)
+        self.tb = tb
         # Create calibration folder under WD
-        self.__name__ = Name
-        self.CaliWD = os.path.join(Inputs["WD"], self.__name__)
-        # Create CaliWD directory
-        if os.path.isdir(self.CaliWD) is not True:
-            os.mkdir(self.CaliWD)
+        self.cali_wd = os.path.join(inputs["wd"], name)
+        # Create cali_wd directory
+        if os.path.isdir(self.cali_wd) is not True:
+            os.mkdir(self.cali_wd)
         else:
-            logger.warning("Current calibration folder exists. Default to overwrite the folder!\n{}".format(self.CaliWD))
+            logger.warning("Current calibration folder exists."
+                           +" Default to overwrite the folder!"
+                           +"\n{}".format(self.cali_wd))
         #---------------------------------------
-        
-    def scale(self, pop):
-        """pop is 1d array (self.NumPar) or 2d array (-1,self.NumPar)."""
-        pop = pop.reshape((-1,self.NumPar))
-        BoundScale = self.BoundScale    # (-1,self.NumPar)
-        LowerBound = self.LowerBound    # (-1,self.NumPar)
-        ScaledPop = np.multiply(pop, BoundScale)
-        ScaledPop = np.add(ScaledPop, LowerBound)
-        if ScaledPop.shape[0] == 1:
-            ScaledPop = ScaledPop[0]    # Back to 1D.
-        return ScaledPop
-    
-    def descale(self, pop):
-        """pop is 1d array (self.NumPar) or 2d array (-1,self.NumPar)."""
-        pop = pop.reshape((-1,self.NumPar))
-        BoundScale = self.BoundScale    # (-1,self.NumPar)
-        LowerBound = self.LowerBound    # (-1,self.NumPar)
-        deScaledPop = np.subtract(pop, LowerBound)
-        deScaledPop = np.divide(deScaledPop, BoundScale)
-        
-        if deScaledPop.shape[0] == 1:
-            deScaledPop = deScaledPop[0]    # Back to 1D.
-        return deScaledPop
-    
-    def MCSample(self, pop):
-        """Generate samples using Monte Carlo method. Only real par type.
 
-        Args:
-            pop (Array): 2D array. [PopSize, NumPar]
-            
-        Returns:
-            array: Populated pop array.
-        """
-        PopSize = pop.shape[0]      # pop = [PopSize, NumPar]
-        NumPar = pop.shape[1]
-        for i in range(NumPar):
-            pop[:,i] = np.random.uniform(0, 1, size = PopSize)  
-        return pop 
-    
-    def LatinHyperCubeSample(self, pop):
-        """Generate samples using Latin Hyper Cube (LHC) method. Only real par type.
-
-        Args:
-            pop (Array): 2D array. [PopSize, NumPar]
-
-        Returns:
-            array: Populated pop array.
-        """
-        PopSize = pop.shape[0]      # pop = [PopSize, NumPar]
-        NumPar = pop.shape[1]
-        for i in range(NumPar):
-            d = 1.0 / PopSize
-            temp = np.empty([PopSize])
-            # Uniformly sample in each interval.
-            for j in range(PopSize):
-                temp[j] = np.random.uniform(low=j * d, high=(j + 1) * d)
-            # Shuffle to random order.
-            np.random.shuffle(temp)
-            # Scale [0,1] to its bound.
-            pop[:,i] = temp
-        return pop 
-      
-    def initialize(self, SamplingMethod = "LHC", InitialPop = None):
-        """Initialize population members and storage spaces (KPopRes) for generation 0.
-
-        Args:
-            SamplingMethod (str, optional): Selected method for generate initial population members. MC or LHC.
-            InitialPop (dict, optional): User-provided initial Pop[0] = [-1, NumPar] (2D array). Note that InitialPop will be descaled to [0,1] Defaults to None.
-        """
-        PopSize = self.Config["PopSize"]
-        NumPar = self.NumPar
-
-        # Note Pop is a scaled values in [0, 1]
-        if InitialPop is None:      
-            # Initialize storage space for generation 0 (2D array).
-            pop = np.zeros((PopSize, NumPar))  
-            ## Initialize parameters according to selected sampling method.
-            if SamplingMethod == "MC":
-                self.Pop[0] = self.MCSample(pop)
-            elif SamplingMethod == "LHC":
-                self.Pop[0] = self.LatinHyperCubeSample(pop)
-        else:                       
-            if PopSize == InitialPop.shape[0] and NumPar == InitialPop.shape[1]:
-                self.Pop[0] = self.descale(InitialPop)  # to [0,1]
-            else:   
-                # Initialize storage space for generation 0 (2D array) and assign InitialPop.
-                InitialPop = self.descale(InitialPop)   # to [0,1]
-                self.Pop[0] = np.zeros((PopSize, NumPar)) 
-                self.Pop[0][0:InitialPop[0], :] = InitialPop
-                # Sample the rest of the pop
-                pop_s = np.zeros((PopSize-InitialPop.shape[0], NumPar))  
-                ## Initialize parameters according to selected sampling method.
-                if SamplingMethod == "MC":
-                    self.Pop[0][InitialPop[0]:, :] = self.MCSample(pop_s)
-                elif SamplingMethod == "LHC":
-                    self.Pop[0][InitialPop[0]:, :] = self.LatinHyperCubeSample(pop_s)
-
-        # Initialize storage space.
-        self.KPopRes[0] = {}
+    def run(self, guess_pop=None):
         
-    def nextGen(self):
-        """Complete all simulations and generate next generation of Pop.
-        """
-        LossFunc = self.LossFunc
-        Formatter = self.Formatter
-        CurrentGen = self.CurrentGen
-        PopSize = self.Config["PopSize"]
-        NumPar = self.NumPar
-
-        # Load parallelization setting (from user or system config)
-        ParalCores = self.Config.get("ParalCores")
-        if ParalCores is None:      # If user didn't specify ParalCores, then we will use default cores in the system config.
-            ParalCores = self.SysConfig["Parallelization"]["Cores_GA"]
-            logger.info("ParalCores is not detected. Default value is applied. ParalCores = {}.".format(ParalCores))
-        ParalVerbose = self.SysConfig["Parallelization"]["verbose"]         # Joblib print out setting.
-        
-        #---------- Evaluation (Min) ----------
-        # Note: Since HydroCHNS is a stochastic model, we will re-simulate ellites!!
-        # In future, we can have an option for this (re-simulate ellites) to further enhance computational efficiency.
-        # Evalute Loss function
-        # LossFunc(pop, Formatter, SubWDInfo = None) and return loss, which has lower bound 0.
-        ScaledPop = self.scale(self.Pop[CurrentGen])    # Scale back to original values.
-        if self.Config["Stochastic"] or CurrentGen == 0:
-            LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
-                            ( delayed(LossFunc)\
-                                (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
-                                for k in range(PopSize) )  # Still go through entire Pop including ellites.
-            # Get loss results
-            Loss = np.array(LossParel[0:PopSize])
-            self.KPopRes[CurrentGen]["Loss"] = Loss
-        else:
-            ParantSize = self.ParantSize
-            LossParel = Parallel(n_jobs = ParalCores, verbose = ParalVerbose) \
-                            ( delayed(LossFunc)\
-                                (ScaledPop[k], Formatter, (self.CaliWD, CurrentGen, "", k)) \
-                                for k in range(ParantSize, PopSize) )  # Still go through entire Pop including ellites.
-            # Get loss results
-            Loss = np.empty(PopSize)
-            Loss[0:ParantSize] = self.ParentsLoss    # Add previous losses.
-            Loss[ParantSize:PopSize] = np.array(LossParel[0:PopSize-ParantSize])
-            self.KPopRes[CurrentGen]["Loss"] = Loss
-            
-        # Record the current global optimum. 
-        BestIndex = np.argmin(self.KPopRes[CurrentGen]["Loss"])
-        Best = self.KPopRes[CurrentGen]["Loss"][BestIndex]
-        self.Best["Loss"][CurrentGen] = Best            # Array
-        self.Best["Index"][CurrentGen] = BestIndex      # Array
-        
-        # Add ellites
-        NumEllites = self.Config["NumEllites"]
-        EllitesIndex = np.argpartition(Loss, NumEllites)[0:NumEllites].astype(int)
-        self.KPopRes[CurrentGen]["EllitesIndex"] = EllitesIndex
-        self.KPopRes[CurrentGen]["EllitesLoss"] = Loss[EllitesIndex]
-        self.KPopRes[CurrentGen]["Ellites"] = ScaledPop[EllitesIndex,:]
-        #---------- Fitness Calculation ----------
-        # Calculate fitness probability for Roulette Wheel Selection.
-        
-        maxnorm = np.amax(Loss)
-        normobj = maxnorm-Loss + 1     # The lowest obj has highest fitness. +1 to avoid 0.
-        prob = normobj/np.sum(normobj)
-        self.KPopRes[CurrentGen]["Prob"] = prob
-        cumprob = np.cumsum(prob)
-        #--------------------------------------
-        
-        #---------- Parents Selection ----------
-        ParantSize = self.ParantSize
-        ParentsIndex = np.empty(ParantSize)  # Create empty parents
-        # Fill with ellite first.
-        ParentsIndex[0:NumEllites] = EllitesIndex
-        ## Then fill the rest by wheel withdrawing.
-        for k in range(NumEllites, ParantSize):
-            ParentsIndex[k] = np.searchsorted(cumprob,np.random.random())
-        ## From the selected parents, we further randomly choose those who actually reproduce offsprings
-        ParentsIndex = ParentsIndex.astype(int)
-        Parents = self.Pop[CurrentGen][ParentsIndex,:]
-        self.ParentsLoss = Loss[ParentsIndex]    # Record this so we don't re-evaluate them again for deterministic mode.
-        
-        ef_par_list = np.array([False]*ParantSize)
-        NumEffParents = 0
-        while NumEffParents == 0:   # has to at least 1 parents to be selected
-            for k in range(0, ParantSize):
-                if np.random.random() <= self.Config["CrossProb"]:
-                    ef_par_list[k] = True
-                    NumEffParents += 1
-        ## Effective parents
-        EffParentsIndex = ParentsIndex[ef_par_list].astype(int)
-        EffParents = self.Pop[CurrentGen][EffParentsIndex,:]
-        
-        
-        #---------- Children Formation ----------
-        # Uniform crossover
-        def UniformCrossover(parent1, parent2):
-            child = np.zeros(NumPar)
-            from1 = np.random.randint(0, 2, size = NumPar) == 0
-            child[from1] = parent1[from1]
-            child[~from1] = parent2[~from1]
-            return child
-        
-        def Mutation(child):
-            MutProb = self.Config["MutProb"]
-            mut = np.random.binomial(n = 1, p = MutProb, size = NumPar) == 1
-            MutSample_MC = self.MCSample(np.zeros((1,NumPar)))
-            child[mut] = MutSample_MC.flatten()[mut]    # Since MutSample_MC.shape = (1, NumPar).
-            return child
-        
-        def Mutation_Middle(child, p1, p2):
-            MutProb = self.Config["MutProb"]
-            MutSample_MC = self.MCSample(np.zeros((1,NumPar))).flatten() # Since MutSample_MC.shape = (1, NumPar).
-            for i in range(self.NumPar):                           
-                rnd = np.random.random()
-                if rnd < MutProb:   
-                    if p1[i] < p2[i]:
-                        child[i] = p1[i]+np.random.random()*(p2[i] - p1[i])  
-                    elif p1[i] > p2[i]:
-                        child[i] = p2[i] + np.random.random()*(p1[i] - p2[i])
-                    else:
-                        child[i] = MutSample_MC[i] 
-            return child
-        
-        # New generation
-        PopNew = np.empty((PopSize, self.NumPar))
-        ## First, fill with those selected parents without any modification
-        PopNew[:ParantSize,:] = Parents
-        ## Then, fill the rest with crossover and mutation process
-        for k in range(ParantSize, PopSize, 2):
-            rn1 = np.random.randint(0, NumEffParents)
-            rn2 = np.random.randint(0, NumEffParents)
-            parent1 = EffParents[rn1]
-            parent2 = EffParents[rn2]
-            child1 = UniformCrossover(parent1, parent2)
-            child2 = UniformCrossover(parent1, parent2)
-            child1 = Mutation(child1)
-            child2 = Mutation_Middle(child2, parent1, parent2)
-            PopNew[k,:] = child1
-            PopNew[k+1,:] = child2
-            
-        self.Pop[CurrentGen+1] = PopNew
-        #---------------------------------------------------------------------------------------
-
-        #---------- Prepare For Next Gen ----------
-        # Open store space for next generation.
-        self.KPopRes[CurrentGen+1] = {}
-        #------------------------------------------
-        return None
-    
-    def dropRecord(self):
-        """Drop historical populations. However, we still keep historical tracking for all results.
-        """
-        if self.Config["DropRecord"] and (self.CurrentGen-1) >= 0:
-            # To make sure self.CurrentGen-1 exsit. 
-            # When program shoutdown (Continue = Ture), we might encounter Pop[self.CurrentGen-1] has been deleted.
-            try:    
-                del self.Pop[self.CurrentGen-1]
-            except:
-                pass
-            
-    def autoSave(self):
-        """Auto save a snapshot of current KGCA process in case any model break down.
-        """
-        CaliWD = self.CaliWD
-        Snapshot = self.__dict__
-        with open(os.path.join(CaliWD, "AutoSave.pickle"), 'wb') as outfile:
-            pickle.dump(Snapshot, outfile)#, protocol=pickle.HIGHEST_PROTOCOL)
-            # About protocol: https://stackoverflow.com/questions/23582489/python-pickle-protocol-choice
-        return None
-    
-    def run(self, InitialPop = None):
-        logger.info("Start GA......")
-        #----- Setting timer
+        # Start timer
         self.start_time = time.monotonic()
         self.elapsed_time = 0
         
-        SamplingMethod = self.Config["SamplingMethod"]
-        MaxGen = self.Config["MaxGen"]
-        AutoSave = self.Config["AutoSave"]
+        config = self.config
+        paral_cores = config["paral_cores"]
+        paral_verbose = config["paral_verbose"]
+        formatter = self.formatter
+        cali_wd = self.cali_wd
+        max_gen = config["max_gen"]
+        size = self.size
+        stochastic = config["stochastic"]
+        tb = self.tb
         
-        #----- Initialize Pop[0]
-        # If it is a continuous run from previous shutdown work, we don't need initialization.
-        if self.Continue is not True:
-            self.initialize(SamplingMethod, InitialPop)
+        # Initialization
+        if self.done_ini is False:
+            pop = tb.population(self.size, config["sampling_method"],
+                                guess_pop)
+            self.done_ini = True
+            scaled_pop = list(map(tb.scale, pop))
+            # Note np.array(scaled_pop[k]) is necessary for serialization.
+            # Use joblib instead of DEAP document of Scoop or muliprocessing, 
+            # so we don't have to run in external terminal.
+            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose) \
+                                ( delayed(tb.evaluate)\
+                                    (np.array(scaled_pop[k]), formatter,
+                                     (cali_wd, self.current_gen, k)) \
+                                    for k in range(len(scaled_pop)) )        
+                                    
+            # Note that we assign fitness to original pop not the scaled_pop.
+            for ind, fit in zip(pop, fitnesses):
+                ind.fitness.values = fit
+            self.find_best_and_record(pop)
         else:
-            logger.info("Continue from Gen {}.".format(self.CurrentGen))
+            pop = self.records[self.current_gen-1]
+        
+        # Iteration
+        prob_cross = config["prob_cross"]
+        prob_mut = config["prob_mut"]
+        while self.current_gen <= max_gen:
             
-        self.HistoryResult = {}   
-        # Run the loop until reach maximum generation. (Can add convergent termination critiria in the future.)
-        while self.CurrentGen <= MaxGen:
-            self.nextGen()      # GA process
-            self.dropRecord()   # Delete previou generation's Pop if DropRecord = True
+            # Select the next generation individuals
+            parents = tb.select(pop, size[0])
+            # Clone the selected individuals
+            offspring = list(map(tb.clone, parents))
             
-            #----- Extract solutions
-            self.Result = {}
-            self.Result["Gen"] = self.CurrentGen
-            self.Result["GlobalOptimum"] = {}
-            self.Result["GlobalOptimum"]["Loss"] = self.Best["Loss"][self.CurrentGen]
-            self.Result["GlobalOptimum"]["Index"] = int(self.Best["Index"][self.CurrentGen])
-            self.Result["GlobalOptimum"]["Solutions"] = self.scale(self.Pop[self.CurrentGen][self.Result["GlobalOptimum"]["Index"]])
-            self.Result["Loss"] = self.KPopRes[self.CurrentGen]["EllitesLoss"]
-            self.Result["Index"] = self.KPopRes[self.CurrentGen]["EllitesIndex"].astype(int)
-            self.Result["Solutions"] = self.KPopRes[self.CurrentGen]["Ellites"]     # Already scaled.  
-            self.HistoryResult[self.CurrentGen] = self.Result 
-            #----- Auto save
-            if AutoSave:        # If Autosave is True, a model snapshot (pickle file) will be saved at CaliWD.
-                self.autoSave()
+            # Apply crossover and mutation on the offspring
+            for p1, p2, child1, child2 in zip(parents[::2], parents[1::2],
+                                              offspring[::2], offspring[1::2]):
+                if np.random.uniform() < prob_cross:
+                    tb.crossover(child1, child2, prob_cross)
+                if np.random.uniform() < prob_mut:
+                    tb.mutate_uniform(child1, prob_mut)
+                    tb.mutate_middle(child2, p1, p2, prob_mut)
+                    del child1.fitness.values
+                    del child2.fitness.values
+            
+            # Replace with ellite
+            for i, e in enumerate(self.ellites):
+                offspring[i] = e
+            
+            # Evaluate the individuals with an invalid fitness
+            if stochastic:
+                invalid_ind = offspring
+            else:
+                invalid_ind = [ind for ind in offspring \
+                               if not ind.fitness.valid]
+            
+            scaled_pop = list(map(tb.scale, invalid_ind))
+            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose) \
+                                ( delayed(tb.evaluate)\
+                                    (np.array(scaled_pop[k]), formatter,
+                                     (cali_wd, self.current_gen, k)) \
+                                    for k in range(len(invalid_ind)) )
+            for ind, fit in zip(invalid_ind, fitnesses):
+                ind.fitness.values = fit
+
+            # The population is entirely replaced by the offspring
+            pop[:] = offspring
+            self.find_best_and_record(pop)
+        print("\nGA done!\n")
+        
+    def find_best_and_record(self, pop):
+        # Select ellite and save.
+        tb = self.tb
+        config = self.config
+        num_ellite = config["num_ellite"]
+        ellites = tb.ellite(pop, num_ellite)
+        
+        self.ellites = list(map(tb.clone, ellites))
+        self.solution = tb.scale(tb.clone(ellites[0]))
+        self.records[self.current_gen] = pop
+        if config["drop_record"]:
+            # Delete previous generation's record 
+            self.records.pop(self.current_gen-1,"")
+        
+        self.current_gen += 1
+        
+        if config["auto_save"]:
+            self.auto_save()
+            
+        # Calculate indicators
+        # Gather all the fitnesses in one list and print the stats
+        fits = [ind.fitness.values[0] for ind in pop]
+        length = len(pop)
+        mean = sum(fits) / length
+        sum2 = sum(x*x for x in fits)
+        std = abs(sum2 / length - mean**2)**0.5
+        
+        elapsed_time = time.monotonic() - self.start_time
+        self.summary["elapsed_time"] = time.strftime(
+            "%H:%M:%S", time.gmtime(elapsed_time))
+        self.summary["max_fitness"].append(max(fits))
+        self.summary["min_fitness"].append(min(fits))
+        self.summary["avg"].append(mean)
+        self.summary["std"].append(std)
+        
+        if ((self.current_gen-1) % config["print_level"] == 0 
+            or self.current_gen > config["max_gen"]):
+            print("\n=====Generation {}=====".format(self.current_gen-1))
+            print("  Elapsed time %s" % elapsed_time)
+            print("  Min %s" % min(fits))
+            print("  Max %s" % max(fits))
+            print("  Avg %s" % mean)
+            print("  Std %s" % std)
+            
+            if config["plot"]:
+                # Plot progress
+                fig, ax1 = plt.subplots()
+                ax2 = ax1.twinx()
+                if config["min_or_max"] == "max":
+                    fitness = self.summary["max_fitness"]
+                    ax1.set_ylabel("Fitness (Max)")
+                else:
+                    fitness = self.summary["min_fitness"]
+                    ax1.set_ylabel("Fitness (Min)")
+                x = np.arange(len(fitness))
+                lns1 = ax1.plot(x, fitness, label="Fitness", linewidth=2,
+                                color="black", marker=".")        
+                lns2 = ax2.plot(x, self.summary["std"], label="Fitness std",
+                                linewidth=2, color="grey", linestyle="--",
+                                marker="x")  
+                ax2.set_ylabel("Fitness standard deviation")
+        
+                ax1.set_title(
+                    self.name + "  [{}]".format(self.summary["elapsed_time"]))
+                ax1.set_xlim([0, config["max_gen"]])
+                ax1.set_xlabel("Generation")
                 
-            #----- Print output    
-            if self.CurrentGen%self.Config["Printlevel"] == 0:
-                pg = int(self.CurrentGen/(MaxGen/10))
-                ProgressBar = "#"*pg+"-"*(10-pg)        # Form progressice bar ###-------
-                logger.info("{:4d}/{:4d}   |{}|.".format(self.CurrentGen, MaxGen, ProgressBar))
-                if self.Config["Plot"]:                 # Plot Loss of all SPs. To visualize the convergence.
-                    self.plotProgress()
-                logger.info(Dict2String(self.Result))
-            #----- Next generation
-            logger.info("Complete Gen {}/{}.".format(self.CurrentGen, self.Config["MaxGen"]))
-            
-            self.CurrentGen += 1 
-                   
-        #----- Delete Pop with gen index = (MaxGen+1 -1)
-        self.ForExtendRun = {"Pop": self.Pop[self.CurrentGen], "KPopRes": self.KPopRes[self.CurrentGen] }
-        del self.Pop[self.CurrentGen]   
-        del self.KPopRes[self.CurrentGen] 
+                lns = lns1+lns2
+                labs = [l.get_label() for l in lns]
+                ax1.legend(lns, labs)
+                plt.tight_layout()
+                filename = os.path.join(self.cali_wd,
+                                        "Fitness_" + self.name + ".png")
+                fig.savefig(filename)
+                if config["paral_cores"] == 1:
+                    plt.show()
+                plt.close()
         
-        #----- Count duration.
-        elapsed_time = time.monotonic() - self.start_time
-        self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-        logger.info("Done! [{}]".format(self.elapsed_time))
-        logger.info("Report:\n" + Dict2String(self.Result))
-        
-        #----- Output Report txt file.
-        with open(os.path.join(self.CaliWD, "Report_KGCA_" + self.__name__ + ".txt"), "w") as text_file:
-            text_file.write(Dict2String(self.Result))
-            text_file.write("\n=====================================================")
-            text_file.write("\nElapsed time:\n{}".format(self.elapsed_time))
-            text_file.write("\n=====================================================")
-            text_file.write("\nKGCA user input Config:\n")
-            text_file.write(Dict2String(self.Config))
-            
-        if AutoSave:        # If Autosave is True, a model snapshot (pickle file) will be saved at CaliWD.
-            self.autoSave()
-        
-    def plotProgress(self, Save = True):
-        """Plot KGCA progress to visualize the convergence. 
-        """        
-        elapsed_time = time.monotonic() - self.start_time
-        self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-        
-        fig, ax = plt.subplots()
-        # Plot scatter points for ellites in each cluster.
-        for gen in range(self.CurrentGen+1):
-            EllitesLoss = self.KPopRes[gen]["EllitesLoss"]
-            ax.plot([gen]*len(EllitesLoss), EllitesLoss, "+", color='gray')      
-        # Plot global optimum.     
-        x = np.arange(0, self.CurrentGen+1)   
-        loss = self.Best["Loss"][:self.CurrentGen+1]
-        ax.plot(x, loss, label = "Best\nElapsed_time: [{}]".format(self.elapsed_time), linewidth = 2, color = "black")        
-        ax.set_title(self.__name__)
-        ax.set_xlim([0, self.Config["MaxGen"]])
-        ax.set_ylim([0, loss[0]*1.1])
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Loss (Minimun = 0)")
-        ax.legend()
-        if Save:
-            filename = os.path.join(self.CaliWD, "Loss_" + self.__name__ + ".png")
-            fig.savefig(filename)
-        plt.show()
-        
+    def auto_save(self):
+        cali_wd = self.cali_wd
+        snap_shot = self.__dict__
+        with open(os.path.join(cali_wd, "GA_auto_save.pickle"),
+                  'wb') as outfile:
+            pickle.dump(snap_shot, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+        return None

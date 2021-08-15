@@ -26,7 +26,7 @@ HYMODPars:            ## For HYMOD, we have 6 parameters.
     Df:               # [cm] Snow storage.
 """
 
-def runHYMOD(HYMODPars, inputs, temp, prec, pet, data_length):
+def run_HYMOD(HYMODPars, inputs, temp, prec, pet, data_length):
     """HYMOD for rainfall runoff simulation with additional snow module.
         Paper: 
         https://piahs.copernicus.org/articles/368/180/2015/piahs-368-180-2015.pdf

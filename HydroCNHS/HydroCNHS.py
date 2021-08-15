@@ -4,184 +4,227 @@
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # 2021/02/05
 
-from joblib import Parallel, delayed        # For parallelization
-from pandas import date_range, to_datetime
-from tqdm import tqdm
-from copy import Error, deepcopy            # For deepcopy dictionary.
-import traceback
-import numpy as np
 import time
+import traceback
+from copy import Error, deepcopy    # For deepcopy dictionary.
+import numpy as np
+from pandas import date_range, to_datetime
+from joblib import Parallel, delayed
+from tqdm import tqdm
 import logging
-
-from .LSM import runGWLF, cal_pet_Hamon, runHYMOD, runABCD
-from .Routing import formUH_Lohmann, runTimeStep_Lohmann
-from .SystemControl import loadConfig, loadModel, loadCustomizedModule2Class
-
-# The customized agent file will be imported externally
-from .Agent_customize3 import *        # AgType_Reservoir, AgType_IrrDiversion
+from .land_surface_model.abcd import run_ABCD
+from .land_surface_model.gwlf import run_GWLF
+from .land_surface_model.hymod import run_HYMOD
+from .land_surface_model.pet_hamon import cal_pet_Hamon
+from .routing import form_UH_Lohmann, run_step_Lohmann
+from .util import (load_system_config, load_model,
+                   load_customized_module_to_class)
 
 class HydroCNHSModel(object):
-    """Main HydroCNHS simulation object.
-
-    """
-    def __init__(self, model, name = None):
-        """HydroCNHS constructor
+    def __init__(self, model, name=None):
+        """HydroCNHS model object.
 
         Args:
             model (str/dict): model.yaml file (prefer) or dictionary. 
             name ([str], optional): Object name. Defaults to None.
         """
         # Assign model name and get logger.
-        self.__name__ = name
+        self.name = name
         if name is None:
             self.logger = logging.getLogger("HydroCNHS") # Get logger 
         else:
             self.logger = logging.getLogger("HydroCNHS."+name) # Get logger 
         
         # Load HydroCNHS system configuration.
-        self.Config = loadConfig()   
+        self.sys_config = load_system_config()   
             
         # Load model.yaml and distribute into several variables.
-        Model = loadModel(model)    # We design model to be str or dictionary.
+        ## We design model to be either str or dictionary.
+        model = load_model(model)
         
-        # Need to verify Model contain all following keys.
+        # Verify model contain all following keys.
         try:                   
-            self.Path = Model["Path"]
-            self.WS = Model["WaterSystem"]     # WS: Water system
-            self.LSM = Model["LSM"]            # LSM: Land surface model
-            self.RR = Model["Routing"]         # RR: Routing 
-            self.ABM = Model.get("ABM")        # ABM can be none (None coupled model)
-            self.SysPD = Model["SystemParsedData"]
+            self.path = model["Path"]
+            self.ws = model["WaterSystem"]  # ws: Water system
+            self.lsm = model["LSM"]         # lsm: Land surface model
+            self.routing = model["Routing"] # routing: Routing 
+            self.abm = model.get("ABM")     # abm can be none (decoupled model)
+            self.sys_parsed_data = model["SystemParsedData"]
         except:
             self.logger.error("Model file is incomplete for HydroCNHS.")
             
         # Initialize output
         self.Q_routed = {}     # [cms] Streamflow for routing outlets.
 
-    
-    def loadWeatherData(self, T, P, PE = None, LSMOutlets = None):
+    def load_weather_data(self, temp, prec, pet=None, lsm_outlets=None):
         """[Include in run] Load temperature and precipitation data.
         Can add some check functions or deal with miss values here.
         Args:
-            T (dict): [degC] Daily mean temperature time series data (value) for each sub-basin named by its outlet.
-            P (dict): [cm] Daily precipitation time series data (value) for each sub-basin named by its outlet.
-            PE(dict/None): [cm] Daily potential evapotranpiration time series data (value) for each sub-basin named by its outlet.
-            LSMOutlets(dict/None): Should equal to self.WS["Outlets"]
+            temp (dict): [degC] Daily mean temperature time series data (value)
+                for each sub-basin named by its outlet.
+            prec (dict): [cm] Daily precipitation time series data (value) for
+                each sub-basin named by its outlet.
+            pet(dict/None): [cm] Daily potential evapotranpiration time series
+                data (value) for each sub-basin named by its outlet.
+            LSM_outlets(dict/None): Should equal to self.ws["Outlets"]
         """
-        if PE is None:
-            PE = {}
-            # Default to calculate PE with Hamon's method and no dz adjustment.
-            for sb in LSMOutlets:
-                PE[sb] = cal_pet_Hamon(T[sb], self.LSM[sb]["Inputs"]["Latitude"], self.WS["StartDate"], dz = None)
-            self.logger.info("Compute PEt by Hamon method. Users can improve the efficiency by assigning pre-calculated PEt.")
-        self.Weather = {"T":T, "P":P, "PE":PE}
-        self.logger.info("Load T & P & PE with total length {}.".format(self.WS["DataLength"]))
+        ws = self.ws
+        lsm = self.lsm
+        if pet is None:
+            pet = {}
+            # Default: calculate pet with Hamon's method and no dz adjustment.
+            for sb in lsm_outlets:
+                pet[sb] = cal_pet_Hamon(temp[sb],
+                                        lsm[sb]["Inputs"]["Latitude"],
+                                        ws["StartDate"], dz=None)
+            self.logger.info("Compute pet by Hamon method. Users can improve "
+                            +"the efficiency by assigning pre-calculated pet.")
+        self.weather = {"temp":temp, "prec":prec, "pet":pet}
+        self.logger.info("Load temp & prec & pet with total length "
+                         +"{}.".format(ws["DataLength"]))
            
-    def __call__(self, T, P, PE = None, AssignedQ = {}, AssignedUH = {}, disable = False):
-        """Run HydroCNHS simulation. The simulation is controled by model.yaml and Config.yaml (HydroCNHS system file).
+    def __call__(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
+                 disable=False):
+        """Run HydroCNHS simulation.
         
         Args:
-            T (dict): Daily mean temperature.
-            P (dict): Daily precipitation.
-            PE (dict, optional): Potential evapotranspiration. Defaults to None (calculted by Hamon's method).
-            AssignedQ (dict, optional): If user want to manually assign Q (value, Array) for certain outlet (key, str). Defaults to None.
-            AssignedUH (dict, optional): If user want to manually assign UH (Lohmann) (value, Array) for certain outlet (key, str). Defaults to None.
+            temp (dict): [degC] Daily mean temperature.
+            prec (dict): [cm] Daily precipitation.
+            pet (dict, optional): [cm] Potential evapotranspiration calculted
+                by Hamon's method. Defaults to None.
+            assigned_Q (dict, optional): [cms] If user want to manually assign
+                Q for certain outlet {"outlet": array}. Defaults to None.
+            assigned_UH (dict, optional): If user want to manually assign UH
+                (Lohmann) for certain outlet {"outlet": array}. Defaults to
+                None.
+            disable (bool): Disable tqdm. Defaults to False.
         """
-        
-        # Start a timer -------------------------------------------------------
+        # Variables
+        paral_setting = self.sys_config["Parallelization"]
+        sys_parsed_data = self.sys_parsed_data
+        routing_outlets = sys_parsed_data["RoutingOutlets"]
+        ws = self.ws
+        start_date = to_datetime(ws["StartDate"], format="%Y/%m/%d")  
+        data_length = ws["DataLength"]
+        lsm = self.lsm
+        routing = self.routing
+        abm = self.abm
+        path = self.path
+        weather = self.weather
+        logger = self.logger
+        # ----- Start a timer -------------------------------------------------
         start_time = time.monotonic()
         self.elapsed_time = 0
-        def getElapsedTime():
+        def get_elapsed_time():
             elapsed_time = time.monotonic() - start_time
-            self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+            self.elapsed_time = time.strftime("%H:%M:%S",
+                                              time.gmtime(elapsed_time))
             return self.elapsed_time
         
-        Paral = self.Config["Parallelization"]
-        Outlets = self.WS["Outlets"]
-        self.Q_LSM = {}     # Store Q result for land surface simulation.
-        
         # ----- Land surface simulation ---------------------------------------
+        self.Q_LSM = {}
+        outlets = ws["Outlets"]
         # Remove sub-basin that don't need to be simulated. 
-        # Not preserving element order in the list.
-        Outlets = list(set(Outlets) - set(AssignedQ.keys()))  
-        if AssignedQ != {}:
-            RoutingOutlets = self.SysPD["RoutingOutlets"]
-            for ro in RoutingOutlets:
-                for sb in self.RR[ro]:
-                    if sb in AssignedQ:
+        outlets = list(set(outlets) - set(assigned_Q.keys()))  
+        # Update routing setting. No in-grid routing.
+        if assigned_Q != {}:
+            for ro in routing_outlets:
+                for sb in routing[ro]:
+                    if sb in assigned_Q:
                         # No in-grid routing.
-                        self.RR[ro][sb]["Pars"]["GShape"] = None  
-                        self.RR[ro][sb]["Pars"]["GRate"] = None   
-                        self.logger.info("Turn {}'s GShape and GRate to None in the routing setting. There is no in-grid time lag with given observed Q.".format((sb, ro)))
+                        routing[ro][sb]["Pars"]["GShape"] = None  
+                        routing[ro][sb]["Pars"]["GRate"] = None   
+                        logger.info(
+                            "Turn {}'s GShape and GRate to ".format((sb, ro))
+                            +"None in the routing setting. There is no "
+                            +"in-grid time lag with given observed Q.")
         
         # Start GWLF simulation in parallel.
-        if self.LSM["Model"] == "GWLF":
-            self.Q_GWLF = {}
-            self.logger.info("Start GWLF for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
+        if lsm["Model"] == "GWLF":
+            logger.info("Start GWLF for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()))
             # Load weather and calculate PEt with Hamon's method.
-            self.loadWeatherData(T, P, PE, Outlets)    
-            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
-                            ( delayed(runGWLF)\
-                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["StartDate"], self.WS["DataLength"]) \
-                                for sb in Outlets ) 
+            self.load_weather_data(temp, prec, pet, outlets)    
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_GWLF)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], ws["StartDate"],
+                                 data_length) \
+                                for sb in outlets ) 
                             
         # Start HYMOD simulation in parallel.
         # Not verify this model yet.
-        if self.LSM["Model"] == "HYMOD":
-            self.logger.info("Start HYMOD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
+        if lsm["Model"] == "HYMOD":
+            logger.info("Start HYMOD for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()))
             # Load weather and calculate PEt with Hamon's method.
-            self.loadWeatherData(T, P, PE, Outlets)    
-            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
-                            ( delayed(runHYMOD)\
-                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
-                                for sb in Outlets ) 
+            self.load_weather_data(temp, prec, pet, outlets)    
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_HYMOD)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], data_length) \
+                                for sb in outlets ) 
         
         # Start ABCD simulation in parallel.
         # Not verify this model yet.
-        if self.LSM["Model"] == "ABCD":
-            self.logger.info("Start ABCD for {} sub-basins. [{}]".format(len(Outlets), getElapsedTime()))
+        if lsm["Model"] == "ABCD":
+            logger.info("Start ABCD for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()))
             # Load weather and calculate PEt with Hamon's method.
-            self.loadWeatherData(T, P, PE, Outlets)    
-            QParel = Parallel(n_jobs = Paral["Cores_LSM"], verbose = Paral["verbose"]) \
-                            ( delayed(runABCD)\
-                                (self.LSM[sb]["Pars"], self.LSM[sb]["Inputs"], self.Weather["T"][sb], self.Weather["P"][sb], self.Weather["PE"][sb], self.WS["DataLength"]) \
-                                for sb in Outlets ) 
+            self.load_weather_data(temp, prec, pet, outlets)    
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_ABCD)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], data_length) \
+                                for sb in outlets ) 
 
-        # Add user assigned Q first. ------------------------------------------
-        self.Q_LSM = deepcopy(AssignedQ)            # Necessary deepcopy!
+        # ----- Add user assigned Q first. ------------------------------------
+        self.Q_LSM = deepcopy(assigned_Q)    # Necessary deepcopy!
         # Collect QParel results
-        for i, sb in enumerate(Outlets):
+        for i, sb in enumerate(outlets):
             self.Q_LSM[sb] = QParel[i]
             
         # Q_routed will be continuously updated for routing.
-        self.Q_routed = deepcopy(self.Q_LSM)        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage pointer!
-        self.logger.info("Complete LSM simulation. [{}]".format(getElapsedTime()))
-        # ---------------------------------------------------------------------    
+        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage
+        # pointer!
+        self.Q_routed = deepcopy(self.Q_LSM)
+        self.logger.info("Complete LSM simulation. [{}]".format(
+            get_elapsed_time())) 
     
-
         # ----- Form UH for Lohmann routing method ----------------------------
-        if self.RR["Model"] == "Lohmann":
-            self.UH_Lohmann = {}    # Initialized the output dictionary
-            RoutingOutlets = self.SysPD["RoutingOutlets"]
+        if routing["Model"] == "Lohmann":
             # Form combination
-            UH_List = [(sb, ro) for ro in RoutingOutlets for sb in self.RR[ro]]
-            # Remove assigned UH from the list. Not preserving element order in the list.
-            UH_List_Lohmann = list(set(UH_List) - set(AssignedUH.keys()))
+            UH_List = [(sb, ro) for ro in routing_outlets \
+                        for sb in self.routing[ro]]
+            # Remove assigned UH from the list.
+            UH_List_Lohmann = list(set(UH_List) - set(assigned_UH.keys()))
             # Start forming UH_Lohmann in parallel.
-            self.logger.info("Start forming {} UHs for Lohmann routing. [{}]".format(len(UH_List_Lohmann), getElapsedTime()))
-            UHParel = Parallel(n_jobs = Paral["Cores_formUH_Lohmann"], verbose = Paral["verbose"]) \
-                            ( delayed(formUH_Lohmann)\
-                            (self.RR[pair[1]][pair[0]]["Inputs"], self.RR[pair[1]][pair[0]]["Pars"]) \
-                            for pair in UH_List_Lohmann )     # pair = (Outlet, GaugedOutlet)
+            logger.info(
+                "Start forming {} UHs for Lohmann routing. [{}]".format(
+                    len(UH_List_Lohmann), get_elapsed_time()))
+            # pair = (outlet, routing outlet)
+            UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
+                               verbose=paral_setting["verbose"]) \
+                            ( delayed(form_UH_Lohmann)\
+                            (routing[pair[1]][pair[0]]["Inputs"],
+                             routing[pair[1]][pair[0]]["Pars"]) \
+                            for pair in UH_List_Lohmann )
 
             # Form UH ---------------------------------------------------------
             # Add user assigned UH first.
-            self.UH_Lohmann = deepcopy(AssignedUH)  # Necessary deepcopy!
+            self.UH_Lohmann = {}
+            self.UH_Lohmann = deepcopy(assigned_UH)  # Necessary deepcopy!
             for i, pair in enumerate(UH_List_Lohmann):
                 self.UH_Lohmann[pair] = UHParel[i]
-            self.logger.info("Complete forming UHs for Lohmann routing. [{}]".format(getElapsedTime()))
-        # ---------------------------------------------------------------------
-
+            self.logger.info(
+                "Complete forming UHs for Lohmann routing. [{}]".format(
+                    get_elapsed_time()))
         
         # ----- Load Agents from ABM ------------------------------------------
         # We will automatically detect whether the ABM section is available. 
@@ -195,36 +238,46 @@ class HydroCNHSModel(object):
         #   Detailed instruction for designing proper modules for HydroCNHS, 
         # please check the documentation. Certain protocals have to be followed.
         
-        StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
-        DataLength = self.WS["DataLength"]
-        self.Agents = {}     # Store all agent objects with key = agentname.
-        self.DMClasses= {}   # Store all DM function Ex {"DMFunc": DMFunc()}
-
-        if self.ABM is not None: 
-            ABM = self.ABM
+        self.agents = {}     # Store all agent objects with key = agentname.
+        self.DM_classes = {}   # Store all DM function Ex {"DMFunc": DMFunc()}
+        agents = self.agents
+        DM_classes = self.DM_classes
+        UH_Lohmann = self.UH_Lohmann
+        Q_LSM = self.Q_LSM
+        Q_routed = self.Q_routed
+        
+        if abm is not None: 
             # Import user-defined module --------------------------------------
-            MPath = self.Path.get("Modules")
-            if MPath is not None:
+            module_path = self.path.get("Modules")
+            if module_path is not None:
                 # User class will store all user-defined modules' classes and 
                 # functions.
                 class UserModules:
                     pass
-                for moduleName in ABM["Inputs"]["Modules"]:
-                    loadCustomizedModule2Class(UserModules, moduleName, MPath)
-                User = UserModules()  # Create an user object.
+                for module_name in abm["Inputs"]["Modules"]:
+                    load_customized_module_to_class(UserModules, module_name,
+                                                    module_path)
             
             # Initialize DMFuncs ----------------------------------------------
-            for dmclass in ABM["Inputs"]["DMClasses"]:
-                try:        # Try to load from user-defined module first.
-                    self.DMClasses[dmclass] = eval("User."+dmclass)(StartDate, DataLength, ABM)
-                    self.logger.info("Load {} from the user-defined classes.".format(dmclass))
+            for dmclass in abm["Inputs"]["DMClasses"]:
+                try:    # Try to load from user-defined module first.
+                    DM_classes[dmclass] = eval("User."+dmclass)(
+                        start_date, data_length, abm)
+                    logger.info(
+                        "Load {} from the user-defined classes.".format(
+                            dmclass))
                 except Exception as e:
                     try:    # Detect if it is a built-in class.
-                        self.DMClasses[dmclass] = eval(dmclass)(StartDate, DataLength, ABM)
-                        self.logger.info("Load {} from the built-in classes.".format(dmclass))
+                        DM_classes[dmclass] = eval(dmclass)(
+                            start_date, data_length, abm)
+                        logger.info(
+                            "Load {} from the built-in classes.".format(
+                                dmclass))
                     except Exception as e:
-                        self.logger.error(traceback.format_exc())
-                        raise Error("Fail to load {}.\nMake sure the class is well-defined in given modules.".format(dmclass))
+                        logger.error(traceback.format_exc())
+                        raise Error("Fail to load {}.\n".format(dmclass)
+                                    +"Make sure the class is well-defined in "
+                                    +"given modules.")
                 
             # Initialize agent action groups ----------------------------------
             # The agent action groups is different from the DMFunc. Action 
@@ -233,98 +286,129 @@ class HydroCNHSModel(object):
             # This could be used in a situation, where agents share the water 
             # deficiency together. 
             # AgGroup = {"AgType":{"Name": []}}   (in Model.yaml)
-            AgGroup = ABM["Inputs"].get("AgGroup")
-            if AgGroup is not None:
-                for agType in AgGroup:
-                    for agG in AgGroup[agType]:
-                        agList = AgGroup[agType][agG]
-                        agConfig = {}
+            ag_group = abm["Inputs"].get("AgGroup")
+            if ag_group is not None:
+                for ag_type in ag_group:
+                    for agG in ag_group[ag_type]:
+                        agList = ag_group[ag_type][agG]
+                        ag_config = {}
                         for ag in agList:
-                            agConfig[ag] = ABM[agType][ag]
+                            ag_config[ag] = abm[ag_type][ag]
                         try:      # Try to load from user-defined module first.
-                            self.Agents[agG] = eval("User."+agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                            self.logger.info("Load {} for {} from the user-defined classes.".format(agType, agG))
+                            agents[agG] = eval("User."+ag_type)(
+                                name=agG, config=ag_config,
+                                start_date=start_date, data_length=data_length)
+                            logger.info(
+                                "Load {} for {} ".format(ag_type, agG)
+                                +"from the user-defined classes.")
                         except Exception as e:
                             try:  # Detect if it is a built-in class.
-                                self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                                self.logger.info("Load {} for {} from the built-in classes.".format(agType, agG))
+                                agents[agG] = eval(ag_type)(
+                                    name=agG, config=ag_config,
+                                    start_date=start_date,
+                                    data_length=data_length)
+                                logger.info(
+                                    "Load {} for {} ".format(ag_type, agG)
+                                    +"from the built-in classes.")
                             except Exception as e:
-                                self.logger.error(traceback.format_exc())
-                                raise Error("Fail to load {} for {}.\nMake sure the class is well-defined in given modules.".format(agType, agG))
+                                logger.error(traceback.format_exc())
+                                raise Error(
+                                    "Fail to load {} for {}.".format(ag_type,
+                                                                     agG)
+                                    +"\nMake sure the class is well-defined "
+                                    +"in given modules.")
             else:
-                AgGroup = []
+                ag_group = []
                 
             # Initialize agents not belong to any action groups ---------------
-            for agType, Ags in ABM.items():
-                if agType == "Inputs" or agType in AgGroup:
+            for ag_type, Ags in abm.items():
+                if ag_type == "Inputs" or ag_type in ag_group:
                         continue
-                for ag, agConfig in Ags.items():
+                for ag, ag_config in Ags.items():
                     try:        # Try to load from user-defined module first.
-                        self.Agents[ag] = eval("User."+agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                        self.logger.info("Load {} for {} from the user-defined classes.".format(agType, ag))
+                        agents[ag] = eval("User."+ag_type)(
+                            name=ag, config=ag_config, start_date=start_date,
+                            data_length=data_length)
+                        logger.info(
+                            "Load {} for {} ".format(ag_type, ag)
+                            +"from the user-defined classes.")
                     except Exception as e:
                         try:    # Detect if it is a built-in class.
-                            self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                            self.logger.info("Load {} for {} from the built-in classes.".format(agType, ag))
+                            self.agents[ag] = eval(ag_type)(
+                                name=ag, config=ag_config,
+                                start_date=start_date, data_length=data_length)
+                            self.logger.info(
+                                "Load {} for {} ".format(ag_type, ag)
+                                +"from the built-in classes.")
                         except Exception as e:
                             self.logger.error(traceback.format_exc())
-                            raise Error("Fail to load {} for {}.\nMake sure the class is well-defined in given modules.".format(agType, ag))
+                            raise Error(
+                                "Fail to load {} for {}.".format(ag_type, ag)
+                                +"\nMake sure the class is well-defined in "
+                                +"given modules.")
         # ---------------------------------------------------------------------
         
         
         # ----- Time step simulation (Coupling hydrological model and ABM) ----
         # Obtain datetime index -----------------------------------------------
-        pdDatedateIndex = date_range(start = StartDate, periods = DataLength, freq = "D")
-        self.pdDatedateIndex = pdDatedateIndex  # So users can use it directly.    
+        pd_date_index = date_range(start=start_date, periods=data_length,
+                                     freq="D")
+        self.pd_date_index = pd_date_index  # So users can use it directly.    
         
         # Load system-parsed data ---------------------------------------------
-        SimSeq = self.SysPD["SimSeq"]
-        AgSimSeq = self.SysPD["AgSimSeq"]
-        InStreamAgents = self.SysPD["InStreamAgents"]   
+        sim_seq = sys_parsed_data["SimSeq"]
+        ag_sim_seq = sys_parsed_data["AgSimSeq"]
+        instream_agents = sys_parsed_data["DamAgents"]   
         
         # Add instream agent to Q_routed --------------------------------------
-        # InStreamAgents include ResDamAgentTypes & DamDivAgentTypes
-        for isag in InStreamAgents:
-            self.Q_routed[isag] = np.zeros(DataLength)
+        # instream_agents include ResDamAgentTypes & DamDivAgentTypes
+        for isag in instream_agents:
+            Q_routed[isag] = np.zeros(data_length)
         
         ##### Only a semi-distributed hydrological model ######################
         #####                     (Only LSM and Routing)
-        if self.ABM is None: 
-            self.logger.info("Start the non-coupled simulation.")
+        if abm is None: 
+            logger.info("Start the non-coupled simulation.")
             # Run step-wise routing to update Q_routed ------------------------
-            for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
-                CurrentDate = pdDatedateIndex[t]
-                for node in SimSeq:
-                    if node in RoutingOutlets:
-                        #----- Run Lohmann routing model for one routing outlet (node) for 1 timestep (day).
-                        if self.RR["Model"] == "Lohmann":
-                            Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_routed, self.Q_LSM, t)
+            for t in tqdm(range(data_length), desc=self.name, disable=disable):
+                current_date = pd_date_index[t]
+                for node in sim_seq:
+                    if node in routing_outlets:
+                        #----- Run Lohmann routing model for one routing outlet
+                        # (node) for 1 timestep (day).
+                        if self.routing["Model"] == "Lohmann":
+                            Qt = run_step_Lohmann(node, routing, UH_Lohmann,
+                                                  Q_routed, Q_LSM, t)
                         #----- Store Qt to final output.
-                        self.Q_routed[node][t] = Qt 
+                        Q_routed[node][t] = Qt 
                         
         ##### HydroCNHS model (Coupled model) #################################
         # We create four interfaces for "two-way coupling" between natural  
         # model and human model. However, the user-defined human model has to 
         # follow specific protocal. See the documantation for details.
         else:
-            self.logger.info("Start the HydroCNHS simulation.")
-            for t in tqdm(range(DataLength), desc = self.__name__, disable=disable):
-                CurrentDate = pdDatedateIndex[t]
-                for node in SimSeq:
+            logger.info("Start the HydroCNHS simulation.")
+            for t in tqdm(range(data_length), desc=self.name, disable=disable):
+                current_date = pd_date_index[t]
+                for node in sim_seq:
                     # Load active agent for current node at time t ------------
-                    RiverDivAgents_Plus = AgSimSeq["AgSimPlus"][node].get("RiverDivAgents")
-                    RiverDivAgents_Minus = AgSimSeq["AgSimMinus"][node].get("RiverDivAgents")
-                    InsituDivAgents_Minus = AgSimSeq["AgSimMinus"][node].get("InsituDivAgents")
-                    DamDivAgents_Plus = AgSimSeq["AgSimPlus"][node].get("DamDivAgents")
-                    ResDamAgents_Plus = AgSimSeq["AgSimPlus"][node].get("ResDamAgents")
+                    river_div_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
+                        "RiverDivAgents")
+                    river_div_ags_minus = ag_sim_seq["AgSimMinus"][node].get(
+                        "RiverDivAgents")
+                    hu_div_ags_minus = ag_sim_seq["AgSimMinus"][node].get(
+                        "HydroUnitDivAgents")
+                    dam_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
+                        "DamAgents")
 
                     # Note for the first three if, we should only enter one of 
                     # them at each node.
-                    if InsituDivAgents_Minus is not None or RiverDivAgents_Plus is not None:
+                    if (hu_div_ags_minus is not None
+                        or river_div_ags_plus is not None):
                         r"""
-                        For InsituDivAgents, they divert water directly from 
+                        For HydroUnitDivAgents, they divert water directly from 
                         the runoff in each sub-basin or grid.
-                        Note that InsituDivAgents has no return flow option.
+                        Note that HydroUnitDivAgents has no return flow option.
                         After updating Q generated by LSM and plus the return 
                         flow, we run the routing to calculate the routing 
                         streamflow at the routing outlet stored in Q_routed.
@@ -335,108 +419,67 @@ class HydroCNHSModel(object):
                         Therefore, in this section, both self.Q_routed and 
                         self.Q_LSM will be updated.
                         """
-                        if InsituDivAgents_Minus is not None:
-                            for ag in InsituDivAgents_Minus:
+                        if hu_div_ags_minus is not None:
+                            for ag in hu_div_ags_minus:
                                 # self.Q_LSM - Div
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
-                                self.Q_LSM[node][t] = self.Q_routed[node][t]
+                                Q_routed = agents[ag].act(
+                                    Q_routed, agent_dict=agents, node=node,
+                                    current_date=current_date, t=t,
+                                    DMs=DM_classes)
+                                ## !!!!!!!! check pointer
+                                Q_LSM[node][t] = Q_routed[node][t]
                                 
-                        if RiverDivAgents_Plus is not None:    
+                        if river_div_ags_plus is not None:    
                             # e.g., add return flow
-                            for ag in RiverDivAgents_Plus:
+                            for ag in river_div_ags_plus:
                                 # self.Q_LSM + return flow   
                                 # => return flow will join the in-grid routing. 
-                                self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
-                                self.Q_LSM[node][t] = self.Q_routed[node][t]
+                                Q_routed = agents[ag].act(
+                                    Q_routed, agent_dict=agents, node=node,
+                                    current_date=current_date, t=t,
+                                    DMs=DM_classes)
+                                Q_LSM[node][t] = Q_routed[node][t]
                     
-                    elif ResDamAgents_Plus is not None:
+                    elif dam_ags_plus is not None:
                         r"""
-                        For ResDamAgents, we simply add the release water to 
+                        For DamAgents, we simply add the release water to 
                         self.Q_routed[isag]. No minus action is needed for its 
                         upstream inflow outlet.
                         """
-                        for ag in ResDamAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
+                        for ag in dam_ags_plus:
+                            Q_routed = agents[ag].act(
+                                Q_routed, agent_dict=agents, node=node,
+                                current_date=current_date, t=t, DMs=DM_classes)
                     
-                    elif DamDivAgents_Plus is not None:
-                        r"""
-                        For DamDivAgents_Plus, we simply add the release water 
-                        to self.Q_routed[isag]. No minus action is needed.
-                        Note that even the DM is diversion, the action should 
-                        be converted to release Q (code in agent class). 
-                        Diversion dam.
-                        """
-                        for ag in DamDivAgents_Plus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
-                    
-                    if node in RoutingOutlets:
+                    if node in routing_outlets:
                         #----- Run Lohmann routing model for one routing outlet
                         # (node) for 1 time step (day).
-                        if self.RR["Model"] == "Lohmann":
-                            Qt = runTimeStep_Lohmann(node, self.RR, self.UH_Lohmann, self.Q_routed, self.Q_LSM, t)
+                        if routing["Model"] == "Lohmann":
+                            Qt = run_step_Lohmann(
+                                node, routing, UH_Lohmann, Q_routed, Q_LSM, t)
                         #----- Store Qt to final output.
-                        self.Q_routed[node][t] = Qt 
+                        Q_routed[node][t] = Qt 
                         
                     
-                    if RiverDivAgents_Minus is not None:
+                    if river_div_ags_minus is not None:
                         r"""
-                        For RiverDivAgents_Minus, we divert water from the 
+                        For river_div_ags_minus, we divert water from the 
                         routed river flow at agent-associated routing outlet.
                         """
-                        for ag in RiverDivAgents_Minus:
-                            self.Q_routed = self.Agents[ag].act(self.Q_routed, AgentDict = self.Agents, node=node, CurrentDate=CurrentDate, t=t, DMs = self.DMClasses)
+                        for ag in river_div_ags_minus:
+                            Q_routed = agents[ag].act(
+                                Q_routed, agent_dict=agents, node=node,
+                                current_date=current_date, t=t, DMs=DM_classes)
                     
 
-        # ----------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         print("")   # Force the logger to start a new line after tqdm.
-        self.logger.info("Complete HydroCNHS simulation! [{}]\n".format(getElapsedTime()))
-        # [cms] Streamflow for routing outlets (Gauged outlets and inflow outlets of in-stream agents).
-        # For other variables users need to extract them manually from this class.
-        return self.Q_routed   
+        self.logger.info(
+            "Complete HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
+        # [cms] Streamflow for routing outlets (Gauged outlets and inflow
+        # outlets of instream agents). For other variables users need to
+        # extract them manually from this class.
+        return Q_routed   
     
-    def getModelObject(self):
+    def get_model_object(self):
         return self.__dict__
-    
-    
-    
-r"""
-# ----- Load Agents from ABM -----
-        # Note: we will automatically detect whether the ABM section is 
-        # available. If ABM section is not found, then we consider it as 
-        # none coupled model.
-        # AgGroup = {"AgType":{"Name": []}}
-        
-        StartDate = to_datetime(self.WS["StartDate"], format="%Y/%m/%d")  
-        DataLength = self.WS["DataLength"]
-        self.Agents = {}     # Store all agent objects with key = agentname.
-
-        if self.ABM is not None: 
-            #====== Customize part ======
-            self.DivDM_KTRWS = DivDM(StartDate, DataLength, self.ABM)
-            #============================
-            # Create agent group
-            AgGroup = self.ABM["Inputs"].get("AgGroup")
-            if AgGroup is not None:
-                for agType in AgGroup:
-                    for agG in AgGroup[agType]:
-                        agList = AgGroup[agType][agG]
-                        agConfig = {}
-                        for ag in agList:
-                            agConfig[ag] = self.ABM[agType][ag]
-                        self.Agents[agG] = eval(agType)(Name=agG, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-            else:
-                AgGroup = []
-            # Create agent
-            for agType, Ags in self.ABM.items():
-                if agType == "Inputs" or agType in AgGroup:
-                        continue
-                for ag, agConfig in Ags.items():
-                    # eval(agType) will turn the string into class. Therefore, agType must be a well-defined class in Agent module.
-                    try:
-                        # Initialize agent object from agent-type class defined in Agent.py.
-                        self.Agents[ag] = eval(agType)(Name=ag, Config=agConfig, StartDate=StartDate, DataLength=DataLength)
-                    except Exception as e:
-                        self.logger.error(traceback.format_exc())
-                        raise Error("Fail to load {} as agent type {}.".format(ag, agType))
-        # --------------------------------
-"""

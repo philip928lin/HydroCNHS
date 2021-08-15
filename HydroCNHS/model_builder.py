@@ -10,11 +10,11 @@ which users need to manually populate values inside Model.yaml.
 After populating values inside Model.yaml, ModelBuilder provide a loadmodel() staticmethod 
 to check and parse Model.yaml, which ensure the eligibility of Model.yaml.
 """
+import os
 from copy import deepcopy
 import pandas as pd
-import os
-
-from .SystemControl import loadModel, writeModel, loadDFToModelDict, writeModelToCSV
+from .util import (load_model, write_model, load_df_to_model_dict,
+                   write_model_to_csv)
 
 GWLF = {"Inputs": {"Area":      "Required",
                    "Latitude":  "Required",
@@ -51,7 +51,7 @@ Lohmann = {"Inputs": {"FlowLength":        "Required",
                     "Velo":     -99,
                     "Diff":     -99}}
 
-Agent = {"Attributions": None,
+Agent = {"Attributes": None,
          "Inputs": {"DMFreq":   "Required",
                     "Piority":  "Required",
                     "Links":    "Required",
