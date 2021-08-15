@@ -21,7 +21,7 @@ from .util import (load_system_config, load_model,
                    load_customized_module_to_class)
 
 class HydroCNHSModel(object):
-    def __init__(self, model, name=None):
+    def __init__(self, model, name=None, checked=False, parsed=False):
         """HydroCNHS model object.
 
         Args:
@@ -40,7 +40,7 @@ class HydroCNHSModel(object):
             
         # Load model.yaml and distribute into several variables.
         ## We design model to be either str or dictionary.
-        model = load_model(model)
+        model = load_model(model, checked=checked, parsed=parsed)
         
         # Verify model contain all following keys.
         try:                   
@@ -110,7 +110,6 @@ class HydroCNHSModel(object):
         routing = self.routing
         abm = self.abm
         path = self.path
-        weather = self.weather
         logger = self.logger
         # ----- Start a timer -------------------------------------------------
         start_time = time.monotonic()
@@ -126,6 +125,9 @@ class HydroCNHSModel(object):
         outlets = ws["Outlets"]
         # Remove sub-basin that don't need to be simulated. 
         outlets = list(set(outlets) - set(assigned_Q.keys()))  
+        # Load weather (and calculate pet with Hamon's method).
+        self.load_weather_data(temp, prec, pet, outlets) 
+        weather = self.weather
         # Update routing setting. No in-grid routing.
         if assigned_Q != {}:
             for ro in routing_outlets:
@@ -143,8 +145,6 @@ class HydroCNHSModel(object):
         if lsm["Model"] == "GWLF":
             logger.info("Start GWLF for {} sub-basins. [{}]".format(
                 len(outlets), get_elapsed_time()))
-            # Load weather and calculate PEt with Hamon's method.
-            self.load_weather_data(temp, prec, pet, outlets)    
             QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
                               verbose=paral_setting["verbose"]) \
                             ( delayed(run_GWLF)\
@@ -158,9 +158,7 @@ class HydroCNHSModel(object):
         # Not verify this model yet.
         if lsm["Model"] == "HYMOD":
             logger.info("Start HYMOD for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time()))
-            # Load weather and calculate PEt with Hamon's method.
-            self.load_weather_data(temp, prec, pet, outlets)    
+                len(outlets), get_elapsed_time()))   
             QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
                               verbose=paral_setting["verbose"]) \
                             ( delayed(run_HYMOD)\
@@ -173,9 +171,7 @@ class HydroCNHSModel(object):
         # Not verify this model yet.
         if lsm["Model"] == "ABCD":
             logger.info("Start ABCD for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time()))
-            # Load weather and calculate PEt with Hamon's method.
-            self.load_weather_data(temp, prec, pet, outlets)    
+                len(outlets), get_elapsed_time())) 
             QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
                               verbose=paral_setting["verbose"]) \
                             ( delayed(run_ABCD)\
@@ -261,7 +257,7 @@ class HydroCNHSModel(object):
             # Initialize DMFuncs ----------------------------------------------
             for dmclass in abm["Inputs"]["DMClasses"]:
                 try:    # Try to load from user-defined module first.
-                    DM_classes[dmclass] = eval("User."+dmclass)(
+                    DM_classes[dmclass] = eval("UserModules."+dmclass)(
                         start_date, data_length, abm)
                     logger.info(
                         "Load {} from the user-defined classes.".format(
@@ -295,7 +291,7 @@ class HydroCNHSModel(object):
                         for ag in agList:
                             ag_config[ag] = abm[ag_type][ag]
                         try:      # Try to load from user-defined module first.
-                            agents[agG] = eval("User."+ag_type)(
+                            agents[agG] = eval("UserModules."+ag_type)(
                                 name=agG, config=ag_config,
                                 start_date=start_date, data_length=data_length)
                             logger.info(
@@ -303,6 +299,10 @@ class HydroCNHSModel(object):
                                 +"from the user-defined classes.")
                         except Exception as e:
                             try:  # Detect if it is a built-in class.
+                                logger.info(
+                                    "Try to load {} for {} ".format(ag_type,
+                                                                    agG)
+                                    +"from the built-in classes.")
                                 agents[agG] = eval(ag_type)(
                                     name=agG, config=ag_config,
                                     start_date=start_date,
@@ -326,7 +326,7 @@ class HydroCNHSModel(object):
                         continue
                 for ag, ag_config in Ags.items():
                     try:        # Try to load from user-defined module first.
-                        agents[ag] = eval("User."+ag_type)(
+                        agents[ag] = eval("UserModules."+ag_type)(
                             name=ag, config=ag_config, start_date=start_date,
                             data_length=data_length)
                         logger.info(

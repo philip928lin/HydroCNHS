@@ -50,7 +50,7 @@ def update_system_config(modified_config):
             
     with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
         yaml_round.dump(config, file)
-    logger.info("Update system Config to:\n{}".format(Dict2String(config)))
+    logger.info("Update system Config to:\n{}".format(dict_to_string(config)))
 
 def default_config():
     """Set Config.yaml back to default setting.
@@ -399,15 +399,18 @@ def check_WS(model_dict):
     #--- Check keys
     ideal_keys = ["NumSubbasins", "NumGauges", "NumAgents", "Outlets",
                  "GaugedOutlets"]
-    if ideal_keys not in ws.keys():
+    ws_items = list(ws.keys())
+    if all(item in ws_items for item in ideal_keys) is False:
         logger.error(
-            "Missing items in WaterSystem setting. {}".format(ideal_keys))
+            "Missing items in WaterSystem setting. {}".format(
+                set(ideal_keys)-set(ws_items))
+            )
         Pass = False
         
     data_length = ws.get("DataLength")
     end_date = ws.get("EndDate")
     if data_length is not None:
-        end_date = (pd.to_datetime(ws["EndDate"], format='%Y/%m/%d')\
+        end_date = (pd.to_datetime(ws["StartDate"], format='%Y/%m/%d')\
             + pd.DateOffset(data_length-1))
         ws["EndDate"] = end_date.strftime('%Y/%m/%d')
     elif end_date is not None:
@@ -437,8 +440,9 @@ def check_WS(model_dict):
         logger.error("\".\" is not allowed in outlet's name.")
         Pass = False
     
-    if gauged_outlets not in outlets:
-        logger.error("Some GaugedOutlets are not defined in Outlets.")
+    if all(item in outlets for item in gauged_outlets) is False:
+        logger.error("GaugedOutlets {} are not defined in Outlets.".format(
+            set(gauged_outlets)-set(outlets)))
         Pass = False
     
     return Pass
@@ -531,7 +535,7 @@ def check_agent_in_routing(model_dict):
         for ag in abm[river_div_type]:
             links = abm[river_div_type][ag]["Inputs"]["Links"]
             divert_outlet = [outlet for outlet in links \
-                             if links[outlet] <= -1 and outlet != ag]
+                             if links[outlet] == -1 and outlet != ag]
             if divert_outlet == []:
                 logger.error("[Check model failed] No diverted outlets "
                              +"(e.g., Links:{DivertOutlet: -1}) are found "
@@ -692,7 +696,7 @@ def parse_sim_seq(model_dict):
     if model_dict.get("ABM") is not None:
         dam_ag_types = abm["Inputs"]["DamAgentTypes"]
         river_ag_types = abm["Inputs"]["RiverDivAgentTypes"]
-        hydro_unit_ag_types = abm["HydroUnitDivAgentTypes"]
+        hydro_unit_ag_types = abm["Inputs"]["HydroUnitDivAgentTypes"]
         # Ordered routing_outlets
         routing_outlets = model_dict["SystemParsedData"]["RoutingOutlets"] 
         
@@ -852,7 +856,7 @@ def parse_sim_seq(model_dict):
     for i in ["SimSeq","RoutingOutlets","DamAgents",
               "RiverDivAgents","HydroUnitDivAgents","AgSimSeq"]:
         summary_dict[i] = model_dict["SystemParsedData"][i]
-    parsed_model_summary = dict_to_string(summary_dict, Indentor = "  ")
+    parsed_model_summary = dict_to_string(summary_dict, indentor="  ")
     logger.info("Parsed model data summary:\n" + parsed_model_summary)
     return model_dict
 #-------------------------------------

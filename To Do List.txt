@@ -66,15 +66,15 @@ Name in yaml: ItemName
 Package (HydroCNHS) structure==================================================
                             Rename  Test    Doc
 __init__.py                 OK
-hydrocnhs.py                OK
-routing.py                  OK
-util.py                     OK
+hydrocnhs.py                OK      OK
+routing.py                  OK      OK
+util.py                     OK      OK
 indicators.py               OK
 visual.py                   ~OK
 model_builder.py
 land_surface_model          OK
     __init__.py             OK
-    gwlf.py                 OK
+    gwlf.py                 OK      OK
     abcd.py                 OK
     hymod.py                OK
     pet_hamon.py            OK
@@ -141,8 +141,7 @@ ABM:
 
 
 To do==========================================================================
-Rename YAML => Attributes
-Test run, then Correct all naming issues and code style.
+Test run
 Function documentation
 Maybe initiate data collector
     https://github.com/projectmesa/mesa/blob/main/mesa/datacollection.py
@@ -152,9 +151,12 @@ Technical report
 default_config()
 plot_equifinal()
 get_equifinal_models()
+model_builder
 
 Done list======================================================================
 Test sim sequence: Make sure your back tracking is workable for cross sub basin
                    but same human group.
 Test DEAP
 Turn to three apis
+Rename YAML => Attributes
+Correct all naming issues and code style.
