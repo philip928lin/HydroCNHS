@@ -64,24 +64,24 @@ Arguments: argument_of_the_function
 Name in yaml: ItemName
 
 Package (HydroCNHS) structure==================================================
-                            Rename  Test    Doc
-__init__.py                 OK
+                            Rename  Check    Doc    Test_func
+__init__.py                 OK      OK
 hydrocnhs.py                OK      OK
 routing.py                  OK      OK
 util.py                     OK      OK
-indicators.py               OK
+indicators.py               OK      OK
 visual.py                   ~OK
 model_builder.py
 land_surface_model          OK
     __init__.py             OK
     gwlf.py                 OK      OK
     abcd.py                 OK
-    hymod.py                OK
-    pet_hamon.py            OK
-calibration                 OK
-    __init__.py             OK
-    convertor.py            OK
-    ga_deap.py              OK
+    hymod.py                OK      -
+    pet_hamon.py            OK      OK
+calibration                 OK      OK
+    __init__.py             OK      OK
+    convertor.py            OK      OK
+    ga_deap.py              OK      OK
 
 ==================================================
 HydroCNHS
@@ -152,6 +152,7 @@ default_config()
 plot_equifinal()
 get_equifinal_models()
 model_builder
+ga_deap to let user be able to change deap setup.
 
 Done list======================================================================
 Test sim sequence: Make sure your back tracking is workable for cross sub basin

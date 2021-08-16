@@ -78,8 +78,9 @@ class Convertor(object):
             )   # Find index for np.nan values.
         self.formatter = formatter
     
-    def gen_cali_inputs(self, wd, df_list, par_type_df_list, par_bound_df_list,
-                        par_weight_df_list=None, fixed_par_list=None):
+    def gen_cali_inputs(self, wd, df_list, par_bound_df_list,
+                        par_type_df_list=["real"], par_weight_df_list=None,
+                        fixed_par_list=None):
         """Generate inputs dictionary required for calibration.
 
         Args:
@@ -108,7 +109,7 @@ class Convertor(object):
         
         # Compute formatter
         # We use par_bound_df_list to determine None.
-        self.genFormatter(df_list, fixed_par_list)
+        self.gen_formatter(df_list, fixed_par_list)
         formatter = self.formatter
         none_index = formatter["none_index"]
         par_name = []

@@ -84,7 +84,7 @@ def gen_init_pop(creator, size, method="LHC", guess_pop=None):
     return individuals
 def mut_uniform(individual, prob_mut):
     num_par = len(individual)
-    mut = np.random.binomial(n = 1, p=prob_mut, size=num_par) == 1
+    mut = np.random.binomial(n=1, p=prob_mut, size=num_par) == 1
     new_sample = np.random.uniform(0, 1, num_par)
     individual[mut] = new_sample.flatten()[mut] 
     return individual      
@@ -104,8 +104,8 @@ def mut_middle(individual, p1, p2, prob_mut):
 
 class GA_DEAP(object):
     def __init__(self):
-        print("GA Calibration Guide\n",
-              "Step 1: set or load (Autosave file).\nStep 2: run.")
+        print("GA Calibration Guide\n"
+              +"Step 1: set or load (GA_auto_save.pickle).\nStep 2: run.")
     
     def load(self, GA_auto_save_file):
         with open(GA_auto_save_file, "rb") as f:
@@ -351,7 +351,7 @@ class GA_DEAP(object):
                 plt.tight_layout()
                 filename = os.path.join(self.cali_wd,
                                         "Fitness_" + self.name + ".png")
-                fig.savefig(filename)
+                fig.savefig(filename, dpi=300)
                 if config["paral_cores"] == 1:
                     plt.show()
                 plt.close()
