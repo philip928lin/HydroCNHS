@@ -70,6 +70,7 @@ class HydroCNHSModel(object):
         """
         ws = self.ws
         lsm = self.lsm
+        logger = self.logger
         if pet is None:
             pet = {}
             # Default: calculate pet with Hamon's method and no dz adjustment.
@@ -77,10 +78,10 @@ class HydroCNHSModel(object):
                 pet[sb] = cal_pet_Hamon(temp[sb],
                                         lsm[sb]["Inputs"]["Latitude"],
                                         ws["StartDate"], dz=None)
-            self.logger.info("Compute pet by Hamon method. Users can improve "
+            logger.info("Compute pet by Hamon method. Users can improve "
                             +"the efficiency by assigning pre-calculated pet.")
         self.weather = {"temp":temp, "prec":prec, "pet":pet}
-        self.logger.info("Load temp & prec & pet with total length "
+        logger.info("Load temp & prec & pet with total length "
                          +"{}.".format(ws["DataLength"]))
            
     def __call__(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
@@ -110,7 +111,9 @@ class HydroCNHSModel(object):
         routing = self.routing
         abm = self.abm
         path = self.path
+        name = self.name
         logger = self.logger
+        
         # ----- Start a timer -------------------------------------------------
         start_time = time.monotonic()
         self.elapsed_time = 0
@@ -120,109 +123,7 @@ class HydroCNHSModel(object):
                                               time.gmtime(elapsed_time))
             return self.elapsed_time
         
-        # ----- Land surface simulation ---------------------------------------
-        self.Q_LSM = {}
-        outlets = ws["Outlets"]
-        # Remove sub-basin that don't need to be simulated. 
-        outlets = list(set(outlets) - set(assigned_Q.keys()))  
-        # Load weather (and calculate pet with Hamon's method).
-        self.load_weather_data(temp, prec, pet, outlets) 
-        weather = self.weather
-        # Update routing setting. No in-grid routing.
-        if assigned_Q != {}:
-            for ro in routing_outlets:
-                for sb in routing[ro]:
-                    if sb in assigned_Q:
-                        # No in-grid routing.
-                        routing[ro][sb]["Pars"]["GShape"] = None  
-                        routing[ro][sb]["Pars"]["GRate"] = None   
-                        logger.info(
-                            "Turn {}'s GShape and GRate to ".format((sb, ro))
-                            +"None in the routing setting. There is no "
-                            +"in-grid time lag with given observed Q.")
-        
-        # Start GWLF simulation in parallel.
-        if lsm["Model"] == "GWLF":
-            logger.info("Start GWLF for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time()))
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
-                              verbose=paral_setting["verbose"]) \
-                            ( delayed(run_GWLF)\
-                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
-                                 weather["temp"][sb], weather["prec"][sb],
-                                 weather["pet"][sb], ws["StartDate"],
-                                 data_length) \
-                                for sb in outlets ) 
-                            
-        # Start HYMOD simulation in parallel.
-        # Not verify this model yet.
-        if lsm["Model"] == "HYMOD":
-            logger.info("Start HYMOD for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time()))   
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
-                              verbose=paral_setting["verbose"]) \
-                            ( delayed(run_HYMOD)\
-                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
-                                 weather["temp"][sb], weather["prec"][sb],
-                                 weather["pet"][sb], data_length) \
-                                for sb in outlets ) 
-        
-        # Start ABCD simulation in parallel.
-        # Not verify this model yet.
-        if lsm["Model"] == "ABCD":
-            logger.info("Start ABCD for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time())) 
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
-                              verbose=paral_setting["verbose"]) \
-                            ( delayed(run_ABCD)\
-                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
-                                 weather["temp"][sb], weather["prec"][sb],
-                                 weather["pet"][sb], data_length) \
-                                for sb in outlets ) 
-
-        # ----- Add user assigned Q first. ------------------------------------
-        self.Q_LSM = deepcopy(assigned_Q)    # Necessary deepcopy!
-        # Collect QParel results
-        for i, sb in enumerate(outlets):
-            self.Q_LSM[sb] = QParel[i]
-            
-        # Q_routed will be continuously updated for routing.
-        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage
-        # pointer!
-        self.Q_routed = deepcopy(self.Q_LSM)
-        self.logger.info("Complete LSM simulation. [{}]".format(
-            get_elapsed_time())) 
-    
-        # ----- Form UH for Lohmann routing method ----------------------------
-        if routing["Model"] == "Lohmann":
-            # Form combination
-            UH_List = [(sb, ro) for ro in routing_outlets \
-                        for sb in self.routing[ro]]
-            # Remove assigned UH from the list.
-            UH_List_Lohmann = list(set(UH_List) - set(assigned_UH.keys()))
-            # Start forming UH_Lohmann in parallel.
-            logger.info(
-                "Start forming {} UHs for Lohmann routing. [{}]".format(
-                    len(UH_List_Lohmann), get_elapsed_time()))
-            # pair = (outlet, routing outlet)
-            UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
-                               verbose=paral_setting["verbose"]) \
-                            ( delayed(form_UH_Lohmann)\
-                            (routing[pair[1]][pair[0]]["Inputs"],
-                             routing[pair[1]][pair[0]]["Pars"]) \
-                            for pair in UH_List_Lohmann )
-
-            # Form UH ---------------------------------------------------------
-            # Add user assigned UH first.
-            self.UH_Lohmann = {}
-            self.UH_Lohmann = deepcopy(assigned_UH)  # Necessary deepcopy!
-            for i, pair in enumerate(UH_List_Lohmann):
-                self.UH_Lohmann[pair] = UHParel[i]
-            self.logger.info(
-                "Complete forming UHs for Lohmann routing. [{}]".format(
-                    get_elapsed_time()))
-        
-        # ----- Load Agents from ABM ------------------------------------------
+        # ----- Load external modules -----------------------------------------
         # We will automatically detect whether the ABM section is available. 
         # If ABM section is not found, then we consider it as none coupled 
         # model.
@@ -238,13 +139,10 @@ class HydroCNHSModel(object):
         self.DM_classes = {}   # Store all DM function Ex {"DMFunc": DMFunc()}
         agents = self.agents
         DM_classes = self.DM_classes
-        UH_Lohmann = self.UH_Lohmann
-        Q_LSM = self.Q_LSM
-        Q_routed = self.Q_routed
         
         if abm is not None: 
             # Import user-defined module --------------------------------------
-            module_path = self.path.get("Modules")
+            module_path = path.get("Modules")
             if module_path is not None:
                 # User class will store all user-defined modules' classes and 
                 # functions.
@@ -334,22 +232,125 @@ class HydroCNHSModel(object):
                             +"from the user-defined classes.")
                     except Exception as e:
                         try:    # Detect if it is a built-in class.
-                            self.agents[ag] = eval(ag_type)(
+                            agents[ag] = eval(ag_type)(
                                 name=ag, config=ag_config,
                                 start_date=start_date, data_length=data_length)
-                            self.logger.info(
+                            logger.info(
                                 "Load {} for {} ".format(ag_type, ag)
                                 +"from the built-in classes.")
                         except Exception as e:
-                            self.logger.error(traceback.format_exc())
+                            logger.error(traceback.format_exc())
                             raise Error(
                                 "Fail to load {} for {}.".format(ag_type, ag)
                                 +"\nMake sure the class is well-defined in "
                                 +"given modules.")
-        # ---------------------------------------------------------------------
         
+        # ----- Land surface simulation ---------------------------------------
+        self.Q_LSM = {}
+        outlets = ws["Outlets"]
+        # Remove sub-basin that don't need to be simulated. 
+        outlets = list(set(outlets) - set(assigned_Q.keys()))  
+        # Load weather (and calculate pet with Hamon's method).
+        self.load_weather_data(temp, prec, pet, outlets) 
+        weather = self.weather
+        # Update routing setting. No in-grid routing.
+        if assigned_Q != {}:
+            for ro in routing_outlets:
+                for sb in routing[ro]:
+                    if sb in assigned_Q:
+                        # No in-grid routing.
+                        routing[ro][sb]["Pars"]["GShape"] = None  
+                        routing[ro][sb]["Pars"]["GRate"] = None   
+                        logger.info(
+                            "Turn {}'s GShape and GRate to ".format((sb, ro))
+                            +"None in the routing setting. There is no "
+                            +"in-grid time lag with given observed Q.")
+        
+        # Start GWLF simulation in parallel.
+        if lsm["Model"] == "GWLF":
+            logger.info("Start GWLF for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()))
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_GWLF)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], ws["StartDate"],
+                                 data_length) \
+                                for sb in outlets ) 
+                            
+        # Start HYMOD simulation in parallel.
+        # Not verify this model yet.
+        if lsm["Model"] == "HYMOD":
+            logger.info("Start HYMOD for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()))   
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_HYMOD)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], data_length) \
+                                for sb in outlets ) 
+        
+        # Start ABCD simulation in parallel.
+        # Not verify this model yet.
+        if lsm["Model"] == "ABCD":
+            logger.info("Start ABCD for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time())) 
+            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+                              verbose=paral_setting["verbose"]) \
+                            ( delayed(run_ABCD)\
+                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
+                                 weather["temp"][sb], weather["prec"][sb],
+                                 weather["pet"][sb], data_length) \
+                                for sb in outlets ) 
+
+        # ----- Add user assigned Q first. ------------------------------------
+        self.Q_LSM = deepcopy(assigned_Q)    # Necessary deepcopy!
+        # Collect QParel results
+        Q_LSM = self.Q_LSM
+        for i, sb in enumerate(outlets):
+            Q_LSM[sb] = QParel[i]
+            
+        # Q_routed will be continuously updated for routing.
+        # Necessary deepcopy to isolate self.Q_LSM and self.Q_routed storage
+        # pointer!
+        self.Q_routed = deepcopy(Q_LSM)
+        logger.info("Complete LSM simulation. [{}]".format(
+            get_elapsed_time())) 
+    
+        # ----- Form UH for Lohmann routing method ----------------------------
+        if routing["Model"] == "Lohmann":
+            # Form combination
+            UH_List = [(sb, ro) for ro in routing_outlets \
+                        for sb in routing[ro]]
+            # Remove assigned UH from the list.
+            UH_List_Lohmann = list(set(UH_List) - set(assigned_UH.keys()))
+            # Start forming UH_Lohmann in parallel.
+            logger.info(
+                "Start forming {} UHs for Lohmann routing. [{}]".format(
+                    len(UH_List_Lohmann), get_elapsed_time()))
+            # pair = (outlet, routing outlet)
+            UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
+                               verbose=paral_setting["verbose"]) \
+                            ( delayed(form_UH_Lohmann)\
+                            (routing[pair[1]][pair[0]]["Inputs"],
+                             routing[pair[1]][pair[0]]["Pars"]) \
+                            for pair in UH_List_Lohmann )
+
+            # Form UH ---------------------------------------------------------
+            # Add user assigned UH first.
+            self.UH_Lohmann = {}
+            self.UH_Lohmann = deepcopy(assigned_UH)  # Necessary deepcopy!
+            UH_Lohmann = self.UH_Lohmann
+            for i, pair in enumerate(UH_List_Lohmann):
+                UH_Lohmann[pair] = UHParel[i]
+            logger.info(
+                "Complete forming UHs for Lohmann routing. [{}]".format(
+                    get_elapsed_time()))
         
         # ----- Time step simulation (Coupling hydrological model and ABM) ----
+        Q_routed = self.Q_routed
         # Obtain datetime index -----------------------------------------------
         pd_date_index = date_range(start=start_date, periods=data_length,
                                      freq="D")
@@ -370,13 +371,13 @@ class HydroCNHSModel(object):
         if abm is None: 
             logger.info("Start the non-coupled simulation.")
             # Run step-wise routing to update Q_routed ------------------------
-            for t in tqdm(range(data_length), desc=self.name, disable=disable):
+            for t in tqdm(range(data_length), desc=name, disable=disable):
                 current_date = pd_date_index[t]
                 for node in sim_seq:
                     if node in routing_outlets:
                         #----- Run Lohmann routing model for one routing outlet
                         # (node) for 1 timestep (day).
-                        if self.routing["Model"] == "Lohmann":
+                        if routing["Model"] == "Lohmann":
                             Qt = run_step_Lohmann(node, routing, UH_Lohmann,
                                                   Q_routed, Q_LSM, t)
                         #----- Store Qt to final output.
@@ -388,7 +389,7 @@ class HydroCNHSModel(object):
         # follow specific protocal. See the documantation for details.
         else:
             logger.info("Start the HydroCNHS simulation.")
-            for t in tqdm(range(data_length), desc=self.name, disable=disable):
+            for t in tqdm(range(data_length), desc=name, disable=disable):
                 current_date = pd_date_index[t]
                 for node in sim_seq:
                     # Load active agent for current node at time t ------------
@@ -474,7 +475,7 @@ class HydroCNHSModel(object):
 
         # ---------------------------------------------------------------------
         print("")   # Force the logger to start a new line after tqdm.
-        self.logger.info(
+        logger.info(
             "Complete HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow
         # outlets of instream agents). For other variables users need to

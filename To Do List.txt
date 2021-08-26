@@ -4,16 +4,14 @@ Modeling scope:
 
 
 About agents:
-As the original design, we will have four agent apis:
-(1) InsituDivAgents: Directly divert water from subbasin before routing.
+We have three agent APIs:
+(1) HydroUnitDivAgentTypes: Directly divert water from subbasin before routing.
 (2) RiverDivAgents: Add water to outlets before routing or divert water from
     outlets after routing.
-(3) DamDivAgents (Not necessary) : Divert water from outlets after routing but
-    in the form of adding.
-(4) ResDamAgents : Complete redifine instream water after upstream rounting.
+(3) DamAgents : Complete redefine instream water after upstream routing.
 
 Here we define an agent as an actor which associates with a unique name and 
-setting dict in the model.yaml. Each agent is belong to one agent type and one 
+setting dict in the model.yaml. Each agent belong to one agent type and one 
 decision-making class (DMClass). An agent type is a user-defined class followed
 by a basic structure defined below:
 
@@ -82,12 +80,18 @@ calibration                 OK      OK
     __init__.py             OK      OK
     convertor.py            OK      OK
     ga_deap.py              OK      OK
-
+config
+    Config_default.yaml
+    Config_logging.yaml
+    Config.yaml
 ==================================================
 HydroCNHS
 Example
 Tests
+Docs
 setup.py
+MANIFEST.in
+README.md
 
 YAML structure=================================================================
 Path: 
@@ -121,7 +125,6 @@ Routing:
 
 ABM:
   Inputs:
-  ### Thinking about shrink to three api.
     DamAgentTypes: []
     RiverDivAgentTypes: []
     HydroUnitDivAgentTypes: []
@@ -161,3 +164,4 @@ Test DEAP
 Turn to three apis
 Rename YAML => Attributes
 Correct all naming issues and code style.
+Move load module ahead of LSM simulation
