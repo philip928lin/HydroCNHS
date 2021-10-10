@@ -600,7 +600,8 @@ def parse_sim_seq(model_dict):
     model_dict["SystemParsedData"]["RoutingOutlets"] = None
     model_dict["SystemParsedData"]["DamAgents"] = None
     model_dict["SystemParsedData"]["RiverDivAgents"] = None
-    model_dict["SystemParsedData"]["HydroUnitDivAgents"] = None
+    model_dict["SystemParsedData"]["InsituAgentTypes"] = None
+    model_dict["SystemParsedData"]["ConveyAgentTypes"] = None
     model_dict["SystemParsedData"]["BackTrackingDict"] = None
     model_dict["SystemParsedData"]["Edges"] = None
     
@@ -612,7 +613,7 @@ def parse_sim_seq(model_dict):
     if model_dict.get("ABM") is not None:
         abm = model_dict["ABM"]
         for ag_types in ["DamAgentTypes", "RiverDivAgentTypes",
-                         "HydroUnitDivAgentTypes"]:    
+                         "InsituAgentTypes", "ConveyAgentTypes"]:    
             agents = []
             for ag_type in abm["Inputs"][ag_types]:
                 for end in abm[ag_type]:
@@ -696,7 +697,8 @@ def parse_sim_seq(model_dict):
     if model_dict.get("ABM") is not None:
         dam_ag_types = abm["Inputs"]["DamAgentTypes"]
         river_ag_types = abm["Inputs"]["RiverDivAgentTypes"]
-        hydro_unit_ag_types = abm["Inputs"]["HydroUnitDivAgentTypes"]
+        insitu_ag_types = abm["Inputs"]["InsituAgentTypes"]
+        convey_ag_types = abm["Inputs"]["ConveyAgentTypes"]
         # Ordered routing_outlets
         routing_outlets = model_dict["SystemParsedData"]["RoutingOutlets"] 
         
@@ -804,10 +806,55 @@ def parse_sim_seq(model_dict):
                     piority["AgSimMinus"][ro]["RiverDivAgents"].append(
                         abm[ag_type][member]["Inputs"]["Piority"]
                         )
-
-        for ag_type in hydro_unit_ag_types:
-            # hydro_unit_ag_types is a simple diversion agent type, which only
-            # divert water from a single sub-basin.
+                    
+        for ag_type in convey_ag_types:
+            if ag_type in ag_group:
+                ag_list = ag_group[ag_type].keys()     # Use the group name
+                group = True
+            else:
+                ag_list = abm[ag_type].keys()
+                group = False
+            for ag in ag_list:
+                if group:
+                    # Use the setting of the first member in the group
+                    member = ag_group[ag_type][ag][0]
+                else:
+                    member = ag
+                links = abm[ag_type][member]["Inputs"]["Links"]
+                plus = []; minus = []
+                for p in links:
+                    if links[p] >= 0:
+                        plus.append(p)
+                    else:
+                        minus.append(p)
+                for p in plus:
+                    # Flow can be added to non-routing outlets. So we
+                    # need to find the associate routing outlet in the SimSeq.
+                    ro = search_routing_outlet(p)
+                    create_empty_list(ag_sim_seq["AgSimPlus"][ro],
+                                      "ConveyAgents")
+                    create_empty_list(piority["AgSimPlus"][ro],
+                                      "ConveyAgents")
+                    ag_sim_seq["AgSimPlus"][ro]["ConveyAgents"].append(ag)
+                    piority["AgSimPlus"][ro]["ConveyAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Piority"]
+                        )
+                for m in minus:
+                    # ConveyAgents convey from a routing outlet.
+                    # ro = search_routing_outlet(m)  
+                    ro = m
+                    create_empty_list(ag_sim_seq["AgSimMinus"][ro],
+                                      "ConveyAgents")
+                    create_empty_list(piority["AgSimMinus"][ro],
+                                      "ConveyAgents")
+                    ag_sim_seq["AgSimMinus"][ro]["ConveyAgents"].append(ag)
+                    piority["AgSimMinus"][ro]["ConveyAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Piority"]
+                        )
+                    
+        for ag_type in insitu_ag_types:
+            # insitu_ag_types is a simple diversion agent type, which only
+            # divert/add water from a single sub-basin.
             # Runoff of the max(sub-basin - InsituDiv, 0)
             # Note that it divert from runoff of a single sub-basin not river
             # and no return flow option.
@@ -824,19 +871,36 @@ def parse_sim_seq(model_dict):
                 else:
                     member = ag
                 links = abm[ag_type][member]["Inputs"]["Links"]
-                # No special "list"offer to calibrate return flow factor
+                # No special "list" offer to calibrate return flow factor
                 # (Inputs).
                 # No return flow option. 
-                minus = [p for p in links if links[p] <= 0]
+                plus = []; minus = []
+                for p in links:
+                    if links[p] >= 0:
+                        plus.append(p)
+                    else:
+                        minus.append(p)
+                for p in plus:
+                    # Return flow can be added to non-routing outlets. So we
+                    # need to find the associate routing outlet in the SimSeq.
+                    ro = search_routing_outlet(p)
+                    create_empty_list(ag_sim_seq["AgSimPlus"][ro],
+                                      "InsituAgents")
+                    create_empty_list(piority["AgSimPlus"][ro],
+                                      "InsituAgents")
+                    ag_sim_seq["AgSimPlus"][ro]["InsituAgents"].append(ag)
+                    piority["AgSimPlus"][ro]["InsituAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Piority"]
+                        )
                 for m in minus:
                     ro = search_routing_outlet(m)  
                     create_empty_list(ag_sim_seq["AgSimMinus"][ro],
-                                    "HydroUnitDivAgents")
+                                    "InsituAgents")
                     create_empty_list(piority["AgSimMinus"][ro],
-                                    "HydroUnitDivAgents")
-                    ag_sim_seq["AgSimMinus"][ro]["HydroUnitDivAgents"].append(
+                                    "InsituAgents")
+                    ag_sim_seq["AgSimMinus"][ro]["InsituAgents"].append(
                         ag)
-                    piority["AgSimMinus"][ro]["HydroUnitDivAgents"].append(
+                    piority["AgSimMinus"][ro]["InsituAgents"].append(
                         abm[ag_type][member]["Inputs"]["Piority"]
                         )
                     
@@ -853,8 +917,8 @@ def parse_sim_seq(model_dict):
         model_dict["SystemParsedData"]["AgSimSeq"] = ag_sim_seq    
         #----------------------------------------
     summary_dict = {}
-    for i in ["SimSeq","RoutingOutlets","DamAgents",
-              "RiverDivAgents","HydroUnitDivAgents","AgSimSeq"]:
+    for i in ["SimSeq","RoutingOutlets","DamAgents", "ConveyAgents",
+              "RiverDivAgents","InsituAgents","AgSimSeq"]:
         summary_dict[i] = model_dict["SystemParsedData"][i]
     parsed_model_summary = dict_to_string(summary_dict, indentor="  ")
     logger.info("Parsed model data summary:\n" + parsed_model_summary)

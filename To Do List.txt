@@ -5,10 +5,11 @@ Modeling scope:
 
 About agents:
 We have three agent APIs:
-(1) HydroUnitDivAgentTypes: Directly divert water from subbasin before routing.
+(1) InsituAgentTypes: Directly divert/add water from subbasin before routing.
 (2) RiverDivAgents: Add water to outlets before routing or divert water from
     outlets after routing.
 (3) DamAgents : Complete redefine instream water after upstream routing.
+(4) ConveyAgent : Directly convey water from one node to another.
 
 Here we define an agent as an actor which associates with a unique name and 
 setting dict in the model.yaml. Each agent belong to one agent type and one 
@@ -125,9 +126,10 @@ Routing:
 
 ABM:
   Inputs:
-    DamAgentTypes: []
+    InsituAgentTypes: []
     RiverDivAgentTypes: []
-    HydroUnitDivAgentTypes: []
+    DamAgentTypes: []
+    ConveyAgent: []    
     DMClasses: []
     Modules: []
     AgGroup:
