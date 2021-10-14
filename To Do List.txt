@@ -129,7 +129,7 @@ ABM:
     InsituAgentTypes: []
     RiverDivAgentTypes: []
     DamAgentTypes: []
-    ConveyAgent: []    
+    ConveyAgentTypes: []    
     DMClasses: []
     Modules: []
     AgGroup:

@@ -600,8 +600,8 @@ def parse_sim_seq(model_dict):
     model_dict["SystemParsedData"]["RoutingOutlets"] = None
     model_dict["SystemParsedData"]["DamAgents"] = None
     model_dict["SystemParsedData"]["RiverDivAgents"] = None
-    model_dict["SystemParsedData"]["InsituAgentTypes"] = None
-    model_dict["SystemParsedData"]["ConveyAgentTypes"] = None
+    model_dict["SystemParsedData"]["InsituAgents"] = None
+    model_dict["SystemParsedData"]["ConveyAgents"] = None
     model_dict["SystemParsedData"]["BackTrackingDict"] = None
     model_dict["SystemParsedData"]["Edges"] = None
     # Store info for constructing routing UH for conveyed water of those node.
@@ -624,6 +624,8 @@ def parse_sim_seq(model_dict):
                     agents.append(end)
             model_dict["SystemParsedData"][ag_types[:-5] + "s"] = agents    
     instream_agents = model_dict["SystemParsedData"]["DamAgents"]
+    if instream_agents is None:
+        instream_agents = []
     
     #----- Step1: Form the simulation sequence of routing outlets and in-stream
     # control agents -----
