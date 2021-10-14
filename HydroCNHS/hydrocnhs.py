@@ -393,9 +393,11 @@ class HydroCNHSModel(object):
         sim_seq = sys_parsed_data["SimSeq"]
         ag_sim_seq = sys_parsed_data["AgSimSeq"]
         instream_agents = sys_parsed_data["DamAgents"]   
-        
+        if instream_agents is None:
+            instream_agents = []
+            
         # Add instream agent to Q_routed --------------------------------------
-        # instream_agents include ResDamAgentTypes & DamDivAgentTypes
+        # instream_agents include DamAgents
         for isag in instream_agents:
             Q_routed[isag] = np.zeros(data_length)
         
