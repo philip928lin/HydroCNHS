@@ -3,8 +3,8 @@ from .ga_deap import GA_DEAP
 def helper():
     print("(1) Code your customize evaluation function for GA algorithm with",
           "certain arguments.\nEx:\ndef evaluation(individual, formatter,",
-          "info):\n\t# info = (cali_wd, current_generation, No_of_individual)",
-          "\n\tRun model\n\tCalculate fitness\n\n\treturn (fitness,)\n\n (2)",
+          "info):\n\t# info = (cali_wd, current_generation, ith_individual)",
+          "\n\tRun model\n\tCalculate fitness\n\n\treturn (fitness,)\n\n(2)",
           "Create calibration object from GA_DEAP() class",
           "given inputs and config.\n\n(3) Run GA.")
 

@@ -186,10 +186,10 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
         elif s == "ABM":
             df_name.append(prefix + "ABM")
             df = pd.DataFrame()
-            AgTypes = model_dict[s]["Inputs"]["ResDamAgentTypes"]+ \
+            AgTypes = model_dict[s]["Inputs"]["DamAgentTypes"]+ \
                       model_dict[s]["Inputs"]["RiverDivAgentTypes"]+ \
-                      model_dict[s]["Inputs"]["DamDivAgentTypes"]+ \
-                      model_dict[s]["Inputs"]["InsituDivAgentTypes"]
+                      model_dict[s]["Inputs"]["InsituAgentTypes"]+ \
+                      model_dict[s]["Inputs"]["ConveyAgentTypes"]
             for agtype in AgTypes:
                 for ag in model_dict[s][agtype]:
                     dict_list = [model_dict[s][agtype][ag].get(i) \
@@ -604,6 +604,8 @@ def parse_sim_seq(model_dict):
     model_dict["SystemParsedData"]["ConveyAgentTypes"] = None
     model_dict["SystemParsedData"]["BackTrackingDict"] = None
     model_dict["SystemParsedData"]["Edges"] = None
+    # Store info for constructing routing UH for conveyed water of those node.
+    model_dict["SystemParsedData"]["ConveyToNodes"] = []
     
     #----- Collect in-stream agents
     ## In-stream agents here means those agents will re-define the streamflow
@@ -622,6 +624,7 @@ def parse_sim_seq(model_dict):
                     agents.append(end)
             model_dict["SystemParsedData"][ag_types[:-5] + "s"] = agents    
     instream_agents = model_dict["SystemParsedData"]["DamAgents"]
+    
     #----- Step1: Form the simulation sequence of routing outlets and in-stream
     # control agents -----
     # Collected edges and track-back dictionary. 
@@ -827,6 +830,8 @@ def parse_sim_seq(model_dict):
                         plus.append(p)
                     else:
                         minus.append(p)
+                
+                model_dict["SystemParsedData"]["ConveyToNodes"] = plus
                 for p in plus:
                     # Flow can be added to non-routing outlets. So we
                     # need to find the associate routing outlet in the SimSeq.

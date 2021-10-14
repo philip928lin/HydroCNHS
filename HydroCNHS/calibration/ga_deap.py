@@ -8,6 +8,14 @@ from deap import base, creator, tools
 import logging
 logger = logging.getLogger("HydroCNHS.GA")              
 
+# Build creator
+# This will create new class for the deap.creator library, which cannot be
+# pickled.
+creator.create("Fitness_min", base.Fitness, weights=(-1.0,))
+creator.create("Fitness_max", base.Fitness, weights=(1.0,))
+creator.create("Individual_min", np.ndarray, fitness=creator.Fitness_min)
+creator.create("Individual_max", np.ndarray, fitness=creator.Fitness_max)
+
 r"""
 inputs = {"par_name":    ["a","b","c"],     
           "par_bound":   [[1,2],[1,2],[1,2]],    
@@ -162,16 +170,24 @@ class GA_DEAP(object):
         self.lower_bound = np.array(lower_bound).reshape((-1, self.size[1]))        
 
         # Initialize DEAP setup
-        # Setup creator
-        if config["min_or_max"] == "min":
-            creator.create("Fitness", base.Fitness, weights=(-1.0,))
-        else:
-            creator.create("Fitness", base.Fitness, weights=(1.0,))
-        creator.create("Individual", np.ndarray,
-                            fitness=creator.Fitness)
+        # Setup creator (I think this will not be saved in pickle)
+        # https://stackoverflow.com/questions/66894090/storing-deap-models-as-pickle-objects
+        # My solution is to build creator globally on top of the script.
+        
+        # if config["min_or_max"] == "min":
+        #     creator.create("Fitness", base.Fitness, weights=(-1.0,))
+        # else:
+        #     creator.create("Fitness", base.Fitness, weights=(1.0,))
+        # creator.create("Individual", np.ndarray,
+        #                     fitness=creator.Fitness)
+        
         # Setup toolbox
         tb = base.Toolbox()
-        tb.register("population", gen_init_pop, creator.Individual)
+        if config["min_or_max"] == "min":
+            tb.register("population", gen_init_pop, creator.Individual_min)
+        else:
+            tb.register("population", gen_init_pop, creator.Individual_max)
+            
         tb.register("evaluate", evaluation_func)
         tb.register("scale", scale, bound_scale=self.bound_scale,
                          lower_bound=self.lower_bound)
@@ -193,7 +209,26 @@ class GA_DEAP(object):
                            +" Default to overwrite the folder!"
                            +"\n{}".format(self.cali_wd))
         #---------------------------------------
+        
+    def run_individual(self, individual="best", name="best"):
+        """Run the evaluation for a given individual (scaled).
 
+        Args:
+            individual (1darray, optional): individual. Defaults to "best".
+            name (str, optional): This will be sent to the evaluation function
+                through info = (cali_wd, name, name). Defaults to "best".
+        """
+        if individual == "best":
+            sol = self.solution
+        else:
+            sol = np.array(individual)
+        tb = self.tb
+        formatter = self.formatter
+        cali_wd = self.cali_wd
+        fitness = tb.evaluate(sol, formatter, (cali_wd, name, name))
+        print("Fitness: {}".format(fitness))
+        
+        
     def run(self, guess_pop=None):
         
         # Start timer
@@ -245,15 +280,22 @@ class GA_DEAP(object):
             # Apply crossover and mutation on the offspring
             for p1, p2, child1, child2 in zip(parents[::2], parents[1::2],
                                               offspring[::2], offspring[1::2]):
-                if np.random.uniform() < prob_cross:
-                    tb.crossover(child1, child2, prob_cross)
+                
+                # Keep the parent with some probability prob_cross
+                # if np.random.uniform() < prob_cross:
+                #     tb.crossover(child1, child2, prob_cross)
+                
+                # Crossover must happen 
+                tb.crossover(child1, child2, prob_cross)
                 if np.random.uniform() < prob_mut:
                     tb.mutate_uniform(child1, prob_mut)
                     tb.mutate_middle(child2, p1, p2, prob_mut)
-                    del child1.fitness.values
-                    del child2.fitness.values
+                
+                # Delete fitnesses
+                del child1.fitness.values
+                del child2.fitness.values
             
-            # Replace with ellite
+            # Replace with ellite (with its fitness, no rerun)
             for i, e in enumerate(self.ellites):
                 offspring[i] = e
             
@@ -286,16 +328,13 @@ class GA_DEAP(object):
         ellites = tb.ellite(pop, num_ellite)
         
         self.ellites = list(map(tb.clone, ellites))
-        self.solution = tb.scale(tb.clone(ellites[0]))
+        self.solution = np.array(tb.scale(tb.clone(ellites[0])))
         self.records[self.current_gen] = pop
         if config["drop_record"]:
             # Delete previous generation's record 
             self.records.pop(self.current_gen-1,"")
         
         self.current_gen += 1
-        
-        if config["auto_save"]:
-            self.auto_save()
             
         # Calculate indicators
         # Gather all the fitnesses in one list and print the stats
@@ -313,14 +352,18 @@ class GA_DEAP(object):
         self.summary["avg"].append(mean)
         self.summary["std"].append(std)
         
+        # Auto save
+        if config["auto_save"]:
+            self.auto_save()
+        
         if ((self.current_gen-1) % config["print_level"] == 0 
             or self.current_gen > config["max_gen"]):
             print("\n=====Generation {}=====".format(self.current_gen-1))
-            print("  Elapsed time %s" % elapsed_time)
-            print("  Min %s" % min(fits))
-            print("  Max %s" % max(fits))
-            print("  Avg %s" % mean)
-            print("  Std %s" % std)
+            print("  Elapsed time %s" % self.summary["elapsed_time"])
+            print("  Min %s" % round(min(fits),5))
+            print("  Max %s" % round(max(fits),5))
+            print("  Avg %s" % round(mean,5))
+            print("  Std %s" % round(std,5))
             
             if config["plot"]:
                 # Plot progress
@@ -351,7 +394,12 @@ class GA_DEAP(object):
                 plt.tight_layout()
                 filename = os.path.join(self.cali_wd,
                                         "Fitness_" + self.name + ".png")
-                fig.savefig(filename, dpi=300)
+                try:
+                    fig.savefig(filename, dpi=300)
+                except Exception as e:
+                    logger.error(e)
+                    print("File might be in-use. => Show in console.")
+                    plt.show()
                 if config["paral_cores"] == 1:
                     plt.show()
                 plt.close()
@@ -361,5 +409,6 @@ class GA_DEAP(object):
         snap_shot = self.__dict__
         with open(os.path.join(cali_wd, "GA_auto_save.pickle"),
                   'wb') as outfile:
-            pickle.dump(snap_shot, outfile, protocol=pickle.HIGHEST_PROTOCOL)
+            # protocol=pickle.HIGHEST_PROTOCOL
+            pickle.dump(snap_shot, outfile)
         return None

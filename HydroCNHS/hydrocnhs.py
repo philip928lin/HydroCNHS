@@ -16,7 +16,7 @@ from .land_surface_model.abcd import run_ABCD
 from .land_surface_model.gwlf import run_GWLF
 from .land_surface_model.hymod import run_HYMOD
 from .land_surface_model.pet_hamon import cal_pet_Hamon
-from .routing import form_UH_Lohmann, run_step_Lohmann
+from .routing import form_UH_Lohmann, run_step_Lohmann, run_step_Lohmann_convey
 from .util import (load_system_config, load_model,
                    load_customized_module_to_class)
 
@@ -84,7 +84,7 @@ class HydroCNHSModel(object):
         logger.info("Load temp & prec & pet with total length "
                          +"{}.".format(ws["DataLength"]))
            
-    def __call__(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
+    def run(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
                  disable=False):
         """Run HydroCNHS simulation.
         
@@ -167,8 +167,9 @@ class HydroCNHSModel(object):
                         logger.info(
                             "Load {} from the built-in classes.".format(
                                 dmclass))
-                    except Exception as e:
+                    except Exception as _:
                         logger.error(traceback.format_exc())
+                        logger.debug(e)
                         raise Error("Fail to load {}.\n".format(dmclass)
                                     +"Make sure the class is well-defined in "
                                     +"given modules.")
@@ -209,6 +210,7 @@ class HydroCNHSModel(object):
                                     "Load {} for {} ".format(ag_type, agG)
                                     +"from the built-in classes.")
                             except Exception as e:
+                                logger.debug(e)
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to load {} for {}.".format(ag_type,
@@ -348,7 +350,38 @@ class HydroCNHSModel(object):
             logger.info(
                 "Complete forming UHs for Lohmann routing. [{}]".format(
                     get_elapsed_time()))
-        
+            
+            # Form UH for conveyed nodes --------------------------------------
+            # No in-grid routing.
+            conveyed_nodes = sys_parsed_data["ConveyToNodes"]
+            self.UH_Lohmann_convey = {}
+            UH_Lohmann_convey = self.UH_Lohmann_convey
+            if conveyed_nodes != []:
+                UH_convey_List = []
+                for uh in UH_List:
+                    if uh[0] in conveyed_nodes:
+                        if uh in list(assigned_UH.keys()):
+                            logger.error(
+                                "Cannot process routing of conveying agents "
+                                +"since {} unit hydrograph is assigned. We will "
+                                +"use the assigned UH for simulation; however, "
+                                +"the results might not be correct.".format(uh))
+                            UH_Lohmann_convey = UH_Lohmann[uh]
+                        else:
+                            UH_convey_List.append(uh)
+                UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
+                                verbose=paral_setting["verbose"]) \
+                                ( delayed(form_UH_Lohmann)\
+                                (routing[pair[1]][pair[0]]["Inputs"],
+                                routing[pair[1]][pair[0]]["Pars"],
+                                force_ingrid_off=True) \
+                                for pair in UH_convey_List )
+                for i, pair in enumerate(UH_convey_List):
+                    UH_Lohmann_convey[pair] = UHParel[i]
+                logger.info(
+                    "Complete forming UHs for conveyed nodes. [{}]".format(
+                        get_elapsed_time()))
+            
         # ----- Time step simulation (Coupling hydrological model and ABM) ----
         Q_routed = self.Q_routed
         # Obtain datetime index -----------------------------------------------
@@ -389,6 +422,12 @@ class HydroCNHSModel(object):
         # follow specific protocal. See the documantation for details.
         else:
             logger.info("Start the HydroCNHS simulation.")
+            
+            ### Add the storage for convey water.
+            Q_convey = {}
+            for c_node in conveyed_nodes:
+                Q_convey[c_node] = np.zeros(data_length)
+            
             for t in tqdm(range(data_length), desc=name, disable=disable):
                 current_date = pd_date_index[t]
                 for node in sim_seq:
@@ -472,8 +511,8 @@ class HydroCNHSModel(object):
                     if convey_ags_plus is not None:    
                         # Don't have in-grid routing.
                         for ag in convey_ags_plus:
-                            Q_routed = agents[ag].act(
-                                Q_routed, agent_dict=agents, node=node,
+                            Q_convey = agents[ag].act(
+                                Q_convey, agent_dict=agents, node=node,
                                 current_date=current_date, t=t,
                                 DMs=DM_classes)
                                 
@@ -483,9 +522,18 @@ class HydroCNHSModel(object):
                         if routing["Model"] == "Lohmann":
                             Qt = run_step_Lohmann(
                                 node, routing, UH_Lohmann, Q_routed, Q_LSM, t)
+                            Qt_convey = run_step_Lohmann_convey(
+                                node, routing, UH_Lohmann_convey, Q_convey, t)
                         #----- Store Qt to final output.
-                        Q_routed[node][t] = Qt 
-                        
+                        Q_routed[node][t] = Qt + Qt_convey
+                    
+                    if convey_ags_minus is not None:    
+                        # Don't have in-grid routing.
+                        for ag in convey_ags_plus:
+                            Q_routed = agents[ag].act(
+                                Q_routed, agent_dict=agents, node=node,
+                                current_date=current_date, t=t,
+                                DMs=DM_classes)
                     
                     if river_div_ags_minus is not None:
                         r"""
@@ -496,18 +544,6 @@ class HydroCNHSModel(object):
                             Q_routed = agents[ag].act(
                                 Q_routed, agent_dict=agents, node=node,
                                 current_date=current_date, t=t, DMs=DM_classes)
-                    
-                    if convey_ags_minus is not None:    
-                        # Don't have in-grid routing.
-                        for ag in convey_ags_plus:
-                            Q_routed = agents[ag].act(
-                                Q_routed, agent_dict=agents, node=node,
-                                current_date=current_date, t=t,
-                                DMs=DM_classes)
-                            
-                    
-                    
-
         # ---------------------------------------------------------------------
         print("")   # Force the logger to start a new line after tqdm.
         logger.info(

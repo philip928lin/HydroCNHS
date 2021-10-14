@@ -18,7 +18,7 @@ class Indicator(object):
         pass
     
     @staticmethod
-    def cal_indicator_df(x_obv, y_sim, indicators_list=None):
+    def cal_indicator_df(x_obv, y_sim, index_name="value", indicators_list=None):
         dict = {"r"   : Indicator.r(x_obv, y_sim),
                 "r2"  : Indicator.r2(x_obv, y_sim),
                 "rmse": Indicator.rmse(x_obv, y_sim),
@@ -28,7 +28,7 @@ class Indicator(object):
                 "iKGE": Indicator.iKGE(x_obv, y_sim),
                 "CP"  : Indicator.CP(x_obv, y_sim),
                 "RSR" : Indicator.RSR(x_obv, y_sim)}
-        df = pd.DataFrame(dict, index=["Value"])
+        df = pd.DataFrame(dict, index=[index_name])
         if indicators_list is None:
             return df
         else:

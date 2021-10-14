@@ -23,7 +23,7 @@ from scipy.stats import gamma
 # ture whole Lohmann routing into a class with Base Time setting as initial
 # variables which allow to be changed accordingly.
 
-def form_UH_Lohmann(inputs, routing_pars):
+def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     """Derive HRU's UH at the (watershed) outlet.
     We seperately calculate in-grid UH_IG and river routing UH_RR and combine
     them into HRU's UH.
@@ -34,6 +34,8 @@ def form_UH_Lohmann(inputs, routing_pars):
             and InstreamControl [bool].
         routing_pars (dict): Four parameters for routing: GShape, GRate, Velo,
             Diff [float]
+        force_ingrid_off (bool): If True, then in-grid routing will be turned
+            off by force. Default False.
     """
     flow_len = inputs["FlowLength"]
     instream_control = inputs["InstreamControl"]
@@ -53,7 +55,7 @@ def form_UH_Lohmann(inputs, routing_pars):
     
     #----- In-grid routing UH (daily) represented by Gamma distribution -------
     UH_IG = np.zeros(T_IG)
-    if instream_control:
+    if instream_control or force_ingrid_off:
         # No time delay for in-grid routing when the water is released through
         # instream control objects (e.g. dam).
         UH_IG[0] = 1
@@ -166,6 +168,44 @@ def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
         else:
             Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
         Qresult += np.sum(UH * Q_reverse)
+    Qt = Qresult         # Store the result for time t
+    return Qt
+
+def run_step_Lohmann_convey(routing_outlet, routing, UH_Lohmann_convey,
+                            Q_convey, t):
+    """Calculate a single time step routing for the entire basin.
+    Args:
+        routing_outlet (str): routing node.
+        routing (dict): Sub-model dictionary from your model.yaml file.
+        UH_Lohmann_convey (dict): Contain pre-formed UH for all connections
+            between gauged outlets and its upstream conveyed outlets (no 
+            in-grid routing).
+            e.g. {(subbasin, gaugedoutlet): UH_direct}
+        Q_convey (dict): Contain conveyed water for its destinetion node. 
+        t (int): Index of current time step (day).
+
+    Returns:
+        [dict]: Update Qt for routing.
+    """   
+    #----- Base Time for in-grid (watershed subunit) UH and river/channel
+    # routing UH --------------------------------------------------------------
+    # In-grid routing
+    #T_IG = 12					# [day] Base time for in-grid UH 
+    # River routing 
+    #T_RR = 96					# [day] Base time for river routing UH 
+    #--------------------------------------------------------------------------
+    Qt = None
+    ro = routing_outlet
+    Qresult = 0
+    Subbasin = list(routing[ro].keys())
+    for sb in Subbasin:
+        uh_convey = UH_Lohmann_convey.get((sb, ro))
+        if uh_convey is not None:
+            l = len(uh_convey) - 1
+            # t+1 is length, t is index.
+            UH = uh_convey[0 : min(t + 1, l)]
+            Q_reverse = np.flip(Q_convey[sb][ max(t-(l-1), 0) : t+1])
+            Qresult += np.sum(UH * Q_reverse)
     Qt = Qresult         # Store the result for time t
     return Qt
 #%% Test function
