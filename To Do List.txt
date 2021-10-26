@@ -146,6 +146,7 @@ ABM:
 
 
 To do==========================================================================
+Need to rethink the DMClass logic or explanation
 Test run
 Function documentation
 Maybe initiate data collector

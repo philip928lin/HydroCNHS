@@ -19,6 +19,7 @@ from .land_surface_model.pet_hamon import cal_pet_Hamon
 from .routing import form_UH_Lohmann, run_step_Lohmann, run_step_Lohmann_convey
 from .util import (load_system_config, load_model,
                    load_customized_module_to_class)
+from .data_collector import Data_collector
 
 class HydroCNHSModel(object):
     def __init__(self, model, name=None, checked=False, parsed=False):
@@ -55,6 +56,7 @@ class HydroCNHSModel(object):
             
         # Initialize output
         self.Q_routed = {}     # [cms] Streamflow for routing outlets.
+        self.data_collector = Data_collector()  # For collecting ABM's data.
 
     def load_weather_data(self, temp, prec, pet=None, lsm_outlets=None):
         """[Include in run] Load temperature and precipitation data.
@@ -141,6 +143,9 @@ class HydroCNHSModel(object):
         DM_classes = self.DM_classes
         
         if abm is not None: 
+            # Data collector
+            dc = self.data_collector
+            
             # Import user-defined module --------------------------------------
             module_path = path.get("Modules")
             if module_path is not None:
@@ -152,8 +157,29 @@ class HydroCNHSModel(object):
                     load_customized_module_to_class(UserModules, module_name,
                                                     module_path)
             
-            # Initialize DMFuncs ----------------------------------------------
+            # Collect user-defined DMClasses ----------------------------------
             for dmclass in abm["Inputs"]["DMClasses"]:
+                try:    # Try to load from user-defined module first.
+                    DM_classes[dmclass] = eval("UserModules."+dmclass)
+                    logger.info(
+                        "Load {} from the user-defined classes.".format(
+                            dmclass))
+                except Exception as e:
+                    try:    # Detect if it is a built-in class.
+                        DM_classes[dmclass] = eval(dmclass)
+                        logger.info(
+                            "Load {} from the built-in classes.".format(
+                                dmclass))
+                    except Exception as _:
+                        logger.error(traceback.format_exc())
+                        logger.debug(e)
+                        raise Error("Fail to load {}.\n".format(dmclass)
+                                    +"Make sure the class is well-defined in "
+                                    +"given modules.")
+            
+            r"""
+            Temp save
+                        for dmclass in abm["Inputs"]["DMClasses"]:
                 try:    # Try to load from user-defined module first.
                     DM_classes[dmclass] = eval("UserModules."+dmclass)(
                         start_date, data_length, abm)
@@ -173,7 +199,8 @@ class HydroCNHSModel(object):
                         raise Error("Fail to load {}.\n".format(dmclass)
                                     +"Make sure the class is well-defined in "
                                     +"given modules.")
-                
+            """
+            
             # Initialize agent action groups ----------------------------------
             # The agent action groups is different from the DMFunc. Action 
             # group do actions (e.g., divert water) together based on their 
@@ -192,7 +219,21 @@ class HydroCNHSModel(object):
                         try:      # Try to load from user-defined module first.
                             agents[agG] = eval("UserModules."+ag_type)(
                                 name=agG, config=ag_config,
-                                start_date=start_date, data_length=data_length)
+                                start_date=start_date, data_length=data_length,
+                                data_collector=dc)
+                            # Add dm class to Agent.
+                            dm_name = abm[ag_type]["Inputs"].get("DMClass")
+                            dm_class = DM_classes.get(dm_name)
+                            if dm_class is None:
+                                agents[agG].dm = None
+                                logger.info(
+                                    "DMClass of {}".format(ag_type)
+                                    +"is not defined.")
+                            else:
+                                agents[agG].dm = dm_class(
+                                    start_date=start_date,
+                                    data_length=data_length, abm=abm,
+                                    data_collector=dc)
                             logger.info(
                                 "Load {} for {} ".format(ag_type, agG)
                                 +"from the user-defined classes.")
@@ -205,7 +246,8 @@ class HydroCNHSModel(object):
                                 agents[agG] = eval(ag_type)(
                                     name=agG, config=ag_config,
                                     start_date=start_date,
-                                    data_length=data_length)
+                                    data_length=data_length,
+                                    data_collector=dc)
                                 logger.info(
                                     "Load {} for {} ".format(ag_type, agG)
                                     +"from the built-in classes.")
@@ -228,7 +270,20 @@ class HydroCNHSModel(object):
                     try:        # Try to load from user-defined module first.
                         agents[ag] = eval("UserModules."+ag_type)(
                             name=ag, config=ag_config, start_date=start_date,
-                            data_length=data_length)
+                            data_length=data_length, data_collector=dc)
+                        # Add dm class to Agent.
+                        dm_name = abm[ag_type][ag]["Inputs"].get("DMClass")
+                        dm_class = DM_classes.get(dm_name)
+                        if dm_class is None:
+                            agents[ag].dm = None
+                            logger.info(
+                                "DMClass of {}".format(ag)
+                                +"is not defined.")
+                        else:
+                            agents[ag].dm = dm_class(
+                                start_date=start_date,
+                                data_length=data_length, abm=abm,
+                                data_collector=dc)
                         logger.info(
                             "Load {} for {} ".format(ag_type, ag)
                             +"from the user-defined classes.")
@@ -236,7 +291,8 @@ class HydroCNHSModel(object):
                         try:    # Detect if it is a built-in class.
                             agents[ag] = eval(ag_type)(
                                 name=ag, config=ag_config,
-                                start_date=start_date, data_length=data_length)
+                                start_date=start_date, data_length=data_length,
+                                data_collector=dc)
                             logger.info(
                                 "Load {} for {} ".format(ag_type, ag)
                                 +"from the built-in classes.")
@@ -473,8 +529,7 @@ class HydroCNHSModel(object):
                                 # self.Q_LSM - Div
                                 Q_routed = agents[ag].act(
                                     Q_routed, agent_dict=agents, node=node,
-                                    current_date=current_date, t=t,
-                                    DMs=DM_classes)
+                                    current_date=current_date, t=t)
                                 ## !!!!!!!! check pointer
                                 Q_LSM[node][t] = Q_routed[node][t]
                                 
@@ -483,8 +538,7 @@ class HydroCNHSModel(object):
                                 # self.Q_LSM - Div
                                 Q_routed = agents[ag].act(
                                     Q_routed, agent_dict=agents, node=node,
-                                    current_date=current_date, t=t,
-                                    DMs=DM_classes)
+                                    current_date=current_date, t=t)
                                 ## !!!!!!!! check pointer
                                 Q_LSM[node][t] = Q_routed[node][t]
                                 
@@ -495,8 +549,7 @@ class HydroCNHSModel(object):
                                 # => return flow will join the in-grid routing. 
                                 Q_routed = agents[ag].act(
                                     Q_routed, agent_dict=agents, node=node,
-                                    current_date=current_date, t=t,
-                                    DMs=DM_classes)
+                                    current_date=current_date, t=t)
                                 Q_LSM[node][t] = Q_routed[node][t]
                     
                     elif dam_ags_plus is not None:
@@ -508,15 +561,14 @@ class HydroCNHSModel(object):
                         for ag in dam_ags_plus:
                             Q_routed = agents[ag].act(
                                 Q_routed, agent_dict=agents, node=node,
-                                current_date=current_date, t=t, DMs=DM_classes)
+                                current_date=current_date, t=t)
                             
                     if convey_ags_plus is not None:    
                         # Don't have in-grid routing.
                         for ag in convey_ags_plus:
                             Q_convey = agents[ag].act(
                                 Q_convey, agent_dict=agents, node=node,
-                                current_date=current_date, t=t,
-                                DMs=DM_classes)
+                                current_date=current_date, t=t)
                                 
                     if node in routing_outlets:
                         #----- Run Lohmann routing model for one routing outlet
@@ -534,8 +586,7 @@ class HydroCNHSModel(object):
                         for ag in convey_ags_plus:
                             Q_routed = agents[ag].act(
                                 Q_routed, agent_dict=agents, node=node,
-                                current_date=current_date, t=t,
-                                DMs=DM_classes)
+                                current_date=current_date, t=t)
                     
                     if river_div_ags_minus is not None:
                         r"""
@@ -545,7 +596,7 @@ class HydroCNHSModel(object):
                         for ag in river_div_ags_minus:
                             Q_routed = agents[ag].act(
                                 Q_routed, agent_dict=agents, node=node,
-                                current_date=current_date, t=t, DMs=DM_classes)
+                                current_date=current_date, t=t)
         # ---------------------------------------------------------------------
         print("")   # Force the logger to start a new line after tqdm.
         logger.info(
