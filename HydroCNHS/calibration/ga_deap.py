@@ -43,10 +43,10 @@ def descale(individual, bound_scale, lower_bound):
     descaled_individual = np.subtract(individual, lower_bound)
     descaled_individual = np.divide(descaled_individual, bound_scale)
     return descaled_individual.flatten()
-def sample_by_MC(size, rngen_gen):
-    return rngen_gen.uniform(0, 1, size)
+def sample_by_MC(size, rn_gen_gen):
+    return rn_gen_gen.uniform(0, 1, size)
 
-def sample_by_LHC(size, rngen_gen):
+def sample_by_LHC(size, rn_gen_gen):
     # size = [pop_size, num_par]
     pop_size = size[0]
     num_par = size[1]
@@ -56,13 +56,13 @@ def sample_by_LHC(size, rngen_gen):
         temp = np.empty([pop_size])
         # Uniformly sample in each interval.
         for j in range(pop_size):
-            temp[j] = rngen_gen.uniform(low=j*d, high=(j + 1)*d)
+            temp[j] = rn_gen_gen.uniform(low=j*d, high=(j + 1)*d)
         # Shuffle to random order.
-        rngen_gen.shuffle(temp)
+        rn_gen_gen.shuffle(temp)
         # Scale [0,1] to its bound.
         pop[:,i] = temp
     return pop
-def gen_init_pop(creator, size, method="LHC", guess_pop=None, rngen_gen=None):
+def gen_init_pop(creator, size, method="LHC", guess_pop=None, rn_gen_gen=None):
     # size = [pop_size, num_par]
     pop_size = size[0]
     pop = np.empty(size)
@@ -74,9 +74,9 @@ def gen_init_pop(creator, size, method="LHC", guess_pop=None, rngen_gen=None):
     else:
         ass_size = 0
     if method == "MC":
-        pop[ass_size:,:] = sample_by_MC(size, rngen_gen)
+        pop[ass_size:,:] = sample_by_MC(size, rn_gen_gen)
     elif method == "LHC":
-        pop[ass_size:,:] = sample_by_LHC(size, rngen_gen)
+        pop[ass_size:,:] = sample_by_LHC(size, rn_gen_gen)
 
     # Convert to DEAP individual objects.
     individuals = []
@@ -85,27 +85,27 @@ def gen_init_pop(creator, size, method="LHC", guess_pop=None, rngen_gen=None):
         individuals.append(creator(individual))
     return individuals
 
-def mut_uniform(individual, prob_mut, rngen_gen):
+def mut_uniform(individual, prob_mut, rn_gen_gen):
     num_par = len(individual)
-    mut = rngen_gen.binomial(n=1, p=prob_mut, size=num_par) == 1
-    new_sample = rngen_gen.uniform(0, 1, num_par)
+    mut = rn_gen_gen.binomial(n=1, p=prob_mut, size=num_par) == 1
+    new_sample = rn_gen_gen.uniform(0, 1, num_par)
     individual[mut] = new_sample.flatten()[mut]
     return individual
-def mut_middle(individual, p1, p2, prob_mut, rngen_gen):
+def mut_middle(individual, p1, p2, prob_mut, rn_gen_gen):
     num_par = len(individual)
-    new_sample = rngen_gen.uniform(0, 1, num_par)
+    new_sample = rn_gen_gen.uniform(0, 1, num_par)
     for i in range(num_par):
-        rnd = rngen_gen.random()
+        rnd = rn_gen_gen.random()
         if rnd < prob_mut:
             if p1[i] < p2[i]:
-                individual[i] = p1[i] + rngen_gen.random() * (p2[i]-p1[i])
+                individual[i] = p1[i] + rn_gen_gen.random() * (p2[i]-p1[i])
             elif p1[i] > p2[i]:
-                individual[i] = p2[i] + rngen_gen.random() * (p1[i]-p2[i])
+                individual[i] = p2[i] + rn_gen_gen.random() * (p1[i]-p2[i])
             else:
                 individual[i] = new_sample[i]
     return individual
 
-def selRoulette(individuals, k, rngen_gen, fit_attr="fitness"):
+def selRoulette(individuals, k, rn_gen_gen, fit_attr="fitness"):
     """Select *k* individuals from the input *individuals* using *k*
     spins of a roulette. The selection is made by looking only at the first
     objective of each individual. The list returned contains references to
@@ -128,7 +128,7 @@ def selRoulette(individuals, k, rngen_gen, fit_attr="fitness"):
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
     for i in range(k):
-        u = rngen_gen.random() * sum_fits
+        u = rn_gen_gen.random() * sum_fits
         sum_ = 0
         for ind in s_inds:
             sum_ += getattr(ind, fit_attr).values[0]
@@ -136,7 +136,7 @@ def selRoulette(individuals, k, rngen_gen, fit_attr="fitness"):
                 chosen.append(ind)
                 break
     return chosen
-def cxUniform(ind1, ind2, indpb, rngen_gen):
+def cxUniform(ind1, ind2, indpb, rn_gen_gen):
     """Executes a uniform crossover that modify in place the two
     :term:`sequence` individuals. The attributes are swapped according to the
     *indpb* probability.
@@ -152,7 +152,7 @@ def cxUniform(ind1, ind2, indpb, rngen_gen):
     """
     size = min(len(ind1), len(ind2))
     for i in range(size):
-        if rngen_gen.random() < indpb:
+        if rn_gen_gen.random() < indpb:
             ind1[i], ind2[i] = ind2[i], ind1[i]
 
     return ind1, ind2
@@ -169,25 +169,25 @@ creator.create("Individual_max", np.ndarray, fitness=creator.Fitness_max)
 
 tb = base.Toolbox()
 
-tb.register("crossover", cxUniform)     # apply customized rngen
+tb.register("crossover", cxUniform)     # apply customized rn_gen
 tb.register("mutate_uniform", mut_uniform)
 tb.register("mutate_middle", mut_middle)
-tb.register("select", selRoulette)      # apply customized rngen
+tb.register("select", selRoulette)      # apply customized rn_gen
 tb.register("ellite", tools.selBest)
 
 
 class GA_DEAP(object):
-    def __init__(self, evaluation_func, rngen=None):
+    def __init__(self, evaluation_func, rn_gen=None):
         print("GA Calibration Guide\n"
               +"Step 1: set or load (GA_auto_save.pickle).\nStep 2: run.")
-        if rngen is None:
+        if rn_gen is None:
             # Assign a random seed.
             seed = np.random.randint(0, 100000)
-            self.rngen = np.random.default_rng(seed)
+            self.rn_gen = np.random.default_rng(seed)
         else:
             # User-provided rn generator
-            self.rngen = rngen
-            self.ss = rngen.bit_generator._seed_seq
+            self.rn_gen = rn_gen
+            self.ss = rn_gen.bit_generator._seed_seq
             logger.info("User-provided random number generator is assigned.")
         tb.register("evaluate", evaluation_func)
 
@@ -288,7 +288,7 @@ class GA_DEAP(object):
     def run_individual(self, individual="best", name="best"):
         """Run the evaluation for a given individual (scaled).
 
-        Warning! run_individual() does not generantee the same rngen will be
+        Warning! run_individual() does not generantee the same rn_gen will be
         assign to the evaluation, but the same one will be used for
         run_individual()
 
@@ -303,23 +303,23 @@ class GA_DEAP(object):
             sol = np.array(individual)
         formatter = self.formatter
         cali_wd = self.cali_wd
-        # Warning! Does not generantee the same rngen will be assign to the
+        # Warning! Does not generantee the same rn_gen will be assign to the
         # evaluation, but the same one will be used for run_individual()
-        rngen_pop = self.gen_rngens(self.rng_seeds[self.current_gen-1],
+        rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen-1],
                                     self.size[1])
         fitness = tb.evaluate(sol, formatter,
-                              (cali_wd, name, name, rngen_pop[0]))
+                              (cali_wd, name, name, rn_gen_pop[0]))
         print("Fitness: {}".format(fitness))
 
-    def gen_rngens(self, seed, size):
-        # Create rngen for each individual in the pop with predefined
+    def gen_rn_gens(self, seed, size):
+        # Create rn_gen for each individual in the pop with predefined
         # generation specific seed.
-        rngen_gen = np.random.default_rng(seed)
-        ind_seeds = rngen_gen.bit_generator._seed_seq.spawn(size+1)
-        rngen_pop = [np.random.default_rng(s) for s in ind_seeds]
-        # rngen for selection, crossover, mutation for each generation
-        self.rngen_gen = rngen_gen
-        return rngen_pop
+        rn_gen_gen = np.random.default_rng(seed)
+        ind_seeds = rn_gen_gen.bit_generator._seed_seq.spawn(size+1)
+        rn_gen_pop = [np.random.default_rng(s) for s in ind_seeds]
+        # rn_gen for selection, crossover, mutation for each generation
+        self.rn_gen_gen = rn_gen_gen
+        return rn_gen_pop
 
     def run(self, guess_pop=None):
 
@@ -340,11 +340,11 @@ class GA_DEAP(object):
         if self.done_ini is False:
             # self.rng_seeds[0] will be used for initialize population as well
             # as form pop for the first generation.
-            rngen_pop = self.gen_rngens(self.rng_seeds[self.current_gen],
+            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen],
                                         size[1])
 
             pop = tb.population(self.size, config["sampling_method"],
-                                guess_pop, self.rngen_gen)
+                                guess_pop, self.rn_gen_gen)
             self.done_ini = True
             scaled_pop = list(map(tb.scale, pop))
             # Note np.array(scaled_pop[k]) is necessary for serialization.
@@ -355,7 +355,7 @@ class GA_DEAP(object):
                                 ( delayed(tb.evaluate)\
                                     (np.array(scaled_pop[k]), formatter,
                                      (cali_wd, self.current_gen, k,
-                                      rngen_pop[k])) \
+                                      rn_gen_pop[k])) \
                                     for k in range(len(scaled_pop)) )
 
             # Note that we assign fitness to original pop not the scaled_pop.
@@ -366,7 +366,7 @@ class GA_DEAP(object):
             pop = self.records[self.current_gen-1]
             # To continue the random sequence from previous run
             # (do ga things using seed from last generation)
-            self.rngen_gen = np.random.default_rng(
+            self.rn_gen_gen = np.random.default_rng(
                 self.rng_seeds[self.current_gen-1])
 
         # Iteration
@@ -375,7 +375,7 @@ class GA_DEAP(object):
         while self.current_gen <= max_gen:
 
             # Select the next generation individuals
-            parents = tb.select(pop, size[0], self.rngen_gen)
+            parents = tb.select(pop, size[0], self.rn_gen_gen)
             # Clone the selected individuals
             offspring = list(map(tb.clone, parents))
 
@@ -388,10 +388,10 @@ class GA_DEAP(object):
                 #     tb.crossover(child1, child2, prob_cross)
 
                 # Crossover must happen
-                tb.crossover(child1, child2, prob_cross, self.rngen_gen)
-                if self.rngen_gen.uniform() < prob_mut:
-                    tb.mutate_uniform(child1, prob_mut, self.rngen_gen)
-                    tb.mutate_middle(child2, p1, p2, prob_mut, self.rngen_gen)
+                tb.crossover(child1, child2, prob_cross, self.rn_gen_gen)
+                if self.rn_gen_gen.uniform() < prob_mut:
+                    tb.mutate_uniform(child1, prob_mut, self.rn_gen_gen)
+                    tb.mutate_middle(child2, p1, p2, prob_mut, self.rn_gen_gen)
 
                 # Delete fitnesses
                 del child1.fitness.values
@@ -409,13 +409,13 @@ class GA_DEAP(object):
                                if not ind.fitness.valid]
 
             scaled_pop = list(map(tb.scale, invalid_ind))
-            rngen_pop = self.gen_rngens(self.rng_seeds[self.current_gen],
+            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen],
                                         size[1])
             fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose) \
                                 ( delayed(tb.evaluate)\
                                     (np.array(scaled_pop[k]), formatter,
                                      (cali_wd, self.current_gen, k,
-                                      rngen_pop[k])) \
+                                      rn_gen_pop[k])) \
                                     for k in range(len(invalid_ind)) )
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit

@@ -22,7 +22,7 @@ from .util import (load_system_config, load_model,
 from .data_collector import Data_collector
 
 class HydroCNHSModel(object):
-    def __init__(self, model, name=None, checked=False, parsed=False):
+    def __init__(self, model, name=None, rn_gen=None, checked=False, parsed=False):
         """HydroCNHS model object.
 
         Args:
@@ -43,6 +43,18 @@ class HydroCNHSModel(object):
         ## We design model to be either str or dictionary.
         model = load_model(model, checked=checked, parsed=parsed)
         
+        # Create random number generator for feeding into ABM.
+        if rn_gen is None:
+            # Assign a random seed.
+            seed = np.random.randint(0, 100000)
+            self.rn_gen = np.random.default_rng(seed)
+        else:
+            # User-provided rn generator
+            self.rn_gen = rn_gen
+            self.ss = rn_gen.bit_generator._seed_seq
+            self.logger.info(
+                "User-provided random number generator is assigned.")
+            
         # Verify model contain all following keys.
         try:                   
             self.path = model["Path"]
@@ -115,6 +127,7 @@ class HydroCNHSModel(object):
         path = self.path
         name = self.name
         logger = self.logger
+        rn_gen = self.rn_gen
         
         # ----- Start a timer -------------------------------------------------
         start_time = time.monotonic()
@@ -220,7 +233,7 @@ class HydroCNHSModel(object):
                             agents[agG] = eval("UserModules."+ag_type)(
                                 name=agG, config=ag_config,
                                 start_date=start_date, data_length=data_length,
-                                data_collector=dc)
+                                data_collector=dc, rn_gen=rn_gen)
                             # Add dm class to Agent.
                             dm_name = abm[ag_type]["Inputs"].get("DMClass")
                             dm_class = DM_classes.get(dm_name)
@@ -233,7 +246,7 @@ class HydroCNHSModel(object):
                                 agents[agG].dm = dm_class(
                                     start_date=start_date,
                                     data_length=data_length, abm=abm,
-                                    data_collector=dc)
+                                    data_collector=dc, rn_gen=rn_gen)
                             logger.info(
                                 "Load {} for {} ".format(ag_type, agG)
                                 +"from the user-defined classes.")
@@ -247,7 +260,7 @@ class HydroCNHSModel(object):
                                     name=agG, config=ag_config,
                                     start_date=start_date,
                                     data_length=data_length,
-                                    data_collector=dc)
+                                    data_collector=dc, rn_gen=rn_gen)
                                 logger.info(
                                     "Load {} for {} ".format(ag_type, agG)
                                     +"from the built-in classes.")
@@ -270,7 +283,8 @@ class HydroCNHSModel(object):
                     try:        # Try to load from user-defined module first.
                         agents[ag] = eval("UserModules."+ag_type)(
                             name=ag, config=ag_config, start_date=start_date,
-                            data_length=data_length, data_collector=dc)
+                            data_length=data_length, data_collector=dc,
+                            rn_gen=rn_gen)
                         # Add dm class to Agent.
                         dm_name = abm[ag_type][ag]["Inputs"].get("DMClass")
                         dm_class = DM_classes.get(dm_name)
@@ -283,7 +297,7 @@ class HydroCNHSModel(object):
                             agents[ag].dm = dm_class(
                                 start_date=start_date,
                                 data_length=data_length, abm=abm,
-                                data_collector=dc)
+                                data_collector=dc, rn_gen=rn_gen)
                         logger.info(
                             "Load {} for {} ".format(ag_type, ag)
                             +"from the user-defined classes.")
@@ -292,7 +306,7 @@ class HydroCNHSModel(object):
                             agents[ag] = eval(ag_type)(
                                 name=ag, config=ag_config,
                                 start_date=start_date, data_length=data_length,
-                                data_collector=dc)
+                                data_collector=dc, rn_gen=rn_gen)
                             logger.info(
                                 "Load {} for {} ".format(ag_type, ag)
                                 +"from the built-in classes.")
