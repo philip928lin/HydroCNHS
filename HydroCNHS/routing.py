@@ -15,13 +15,13 @@ from scipy.stats import gamma
 # Parameters
 #  RoutePars["GShape"] = Sub-basin's UH shape parameter (Gamma distribution argument) (N)
 #  RoutePars["GRate"] = Sub-basin's UH rate parameter (reservior storage constant)  (K)
-#  RoutePars["Velo"]  = [m/s] Wave velocity in the linearized Saint-Venant equation   
-#  RoutePars["Diff"]  = [m2/s] Diffusivity in the linearized Saint-Venant equation
+#  RoutePars["Velo"]  = [m/s] Diffusion wave celerity in the linearized Saint-Venant equation   
+#  RoutePars["Diff"]  = [m2/s] Diffusive coefficient in the linearized Saint-Venant equation
 
 # Note:
 # We fix the Base Time setting here. For future development, it is better to
-# ture whole Lohmann routing into a class with Base Time setting as initial
-# variables which allow to be changed accordingly.
+# turn entire Lohmann routing into a class with Base Time setting as attributes
+# which allow to be changed accordingly.
 
 def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     """Derive HRU's UH at the (watershed) outlet.

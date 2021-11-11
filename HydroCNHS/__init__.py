@@ -6,7 +6,7 @@ import logging.config
 # Load functions that directly available for user when the package is loaded.
 from .util import (load_system_config, update_system_config, default_config,
                    load_model, write_model, write_model_to_df,
-                   write_model_to_csv, load_df_to_model_dict, set_seed)
+                   write_model_to_csv, load_df_to_model_dict, get_rngen)
 from .hydrocnhs import HydroCNHSModel
 from .model_builder import ModelBuilder
 from .indicators import Indicator

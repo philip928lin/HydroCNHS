@@ -40,7 +40,7 @@ def run_ABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
     XU = 0                     # [cm] Soil water storage (Antecedent Moisture).
     
     # Pars
-    a = ABCD_pars["a"]
+    a = ABCD_pars["a"]                   # [0, 1] ?
     b = ABCD_pars["b"]                   # [cm] [0, 400]
     c = ABCD_pars["c"]                   # [0, 1]
     d = ABCD_pars["d"]                   # [0, 1]

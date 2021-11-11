@@ -349,8 +349,9 @@ def dict_to_string(dictionary, indentor="  "):
         return string
     return "\n".join(dict_to_string_list(dictionary, indentor))
 
-def set_seed(seed):
-    np.random.seed(seed)
+def get_rngen(seed):
+    rngen = np.random.default_rng(seed)
+    return rngen
 #-----------------------------------------
 
 #-----------------------------------------------
@@ -559,8 +560,12 @@ def form_sim_seq(node_list, back_tracking_dict):
     key_set = set(back_tracking_dict)
     if isinstance(node_list, str):
         if node_list not in key_set:
-            return []
+            return [node_list]  # If there is only a single routing outlet.
         node_list = [node_list]
+    else:
+        for node in node_list:
+            if node not in key_set:
+                back_tracking_dict[node] = []
     sim_seq = node_list
     def find_upstream_node(node):
         upstream_node = set(back_tracking_dict[node])
