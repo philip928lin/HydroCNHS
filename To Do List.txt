@@ -149,8 +149,6 @@ To do==========================================================================
 Need to rethink the DMClass logic or explanation
 Test run
 Function documentation
-Maybe initiate data collector
-    https://github.com/projectmesa/mesa/blob/main/mesa/datacollection.py
 test function
 User guide
 Technical report
@@ -168,3 +166,6 @@ Turn to three apis
 Rename YAML => Attributes
 Correct all naming issues and code style.
 Move load module ahead of LSM simulation
+
+Maybe initiate data collector
+    https://github.com/projectmesa/mesa/blob/main/mesa/datacollection.py

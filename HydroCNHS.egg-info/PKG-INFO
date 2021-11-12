@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: HydroCNHS
+Version: 1.0.0
+Summary: HydroCNHS is a pure python CNHS simulation model.
+Home-page: UNKNOWN
+Author: Chung-Yi Lin
+Author-email: philip928lin@gmail.com
+License: NotOpenYet
+Platform: UNKNOWN
+Requires-Python: >=3.7
+License-File: LICENSE
+
+UNKNOWN
+
