@@ -235,7 +235,13 @@ class Model(object):
                                 start_date=start_date, data_length=data_length,
                                 data_collector=dc, rn_gen=rn_gen)
                             # Add dm class to Agent.
-                            dm_name = abm[ag_type]["Inputs"].get("DMClass")
+                            try:
+                                dm_name = abm[ag_type]["Inputs"].get("DMClass")
+                            except:
+                                dm_name = None
+                                logger.info(
+                                    "No \"Inputs\" is found in {}".format(
+                                        ag_type))
                             dm_class = DM_classes.get(dm_name)
                             if dm_class is None:
                                 agents[agG].dm = None
@@ -292,7 +298,7 @@ class Model(object):
                             agents[ag].dm = None
                             logger.info(
                                 "DMClass of {}".format(ag)
-                                +"is not defined.")
+                                +" is not defined.")
                         else:
                             agents[ag].dm = dm_class(
                                 start_date=start_date,
