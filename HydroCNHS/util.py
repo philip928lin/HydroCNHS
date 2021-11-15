@@ -694,8 +694,8 @@ def parse_sim_seq(model_dict):
         group_nodes = model_dict["WaterSystem"].get("GroupNodes")
         if group_nodes is not None:
             for group in group_nodes:
-                update_sim_seq_with_group(sim_seq, group, back_tracking_dict)
-        
+                sim_seq = update_sim_seq_with_group(sim_seq, group,
+                                                    back_tracking_dict)
     model_dict["SystemParsedData"]["SimSeq"] = sim_seq
     # Sort RoutingOutlets based on SimSeq
     model_dict["SystemParsedData"]["RoutingOutlets"] = [ro for ro in sim_seq \
