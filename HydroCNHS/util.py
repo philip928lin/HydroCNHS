@@ -535,8 +535,13 @@ def check_agent_in_routing(model_dict):
     for river_div_type in abm["Inputs"]["RiverDivAgentTypes"]:
         for ag in abm[river_div_type]:
             links = abm[river_div_type][ag]["Inputs"]["Links"]
+            def get_div(x):
+                try:
+                    return x <= 0
+                except:
+                    return x[-1] == "Minus"
             divert_outlet = [outlet for outlet in links \
-                             if links[outlet] == -1 and outlet != ag]
+                             if get_div(links[outlet]) and outlet != ag]
             if divert_outlet == []:
                 logger.error("[Check model failed] No diverted outlets "
                              +"(e.g., Links:{DivertOutlet: -1}) are found "

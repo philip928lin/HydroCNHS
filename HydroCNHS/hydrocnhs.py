@@ -247,7 +247,7 @@ class Model(object):
                                 agents[agG].dm = None
                                 logger.info(
                                     "DMClass of {}".format(ag_type)
-                                    +"is not defined.")
+                                    +" is not defined.")
                             else:
                                 agents[agG].dm = dm_class(
                                     start_date=start_date,
