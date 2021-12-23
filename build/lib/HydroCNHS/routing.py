@@ -1,49 +1,46 @@
-#%%
-# Routing model for Land Surface model outputs based on Lohmann routing model
+# Lohmann routing module
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# based on the code from Ethan Yang @ Lehigh University (yey217@lehigh.edu)
 # 2021/02/05
+# Last update at 2021/12/22.
 
 import numpy as np
 from scipy.stats import gamma
-#import logging
-#logger = logging.getLogger("HydroCNHS.RR") # Get logger for logging msg.
 
 # Inputs
-#  FlowLen = [m] Travel distence of flow between two outlets.
-
+#  FlowLength = [m] Travel distence of flow between two outlets.
+#  InstreamControl = [bool] Instream control (e.g., dams).
 # Parameters
-#  RoutePars["GShape"] = Sub-basin's UH shape parameter (Gamma distribution argument) (N)
-#  RoutePars["GRate"] = Sub-basin's UH rate parameter (reservior storage constant)  (K)
-#  RoutePars["Velo"]  = [m/s] Diffusion wave celerity in the linearized Saint-Venant equation   
-#  RoutePars["Diff"]  = [m2/s] Diffusive coefficient in the linearized Saint-Venant equation
+#  GShape = Subbasin's UH shape parameter (gamma function).
+#  GScale = Subbasin's UH scale parameter (gamma function).
+#  Velo  = [m/s] Diffusion wave celerity in the linearized Saint-Venant equation.
+#  Diff  = [m2/s] Diffusive coefficient in the linearized Saint-Venant equation.
 
 # Note:
-# We fix the Base Time setting here. For future development, it is better to
-# turn entire Lohmann routing into a class with Base Time setting as attributes
+# We fix the base time setting here. For future development, it is better to
+# turn entire Lohmann routing into a class with base time setting as attributes
 # which allow to be changed accordingly.
 
 def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     """Derive HRU's UH at the (watershed) outlet.
-    We seperately calculate in-grid UH_IG and river routing UH_RR and combine
-    them into HRU's UH.
 
-    Args:
-        inputs (dict): Inputs dictionary containing 
-            FlowLength [m] Travel distence of flow between two outlets [float]
-            and InstreamControl [bool].
-        routing_pars (dict): Four parameters for routing: GShape, GRate, Velo,
-            Diff [float]
-        force_ingrid_off (bool): If True, then in-grid routing will be turned
-            off by force. Default False.
+    Parameters
+    ----------
+    inputs : dict
+        Inputs dictionary containing FlowLength [m] Travel distence of flow
+        between two outlets [float] and InstreamControl [bool].
+    routing_pars : dict
+        Four parameters for routing: GShape, GScale, Velo, Diff [float]
+    force_ingrid_off : bool, optional
+        If True, then within subbasin routing will be forced to turn off, by default
+        False.
     """
     flow_len = inputs["FlowLength"]
     instream_control = inputs["InstreamControl"]
     
-    #----- Base Time for in-grid (watershed subunit) UH and river/channel
+    #----- Base Time for within subbasin UH and river/channel
     # routing UH --------------------------------------------------------------
     # In-grid routing
-    T_IG = 12				# [day] Base time for in-grid UH 
+    T_IG = 12				# [day] Base time for within subbasin UH 
     # River routing 
     T_RR = 96				# [day] Base time for river routing UH 
     dT_sec = 3600			# [sec] Time step in second for solving 
@@ -56,24 +53,26 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     #----- In-grid routing UH (daily) represented by Gamma distribution -------
     UH_IG = np.zeros(T_IG)
     if instream_control or force_ingrid_off:
-        # No time delay for in-grid routing when the water is released through
-        # instream control objects (e.g. dam).
+        # No time delay for within subbasin routing when the water is released 
+        # through instream control objects (e.g. dam).
         UH_IG[0] = 1
     elif (routing_pars.get("GShape") is None 
-          and routing_pars.get("GRate") is None):
-        # No time delay for in-grid routing since Q is given by user and we
-        # assume Q is observed streamflow, which no need to consider time delay
-        # for in-grid routing. This is trigger automatically in HydroCNHS
-        # module.
+          and routing_pars.get("GScale") is None):
+        # No time delay for within subbasin routing since Q is given by user 
+        # and we assume Q is observed streamflow, which no need to consider 
+        # time delay for within subbasin routing. This is trigger automatically
+        # in HydroCNHS module.
         UH_IG[0] = 1
     else:
-        Shape = routing_pars["GShape"]
-        Rate = routing_pars["GRate"]
-        if Rate <= 0.0001: Rate = 0.0001    # Since we cannot divide zero.
+        shape = routing_pars["GShape"]
+        #Rate = routing_pars["GRate"]
+        scale = routing_pars["GScale"]
+        if scale <= 0.0001: 
+            scale = 0.0001    # Since we cannot divide zero.
         for i in range(T_IG):
             # x-axis is in hr unit. We calculate in daily time step.
-            UH_IG[i] = gamma.cdf(24 * (i + 1), a=Shape, loc=0, scale=1/Rate) \
-                        - gamma.cdf(24 * i, a=Shape, loc=0, scale=1/Rate)
+            UH_IG[i] = gamma.cdf(24 * (i + 1), a=shape, loc=0, scale=scale) \
+                        - gamma.cdf(24 * i, a=shape, loc=0, scale=scale)
     #--------------------------------------------------------------------------
 
     #----- Derive Daily River Impulse Response Function (Green's function) ----
@@ -132,27 +131,28 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     return UH_direct
 
 def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
-    """Calculate a single time step routing for the entire basin.
-    Args:
-        routing_outlet (str): routing node.
-        routing (dict): Sub-model dictionary from your model.yaml file.
-        UH_Lohmann (dict): Contain all pre-formed UH for all connections
-            between gauged outlets and its upstream outlets.
-            e.g. {(subbasin, gaugedoutlet): UH_direct}
-        Q (dict): Contain all updated Q (array) for each outlet. 
-        Q_LSM (dict): Contain all unupdated Q (array) for each outlet.
-        t (int): Index of current time step (day).
+    """Calculate a single time step routing for a given routing_outlet at time t.
 
-    Returns:
-        [dict]: Update Qt for routing.
-    """   
-    #----- Base Time for in-grid (watershed subunit) UH and river/channel
-    # routing UH --------------------------------------------------------------
-    # In-grid routing
-    #T_IG = 12					# [day] Base time for in-grid UH 
-    # River routing 
-    #T_RR = 96					# [day] Base time for river routing UH 
-    #--------------------------------------------------------------------------
+    Parameters
+    ----------
+    routing_outlet : str
+        routing outlet.
+    routing : dict
+        Routing setting dictionary from model.yaml file.
+    UH_Lohmann : dict
+        A dictionary containing pre-formed UHs.
+    Q : dict
+        A dictionary containing newest routed flows.
+    Q_LSM : dict
+        A dictionary containing newest unrouted flows without.
+    t : int
+        Index of current time step [day].
+
+    Returns
+    -------
+    float
+        Routed flow of routing_outlet at time t.
+    """
     Qt = None
     ro = routing_outlet
     Qresult = 0
@@ -168,32 +168,33 @@ def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
         else:
             Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
         Qresult += np.sum(UH * Q_reverse)
-    Qt = Qresult         # Store the result for time t
+    Qt = Qresult        # Store the result for time t
     return Qt
 
 def run_step_Lohmann_convey(routing_outlet, routing, UH_Lohmann_convey,
                             Q_convey, t):
-    """Calculate a single time step routing for the entire basin.
-    Args:
-        routing_outlet (str): routing node.
-        routing (dict): Sub-model dictionary from your model.yaml file.
-        UH_Lohmann_convey (dict): Contain pre-formed UH for all connections
-            between gauged outlets and its upstream conveyed outlets (no 
-            in-grid routing).
-            e.g. {(subbasin, gaugedoutlet): UH_direct}
-        Q_convey (dict): Contain conveyed water for its destinetion node. 
-        t (int): Index of current time step (day).
+    """Calculate a single time step conveying water routing for a given
+    routing_outlet at time t.
 
-    Returns:
-        [dict]: Update Qt for routing.
-    """   
-    #----- Base Time for in-grid (watershed subunit) UH and river/channel
-    # routing UH --------------------------------------------------------------
-    # In-grid routing
-    #T_IG = 12					# [day] Base time for in-grid UH 
-    # River routing 
-    #T_RR = 96					# [day] Base time for river routing UH 
-    #--------------------------------------------------------------------------
+    Parameters
+    ----------
+    routing_outlet : str
+        routing outlet.
+    routing : dict
+        Routing setting dictionary from model.yaml file.
+    UH_Lohmann_convey : dict
+        A dictionary containing pre-formed conveying UHs (i.e., no within 
+        subbasin routing).
+    Q_convey : dict
+        A dictionary containing conveying water.
+    t : int
+        Index of current time step [day].
+
+    Returns
+    -------
+    float
+        Routed conveying flow of routing_outlet at time t.
+    """
     Qt = None
     ro = routing_outlet
     Qresult = 0
@@ -206,16 +207,5 @@ def run_step_Lohmann_convey(routing_outlet, routing, UH_Lohmann_convey,
             UH = uh_convey[0 : min(t + 1, l)]
             Q_reverse = np.flip(Q_convey[sb][ max(t-(l-1), 0) : t+1])
             Qresult += np.sum(UH * Q_reverse)
-    Qt = Qresult         # Store the result for time t
+    Qt = Qresult        # Store the result for time t
     return Qt
-#%% Test function
-r"""
-routing_pars = {}
-routing_pars["GShape"] = 62.6266
-routing_pars["GRate"] = 1/0.4447
-routing_pars["Velo"] = 19.1643
-routing_pars["Diff"] = 1985.4228
-flow_len = 11631
-UH = formUH_Lohmann(flow_len, routing_pars)
-np.sum(UH)
-"""

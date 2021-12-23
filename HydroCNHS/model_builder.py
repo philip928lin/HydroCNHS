@@ -3,6 +3,7 @@
 # Last update at 2021/12/22.
 
 from copy import deepcopy
+import pandas as pd
 from .util import write_model, dict_to_string
 
 model_template = {
@@ -79,6 +80,10 @@ ABM_template = {
 class ModelBuilder(object):
     def __init__(self, wd):
         self.Model = deepcopy(model_template)
+        self.help()
+        print("Use .help to re-print the above instruction.")
+        
+    def help(self):
         print("Follow the following steps to create model template:\n"
               +"\tStep 1: set_water_system()\n"
               +"\tStep 2: set_lsm()\n"
@@ -87,7 +92,6 @@ class ModelBuilder(object):
               +"\tStep 5: write_model_to_yaml()\n"
               +"After creating model.yaml template, "
               +"open it and further edit it.")
-    
     def set_water_system(self, start_date, end_date):
         """Setup WaterSystem.
 
@@ -179,10 +183,11 @@ class ModelBuilder(object):
         # Turn of within-subbasin routing if upstream outlets of other routing 
         # are routing_outlet (this newly added one).
         for ro in list(self.Model["Routing"].keys()):
-            for o in list(self.Model["Routing"][ro].keys()):
-                if ro != routing_outlet and o == routing_outlet:
-                    self.Model["Routing"][ro][o]["Pars"]["GShape"] = None
-                    self.Model["Routing"][ro][o]["Pars"]["GScale"] = None
+            if ro != "Model":
+                for o in list(self.Model["Routing"][ro].keys()):
+                    if ro != routing_outlet and o == routing_outlet:
+                        self.Model["Routing"][ro][o]["Pars"]["GShape"] = None
+                        self.Model["Routing"][ro][o]["Pars"]["GScale"] = None
                     
     def set_ABM(self, abm_module_path=""):
         """Setup ABM if it is a coupled model.
@@ -195,8 +200,22 @@ class ModelBuilder(object):
         self.Model["Path"]["Modules"] = abm_module_path
         
     def write_model_to_yaml(self, filename):
+        if filename[-5:] != ".yaml":
+            filename = filename + ".yaml"
         write_model(self.Model, filename)
         print("Save at {}.".format(filename))
     
     def print_model(self):
         print(dict_to_string(self.Model))
+
+r"""
+import HydroCNHS
+m = HydroCNHS.ModelBuilder("WD")
+m.set_water_system("1980/8/5", "2050/4/7")
+m.set_lsm(["a", "b", "c", "d"], "ABCD")
+m.set_routing_outlet("b", ["c", "d", "b"], ["c"])
+m.set_routing_outlet("d", ["d"])
+m.set_ABM(abm_module_path="XDD")
+m.write_model_to_yaml(r"C:\Users\model_test.yaml")
+m.print_model()
+"""

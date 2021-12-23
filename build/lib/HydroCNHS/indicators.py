@@ -1,24 +1,46 @@
+# Indicator module
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# Last update at 2021/12/23.
+
 import numpy as np 
 import pandas as pd
 
 class Indicator(object):
-    """
-    r   : Correlation of correlation
-    r2  : Coefficient of determination
-    rmse: Root mean square error
-    NSE : Nash–Sutcliffe efficiency
-    iNSE: NSE with inverse transformed Q.
-    CP  : Correlation of persistence
-    RSR : RMSE-observations standard deviation ratio 
-    KGE : Kling–Gupta efficiency
-    iKGE: KGE with inverse transformed Q.
-    """
-    
     def __init__(self) -> None:
+        """A class containing following indicator functions.
+        
+        r   : Correlation of correlation
+        r2  : Coefficient of determination
+        rmse: Root mean square error
+        NSE : Nash–Sutcliffe efficiency
+        iNSE: NSE with inverse transformed Q.
+        CP  : Correlation of persistence
+        RSR : RMSE-observations standard deviation ratio 
+        KGE : Kling–Gupta efficiency
+        iKGE: KGE with inverse transformed Q.
+        """
         pass
     
     @staticmethod
     def remove_na(x_obv, y_sim):
+        """Remove nan in x_obv and y_sim.
+        
+        This function makes sure there is no nan involves in the indicator
+        calculation. If nan is detected, data points will be remove from x_obv 
+        and y_sim simultaneously.
+
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+
+        Returns
+        -------
+        tuple
+            Updated (x_obv, y_sim)
+        """
         x_obv = np.array(x_obv)
         y_sim = np.array(y_sim)
         index = [True if np.isnan(x) == False and np.isnan(y) == False \
@@ -50,14 +72,21 @@ class Indicator(object):
     
     @staticmethod
     def r(x_obv, y_sim, r_na=True):
-        """Correlation of correlation
+        """Correlation.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            r coefficient.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -69,28 +98,42 @@ class Indicator(object):
     
     @staticmethod
     def r2(x_obv, y_sim, r_na=True):
-        """Coefficient of determination
+        """Coefficient of determination.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            r2 coefficient.
         """
         r = Indicator.r(x_obv, y_sim, r_na)
         return r**2
     
     @staticmethod
     def rmse(x_obv, y_sim, r_na=False):
-        """Root mean square error
+        """Root mean square error.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            Root mean square error.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -98,14 +141,21 @@ class Indicator(object):
     
     @staticmethod
     def NSE(x_obv, y_sim, r_na=False):
-        """Nash–Sutcliffe efficiency
+        """Nash–Sutcliffe efficiency.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            Nash–Sutcliffe efficiency.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -114,14 +164,21 @@ class Indicator(object):
     
     @staticmethod
     def iNSE(x_obv, y_sim, r_na=False):
-        """Nash–Sutcliffe efficiency
+        """Inverse Nash–Sutcliffe efficiency.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            Inverse Nash–Sutcliffe efficiency.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -140,14 +197,21 @@ class Indicator(object):
     
     @staticmethod
     def CP(x_obv, y_sim, r_na=False):
-        """Correlation of persistence
-        
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        """Correlation of persistence.
 
-        Returns:
-            float
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
+
+        Returns
+        -------
+        float
+            Correlation of persistence.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -158,14 +222,21 @@ class Indicator(object):
     
     @staticmethod
     def RSR(x_obv, y_sim, r_na=False):
-        """RMSE-observations standard deviation ratio 
+        """RMSE-observations standard deviation ratio.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            RMSE-observations standard deviation ratio.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -174,14 +245,21 @@ class Indicator(object):
     
     @staticmethod
     def KGE(x_obv, y_sim, r_na=True):
-        """Kling–Gupta efficiency
+        """Kling–Gupta efficiency.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            Kling–Gupta efficiency.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)
@@ -195,15 +273,21 @@ class Indicator(object):
     
     @staticmethod
     def iKGE(x_obv, y_sim, r_na=True):
-        """Kling–Gupta efficiency with inverse transformed flow.
-            https://www.fs.fed.us/nrs/pubs/jrnl/2015/nrs_2015_thirel_001.pdf
+        """Inverse Kling–Gupta efficiency.
 
-        Args:
-            x_obv (Array): x or obv
-            y_sim (Array): y or sim
+        Parameters
+        ----------
+        x_obv : array
+            Observation data.
+        y_sim : array
+            Simulation data.
+        r_na : bool, optional
+            Remove nan, by default True
 
-        Returns:
-            float
+        Returns
+        -------
+        float
+            Inverse Kling–Gupta efficiency.
         """
         if r_na:
             x_obv, y_sim = Indicator.remove_na(x_obv, y_sim)

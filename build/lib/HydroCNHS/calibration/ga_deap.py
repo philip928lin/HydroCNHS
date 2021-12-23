@@ -11,24 +11,23 @@ logger = logging.getLogger("HydroCNHS.GA")
 
 r"""
 inputs = {"par_name":    ["a","b","c"],
-          "par_bound":   [[1,2],[1,2],[1,2]],
-          #"par_type":   ["real"]*3,
+          "par_bound":   [[0,1],[0,1],[0,1]],
           "wd":          r""}
 
 config = {"min_or_max":         "min",
           "pop_size":           100,
-          "num_ellite":          1,
-          "prob_cross":          0.5,
-          "prob_mut":            0.1,
+          "num_ellite":         1,
+          "prob_cross":         0.5,
+          "prob_mut":           0.1,
           "stochastic":         False,
-          "max_gen":             100,
-          "sampling_method":     "LHC",
-          "drop_record":         False,
-          "paral_cores":         2,
-          "paral_verbose":        0,
-          "auto_save":           True,
-          "print_level":         10,
-          "plot":               False
+          "max_gen":            100,
+          "sampling_method":    "LHC",
+          "drop_record":        False,
+          "paral_cores":        -2,
+          "paral_verbose":      1,
+          "auto_save":          True,
+          "print_level":        10,
+          "plot":               True
           }
 """
 def scale(individual, bound_scale, lower_bound):
@@ -37,12 +36,14 @@ def scale(individual, bound_scale, lower_bound):
     scaled_individual = np.multiply(individual, bound_scale)
     scaled_individual = np.add(scaled_individual, lower_bound)
     return scaled_individual.flatten()
+
 def descale(individual, bound_scale, lower_bound):
-    """individual is 1d array ndarray."""
+    """individual is 1d ndarray."""
     individual = individual.reshape(bound_scale.shape)
     descaled_individual = np.subtract(individual, lower_bound)
     descaled_individual = np.divide(descaled_individual, bound_scale)
     return descaled_individual.flatten()
+
 def sample_by_MC(size, rn_gen_gen):
     return rn_gen_gen.uniform(0, 1, size)
 
@@ -62,6 +63,7 @@ def sample_by_LHC(size, rn_gen_gen):
         # Scale [0,1] to its bound.
         pop[:,i] = temp
     return pop
+
 def gen_init_pop(creator, size, method="LHC", guess_pop=None, rn_gen_gen=None):
     # size = [pop_size, num_par]
     pop_size = size[0]
@@ -91,6 +93,7 @@ def mut_uniform(individual, prob_mut, rn_gen_gen):
     new_sample = rn_gen_gen.uniform(0, 1, num_par)
     individual[mut] = new_sample.flatten()[mut]
     return individual
+
 def mut_middle(individual, p1, p2, prob_mut, rn_gen_gen):
     num_par = len(individual)
     new_sample = rn_gen_gen.uniform(0, 1, num_par)
@@ -106,24 +109,7 @@ def mut_middle(individual, p1, p2, prob_mut, rn_gen_gen):
     return individual
 
 def selRoulette(individuals, k, rn_gen_gen, fit_attr="fitness"):
-    """Select *k* individuals from the input *individuals* using *k*
-    spins of a roulette. The selection is made by looking only at the first
-    objective of each individual. The list returned contains references to
-    the input *individuals*.
-    (Copy from DEAP tools module and modify the random number generator)
-
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as selection criterion
-    :returns: A list of selected individuals.
-
-    This function uses the :func:`~random.random` function from the python base
-    :mod:`random` module.
-
-    .. warning::
-       The roulette selection by definition cannot be used for minimization
-       or when the fitness can be smaller or equal to 0.
-    """
+    # From DEAP
     s_inds = sorted(individuals, key=attrgetter(fit_attr), reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
@@ -137,19 +123,7 @@ def selRoulette(individuals, k, rn_gen_gen, fit_attr="fitness"):
                 break
     return chosen
 def cxUniform(ind1, ind2, indpb, rn_gen_gen):
-    """Executes a uniform crossover that modify in place the two
-    :term:`sequence` individuals. The attributes are swapped according to the
-    *indpb* probability.
-    (Copy from DEAP tools module and modify the random number generator)
-
-    :param ind1: The first individual participating in the crossover.
-    :param ind2: The second individual participating in the crossover.
-    :param indpb: Independent probability for each attribute to be exchanged.
-    :returns: A tuple of two individuals.
-
-    This function uses the :func:`~random.random` function from the python base
-    :mod:`random` module.
-    """
+    # From DEAP
     size = min(len(ind1), len(ind2))
     for i in range(size):
         if rn_gen_gen.random() < indpb:
@@ -178,6 +152,24 @@ tb.register("ellite", tools.selBest)
 
 class GA_DEAP(object):
     def __init__(self, evaluation_func, rn_gen=None):
+        """Initialize the GA calibration object.
+
+        Note that this GA algorithm only allows to calibrate real numbers.
+        
+        Parameters
+        ----------
+        evaluation_func : function
+            Evaluation function. EX:
+            def evaluation(individual, info):
+                return (fitness,)
+            where info = (cali_wd, current_generation, ith_individual,
+            formatter, rn_gen)
+        rn_gen : object, optional
+            Random number generator created by create_rn_gen(), by default None.
+            If given, randomness of the designed model is controled by rn_gen.
+            We encourage user to assign it to maintain the reproducibility of
+            the stochastic simulation. 
+        """
         print("GA Calibration Guide\n"
               +"Step 1: set or load (GA_auto_save.pickle).\nStep 2: run.")
         if rn_gen is None:
@@ -192,6 +184,16 @@ class GA_DEAP(object):
         tb.register("evaluate", evaluation_func)
 
     def load(self, GA_auto_save_file, max_gen=None):
+        """Load save pickle file (i.e., continue previous run).
+
+        Parameters
+        ----------
+        GA_auto_save_file : str
+            Filename.
+        max_gen : int, optional
+            This allow user to increase max_gen for continuing calibration for
+            a longer searching, by default None.
+        """
         with open(GA_auto_save_file, "rb") as f:
             snap_shot = pickle.load(f)
         for key in snap_shot:  # Load back all the previous class attributions.
@@ -227,6 +229,21 @@ class GA_DEAP(object):
         
     def set(self, inputs, config, formatter=None,
             name="Calibration"):
+        """Setup the GA calibration.
+
+        Parameters
+        ----------
+        inputs : dict
+            Calibration input dictionary generated by Convertor. Or, get the 
+            template by calling get_inputs_template().
+        config : dict
+            Calibration configuration dictionary. Get the template by calling
+            get_config_template().
+        formatter : dict, optional
+            Formatter generated by Convertor, by default None.
+        name : str, optional
+            Name of the calibration, by default "Calibration".
+        """
         self.name = name
         self.config = config
         self.inputs = inputs
@@ -289,17 +306,21 @@ class GA_DEAP(object):
         #---------------------------------------
 
     def run_individual(self, individual="best", name="best"):
-        """Run the evaluation for a given individual (scaled).
+        """Run the evaluation for a given individual.
 
         Warning! run_individual() does not generantee the same rn_gen will be
         assign to the evaluation, but the same one will be used for
         run_individual()
-
-        Args:
-            individual (1darray, optional): individual. Defaults to "best".
-            name (str, optional): This will be sent to the evaluation function
-                through info = (cali_wd, name, name). Defaults to "best".
+        
+        Parameters
+        ----------
+        individual : 1darray, optional
+            Individual or solution, by default "best".
+        name : str, optional
+            This will be sent to the evaluation function through info = 
+            (cali_wd, name, name, formatter, rn_gen), by default "best".
         """
+        
         if individual == "best":
             sol = self.solution
         else:
@@ -326,7 +347,14 @@ class GA_DEAP(object):
         return rn_gen_pop
 
     def run(self, guess_pop=None):
+        """Run calibration.
 
+        Parameters
+        ----------
+        guess_pop : 2darray, optional
+            Assigned initial guesses, by default None. guess_pop has the size =
+            [number of guesses, number of parameters]
+        """
         # Start timer
         self.start_time = time.monotonic()
         self.elapsed_time = 0
@@ -518,6 +546,6 @@ class GA_DEAP(object):
         with open(os.path.join(cali_wd, "GA_auto_save.pickle"),
                   'wb') as outfile:
             # protocol=pickle.HIGHEST_PROTOCOL
-            #print()
+            # print()
             pickle.dump(snap_shot, outfile)
         return None

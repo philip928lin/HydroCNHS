@@ -1,18 +1,28 @@
+# Hamon pet module.
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# Last update at 2021/12/22.
+
 import numpy as np
 from pandas import date_range, to_datetime, to_numeric
 
-# More ET method code can be found at https://github.com/phydrus/PyEt 
 def cal_pet_Hamon(temp, Lat, start_date, dz=None):
     """Calculate potential evapotranspiration (pet) with Hamon (1961) equation.
 
-    Args:
-        temp (Array): [degC] Daily mean temperature.
-        Lat (float): [deg] Latitude.
-        start_date (str): yyyy/mm/dd.
-        dz (float): [m] Altitude temperature adjustment. Defaults to None.
+    Parameters
+    ----------
+    temp : array
+        [degC] Daily mean temperature.
+    Lat : float
+        [deg] Latitude.
+    start_date : str
+        Start date "yyyy/mm/dd".
+    dz : float, optional
+        [m] Altitude temperature adjustment, by default None.
 
-    Returns:
-        [Array]: [cm/day] pet
+    Returns
+    -------
+    array
+        [cm/day] Potential evapotranspiration
     """
     temp = np.array(temp)
     # Altitude temperature adjustment
@@ -42,3 +52,4 @@ def cal_pet_Hamon(temp, Lat, start_date, dz=None):
     pet = np.array(pet/10)         # Convert from mm to cm
     pet[np.where(temp <= 0)] = 0   # Force pet = 0 when temperature is below 0.
     return pet      # [cm/day]
+# More ET method code can be found at https://github.com/phydrus/PyEt 

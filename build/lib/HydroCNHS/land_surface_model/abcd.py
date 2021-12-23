@@ -1,31 +1,49 @@
-import numpy as np
-import logging
-
+# ABCD module.
 # The ABCD model is mainly follow (Guillermo et al., 2010); however, with 
 # different snow module. 
 # https://doi.org/10.1029/2009WR008294
-def run_ABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
-    """ABCD for rainfall runoff simulation.
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# Last update at 2021/12/22.
 
-    Args:
-        ABCD_pars (dict): Contain 5 parameters.  
-        inputs (dict): Contain 3 inputs
-        temp (Array): [degC] Daily mean temperature.
-        prec (Array): [cm] Daily precipitation.
-        pet (Array): [cm] Daily potential evaportranspiration.
-        data_length (int): Total data length.
-        
-    Returns:
-        [Array]: [cms] Discharge
-    """
-    
-    r"""
+import numpy as np
+import logging
+
+def run_ABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
+    """ABCD rainfall-runoff model.
+
     Inputs:
-        Area:                   # [ha] Sub-basin area.
-        XL:     10              # [cm] Initial saturated soil water content.
-                                       [0, 400]
-        SnowS:  5               # [cm] Snow storage.
+        Area:     [ha] Subbasin area.
+        XL:       [cm] Initial saturated soil water content.
+        Latitude: [deg]
+        SnowS:    [cm] Snow storage.
+    Pars:
+        a: Controls the amount of runoff and recharge during unsaturated soil.
+        b: Controls Saturation level of the soils.
+        c: Ratio of groundwater recharge to runoff.
+        d: Controls groundwater discharge rate.
+        Df: [cm/degC] Degree-day coefficient 
+    
+    Parameters
+    ----------
+    ABCD_pars : dict
+        Parameter dictionary containing 5 parameters: a, b, c, d, Df.
+    inputs : dict
+        Input dictionary containing 4 inputs: Area, Latitude, XL, SnowS.
+    temp : array
+        [degC] Daily mean temperature.
+    prec : array
+        [cm] Daily precipitation.
+    pet : array
+        [cm] Daily potential evaportranspiration.
+    data_length : int
+        Total data length (i.e., simulation period).
+
+    Returns
+    -------
+    array
+        [cms] Discharge
     """
+
     # Data
     temp = np.array(temp)      # [degC] Daily mean temperature.
     prec = np.array(prec)      # [cm] Daily precipitation.
@@ -40,7 +58,7 @@ def run_ABCD(ABCD_pars, inputs, temp, prec, pet, data_length):
     XU = 0                     # [cm] Soil water storage (Antecedent Moisture).
     
     # Pars
-    a = ABCD_pars["a"]                   # [0, 1] ?
+    a = ABCD_pars["a"]                   # [0, 1]
     b = ABCD_pars["b"]                   # [cm] [0, 400]
     c = ABCD_pars["c"]                   # [0, 1]
     d = ABCD_pars["d"]                   # [0, 1]
