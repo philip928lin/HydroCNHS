@@ -1,20 +1,55 @@
+# GWLF module.
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# Last update at 2021/12/22.
+
 import numpy as np
 from pandas import date_range, to_datetime, DataFrame
 
 def run_GWLF(GWLF_pars, inputs, temp, prec, pet, start_date, data_length):
-    """GWLF for rainfall runoff simulation.
+    """GWLF rainfall-runoff model.
 
-    Args:
-        GWLF_pars (dict): Contain 9 parameters.  
-        inputs (dict): Contain 5 inputs
-        temp (Array): [degC] Daily mean temperature.
-        prec (Array): [cm] Daily precipitation.
-        pet (Array): [cm] Daily potential evaportranspiration.
-        start_date (str): yyyy/mm/dd. 
-        data_length (int): Total data length.
+    Inputs:
+        Area:     [ha] Subbasin area.
+        Latitude: [deg]
+        S0:       [cm] Shallow saturated soil water content.
+        U0:       [cm] Unsaturated soil water content.
+        SnowS:    [cm] Snow storage.
         
-    Returns:
-        [Array]: [cms] Discharge
+    Pars:
+        CN2:   Curve number.
+        IS:    Interception coefficient.
+        Res:   Recession coefficient.
+        Sep:   Deep seepage coefficient.
+        Alpha: Baseflow coefficient.
+        Beta:  Percolation coefficient.
+        Ur:    [cm] Available/Soil water capacity.
+        Kc:    Land cover coefficient.
+        Df:    [cm/degC] Degree-day coefficient.
+    Note that the simulation period has to be longer than a month.
+    
+    Parameters
+    ----------
+    GWLF_pars : dict
+        Parameter dictionary containing 9 parameters: CN2, IS, Res, Sep, Alpha,
+        Beta, Ur, Kc, Df.
+    inputs : dict
+        Input dictionary containing 5 inputs: Area, Latitude, S0, U0, SnowS.
+    temp : array
+        [degC] Daily mean temperature.
+    prec : array
+        [cm] Daily precipitation.
+    pet : array
+        [cm] Daily potential evaportranspiration.
+    start_date: str
+        Start date "yyyy/mm/dd".
+
+    data_length : int
+        Total data length (i.e., simulation period).
+
+    Returns
+    -------
+    array
+        [cms] Discharge
     """
     #----- Setup  -------------------------------------------------------------
     
@@ -67,9 +102,13 @@ def run_GWLF(GWLF_pars, inputs, temp, prec, pet, start_date, data_length):
     MonthlyTavg = MonthlyTavg.resample("MS").mean()
     # Broadcast back to daily sequence.
     # Note: Data has to longer than a month or it will show error.
-    MonthlyTavg.index = [pdDatedateIndex[0]] + list(MonthlyTavg.index[1:-1]) \
-                        + [pdDatedateIndex[-1]]
-    MonthlyTavg = MonthlyTavg.resample('D').ffill()["T"].to_numpy()
+    try:
+        MonthlyTavg.index = [pdDatedateIndex[0]] + list(MonthlyTavg.index[1:-1]) \
+                            + [pdDatedateIndex[-1]]
+        MonthlyTavg = MonthlyTavg.resample('D').ffill()["T"].to_numpy()
+    except Exception as e:
+        print(e)
+        print("The simulation period has to be longer than a month.")
     #--------------------------------------------------------------------------
 
     #----- Loop through all days (Python for loop ending needs +1) ------------

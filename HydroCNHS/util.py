@@ -1,3 +1,7 @@
+# Untility functions' module
+# by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
+# Last update at 2021/12/23.
+
 import os 
 import ast
 import itertools
@@ -8,20 +12,25 @@ import numpy as np
 import pandas as pd
 import yaml
 import ruamel.yaml          # For round trip modification (keep comments)
-from copy import deepcopy                   # For deepcopy dictionary.
-import importlib.util                       # For importing customized module.
+from copy import deepcopy
+import importlib.util       # For importing customized module.
 logger = logging.getLogger("HydroCNHS.SC") 
 
 
 #-----------------------------------------------
-#---------- Read and Wright Functions ----------
+#---------- Read and Write Functions ----------
 # Acquire "this" file path. 
 this_dir, this_filename = os.path.split(__file__)
-def load_system_config():
-    """Load system Config.yaml.
 
-    Returns:
-        dict: Model config dictionary.
+def load_system_config():
+    """Load HydroCNHS Config.yaml.
+    
+    Config.yaml is located at package installed directory.
+
+    Returns
+    -------
+    dict
+        HydroCNHS system configuration dictionary.
     """
     # print(os.path.join(this_dir, 'Config.yaml'))
     with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
@@ -32,8 +41,10 @@ def update_system_config(modified_config):
     """Given the dictionary of modified setting, this function will over write
     Config.yaml.
 
-    Args:
-        modified_config (dict): Dictionary of modified config setting
+    Parameters
+    ----------
+    modified_config : dict
+        Dictionary of modified config settings.
     """
     # Defaults to round-trip if no parameters given
     yaml_round = ruamel.yaml.YAML()  
@@ -53,7 +64,7 @@ def update_system_config(modified_config):
     logger.info("Update system Config to:\n{}".format(dict_to_string(config)))
 
 def default_config():
-    """Set Config.yaml back to default setting.
+    """Return HydroCNHS to default system configuration.
     """
     default_config = {
         "LogHandlers": ["console"],   
@@ -66,16 +77,28 @@ def default_config():
             "Cores_GA": -2}
         }
     update_system_config(default_config)
-    logger.info("Set system Config to default.")
+    logger.info("Set HydroCNHS system configuration to default.")
 
 def load_model(model, checked=False, parsed=False, print_summary=True):
-    """Load model and conduct initial check for its setting consistency.
+    """Load model.yaml or model dictionary.
 
-    Args:
-        model (str): Model filename. Has to be .yaml file.
+    Parameters
+    ----------
+    model : str/dict
+        Filename (e.g., model.yaml) or model dictionary.
+    checked : bool, optional
+        If True, no pre-check will be implemented, by default False.
+    parsed : bool, optional
+        If True, model will not be re-parses, by default False.
+    print_summary : bool, optional
+        Print the summary of loaded model, by default True.
+
+    Returns
+    -------
+    dict
+        Model dictionary.
     """
     logger = logging.getLogger("HydroCNHS")
-    # For expert of HydroCNHS to use. Give model in a dictionary form directly.
     if isinstance(model, dict):     
         model = model
     else:
@@ -98,14 +121,20 @@ def load_model(model, checked=False, parsed=False, print_summary=True):
     
     return model
 
-def write_model(model_dict, model_name, org_model=None):
-    """Output model to yaml file. If org_model is given, comments in the
-    original file will be kept in the output model file.
+def write_model(model_dict, filename, org_model=None):
+    """Write model dictionary to .yaml file
+    
+    If org_model is given, comments in the original file will be kept in the
+    output model file.
 
-    Args:
-        model_dict (dict): HydroCNHS model dictionary.
-        model_name (str): Output model name (e.g. XXX.yaml).
-        org_model (str, optional): Original model name. Defaults to None.
+    Parameters
+    ----------
+    model_dict : dict
+        Model dictionary.
+    filename : str
+        Output filename (e.g. model.yaml).
+    org_model : str, optional
+        Original model name (e.g. org_model.yaml), by default None.
     """
     if org_model is not None:   # Contain comments in the original model file.
         # Defaults to round-trip if no parameters given
@@ -113,25 +142,29 @@ def write_model(model_dict, model_name, org_model=None):
         with open(os.path.join(org_model), 'rt') as file:
             model = yaml_round.load(file.read())
             model = model_dict
-        with open(os.path.join(model_name), 'w') as file:
+        with open(os.path.join(filename), 'w') as file:
             yaml_round.dump(model, file)
     else:                   # Dump without comments in the original model file.
-        with open(model_name, 'w') as file:
+        with open(filename, 'w') as file:
             saved_model = yaml.safe_dump(
                 model_dict, file, sort_keys=False, default_flow_style=None
                 )
-    logger.info("Model is saved at {}.".format(model_name))
+    logger.info("Model is saved at {}.".format(filename))
 
 def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
-    """Write model (dictionary) to seperated dataframe for each section.
+    """Write model (dictionary) to dataframes.
+    
+    This function will convert model dictionary to dataframes according to 
+    user's specified sections (key_option).
 
-    Args:
-        model_dict (dict): HydroCNHS model.
-        key_option (list, optional): Output items: Pars, Inputs, Attributions.
-            Defaults to ["Pars"].
-        prefix (str, optional): Prefix for the file name. Defaults to "".
-    Return:
-        output_df_list, df_name
+    Parameters
+    ----------
+    model_dict : dict
+        Model dictionary.
+    key_option : list, optional
+        Output sections (e.g., Pars, Inputs, Attributes), by default ["Pars"].
+    prefix : str, optional
+        Prefix for the filenames, by default "".
     """
     def convert_dict_to_df(dict, colname):
         df = {}
@@ -161,7 +194,7 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
     section_list = [i for i in allowed_output_sections if i in model_dict]
     df_name = []; output_df_list = [] 
     for s in section_list:
-        if s == "LSM" and key_option != ["Attributions"]:
+        if s == "LSM" and key_option != ["Attributes"]:
             df_name.append(prefix + "LSM_" + model_dict[s]["Model"])
             df = pd.DataFrame()
             for sub in model_dict[s]:
@@ -171,7 +204,7 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
                     converted_dict = convert_dict_to_df(merged_dict, sub)
                     df = pd.concat([df, converted_dict], axis=1)
             output_df_list.append(df)   
-        elif s == "Routing" and key_option != ["Attributions"]:
+        elif s == "Routing" and key_option != ["Attributes"]:
             df_name.append(prefix + "Routing_" + model_dict[s]["Model"])
             df = pd.DataFrame()
             for ro in model_dict[s]:
@@ -202,14 +235,23 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
 
 def write_model_to_csv(folder_path, model_dict, key_option=["Pars"],
                        prefix=""):
-    """Write model dictionary to seperated csv files for each section.
+    """Write model (dictionary) to csv files.
 
-    Args:
-        folder_path (str): Folder path for output files.
-        model_dict (dict): HydroCNHS model.
-        key_option (list, optional): Output items: Pars, Inputs, Attributions.
-            Defaults to ["Pars"].
-        prefix (str, optional): Prefix for the file name. Defaults to "".
+    Parameters
+    ----------
+    folder_path : str
+        Output folder directory.
+    model_dict : dict
+        Model dictionary.
+    key_option : list, optional
+        Output sections (e.g., Pars, Inputs, Attributes), by default ["Pars"].
+    prefix : str, optional
+        Prefix for the filenames, by default "".
+
+    Returns
+    -------
+    list
+        List of filenames.
     """
     output_df_list, df_name = write_model_to_df(model_dict, key_option, prefix)
     df_name = [i+".csv" for i in df_name]
@@ -219,17 +261,26 @@ def write_model_to_csv(folder_path, model_dict, key_option=["Pars"],
     return df_name       # CSV filenames
 
 def load_df_to_model_dict(model_dict, df, section, key):
-    """Load dataframe to model dictionary. The dataframe has to be in certain
-    format that generate by ModelBuilder.
-
-    Args:
-        model_dict (dict): Model dictionary.
-        df (DataFrame): DataFrame with certain format.
-        section (str): LSM or Routing or ABM.
-        key (str): Inputs or Pars or Attributions.
+    """Load dataframe to model dictionary.
     
-    Return:
-        (dict) updated model_dict.
+    Note that the column and index names have to be identical as outputted from
+    write_model_to_df() function.
+
+    Parameters
+    ----------
+    model_dict : dict
+        Model dictionary.
+    df : DataFrame
+        Dataframe.
+    section : str
+        LSM or Routing or ABM.
+    key : str
+        nputs or Pars or Attributes.
+        
+    Returns
+    -------
+    dict
+        Updated model_dict.
     """
 
     def parse_df_to_dict(df):
@@ -310,11 +361,14 @@ def load_customized_module_to_class(Class, module_name, path):
     """Load classes and functions in a user defined module (.py) into a given
     Class.
 
-    Args:
-        Class (class): A class to collect classes and functions in a given
-            module.
-        module_name (string): filename.py or filename.
-        path (string): Path to filename.py.
+    Parameters
+    ----------
+    Class : class
+        A class to collect classes and functions in a given module.
+    module_name : str
+        filename.py or filename.
+    path : str
+        Directory of filename.py.
     """
     spec = importlib.util.spec_from_file_location(module_name, 
                                               os.path.join(path, module_name))
@@ -333,11 +387,19 @@ def load_customized_module_to_class(Class, module_name, path):
 #---------- Auxiliary Functions ----------
 
 def dict_to_string(dictionary, indentor="  "):
-    """Covert dictionary to printable string.
+    """Ture a dictionary into a printable string.
 
-    Args:
-        dictionary (dict): Dictionary.
-        indentor (str, optional): Defaults to "  ".
+    Parameters
+    ----------
+    dictionary : dict
+        A dictionary.
+    indentor : str, optional
+        Indentor, by default "  "
+    
+    Returns
+    -------
+    str
+        String.
     """
     def dict_to_string_list(dictionary, indentor="  ", count=0, string=[]):
         for key, value in dictionary.items(): 
@@ -350,6 +412,18 @@ def dict_to_string(dictionary, indentor="  "):
     return "\n".join(dict_to_string_list(dictionary, indentor))
 
 def create_rn_gen(seed):
+    """Create random number generator based on numpy module.
+
+    Parameters
+    ----------
+    seed : int
+        Random seed.
+
+    Returns
+    -------
+    object
+        Random number generator.
+    """
     rn_gen = np.random.default_rng(seed)
     return rn_gen
 #-----------------------------------------
@@ -357,13 +431,17 @@ def create_rn_gen(seed):
 #-----------------------------------------------
 #---------- Check and Parse Functions ----------
 def check_model(model_dict):
-    """Check the consistency of the model dictionary.
+    """Check the model dictionary
 
-    Args:
-        model_dict (dict): Loaded from model.yaml. 
+    Parameters
+    ----------
+    model_dict : dict
+        Model dictionary
 
-    Returns:
-        bool: True if pass the check.
+    Returns
+    -------
+    bool
+        True if pass the check.
     """
     Pass = True
 
@@ -420,7 +498,7 @@ def check_WS(model_dict):
         ws["DataLength"] = (end_date - start_date).days + 1
     else:
         logger.error("Either DataLength or EndDate has to be provided in "
-                     +"WaterSystem.")
+                     +"WaterSystem setting.")
         Pass = False
     
     outlets = ws["Outlets"]
@@ -452,7 +530,8 @@ def check_LSM(model_dict):
     lsm = model_dict["LSM"]
     Pass = True
     #--- Check keys
-    ideal_keys = set(model_dict["WaterSystem"]["Outlets"] + ["Model"])
+    sb_list = model_dict["WaterSystem"]["Outlets"]
+    ideal_keys = set(sb_list + ["Model"])
     lsm_keys = set(model_dict["LSM"])
     if lsm_keys != ideal_keys:
         logger.error("Inconsist LSM keys {}\nto {}".format(lsm_keys, ideal_keys))
@@ -460,20 +539,27 @@ def check_LSM(model_dict):
         
     #--- Check selected LSM model.
     lsm_model = lsm["Model"]
-    lsm_options = ["GWLF", "ABCD", "HYMOD"]
+    lsm_options = ["GWLF", "ABCD"]
     if lsm_model not in lsm_options:
         logger.error(
             "Invlid LSM model {}. Acceptable options: {}".format(lsm_model,
                                                                  lsm_options)
             )
         Pass = False
+    
+    #--- Check subbasins
+    ideal_keys2 = set(["Inputs", "Pars"])
+    for sb in sb_list:
+        sb_keys = set(model_dict["LSM"][sb])
+        if sb_keys != ideal_keys2:
+            logger.error("Inconsist LSM keys {}\nto {}".format(sb_keys, ideal_keys))
+            Pass = False
     return Pass
 
 def check_agent_in_routing(model_dict):
-    """To make sure InStreamAgentInflows outlets are assigned in the routing
-    section.
-    Missing InsituAgent.
-    """
+    # To make sure InStreamAgentInflows outlets are assigned in the routing
+    # section.
+    # Missing InsituAgent.
     Pass = True
     routing = model_dict["Routing"]
     abm = model_dict["ABM"]

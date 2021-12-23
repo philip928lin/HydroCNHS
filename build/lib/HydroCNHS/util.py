@@ -68,7 +68,7 @@ def default_config():
     update_system_config(default_config)
     logger.info("Set system Config to default.")
 
-def load_model(model, checked=False, parsed=False):
+def load_model(model, checked=False, parsed=False, print_summary=True):
     """Load model and conduct initial check for its setting consistency.
 
     Args:
@@ -94,7 +94,7 @@ def load_model(model, checked=False, parsed=False):
     
     # Parse model
     if parsed is not True:
-        model = parse_model(model)
+        model = parse_model(model, print_summary)
     
     return model
 
@@ -378,7 +378,7 @@ def check_model(model_dict):
         Pass = check_agent_in_routing(model_dict)
     return Pass
 
-def parse_model(model_dict):
+def parse_model(model_dict, print_summary=True):
     """Parse model dictionary. Populate SystemParsedData.
 
     Args:
@@ -390,7 +390,7 @@ def parse_model(model_dict):
     model_dict["SystemParsedData"] = {}
     
     if model_dict.get("Routing") is not None :
-        model_dict = parse_sim_seq(model_dict)
+        model_dict = parse_sim_seq(model_dict, print_summary)
     return model_dict    
 
 def check_WS(model_dict):
@@ -604,7 +604,7 @@ def update_sim_seq_with_group(sim_seq, group, back_tracking_dict):
         update_seq = update_seq + remain_node
         return update_seq
 
-def parse_sim_seq(model_dict):
+def parse_sim_seq(model_dict, print_summary=True):
     model_dict["SystemParsedData"]["SimSeq"] = None
     model_dict["SystemParsedData"]["AgSimSeq"] = None
     model_dict["SystemParsedData"]["RoutingOutlets"] = None
@@ -933,11 +933,12 @@ def parse_sim_seq(model_dict):
 
         model_dict["SystemParsedData"]["AgSimSeq"] = ag_sim_seq    
         #----------------------------------------
-    summary_dict = {}
-    for i in ["SimSeq","RoutingOutlets","DamAgents", "ConveyAgents",
-              "RiverDivAgents","InsituAgents","AgSimSeq"]:
-        summary_dict[i] = model_dict["SystemParsedData"][i]
-    parsed_model_summary = dict_to_string(summary_dict, indentor="  ")
-    logger.info("Parsed model data summary:\n" + parsed_model_summary)
+    if print_summary:
+        summary_dict = {}
+        for i in ["SimSeq","RoutingOutlets","DamAgents", "ConveyAgents",
+                "RiverDivAgents","InsituAgents","AgSimSeq"]:
+            summary_dict[i] = model_dict["SystemParsedData"][i]
+        parsed_model_summary = dict_to_string(summary_dict, indentor="  ")
+        logger.info("Parsed model data summary:\n" + parsed_model_summary)
     return model_dict
 #-------------------------------------

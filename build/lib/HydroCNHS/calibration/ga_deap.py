@@ -191,7 +191,7 @@ class GA_DEAP(object):
             logger.info("User-provided random number generator is assigned.")
         tb.register("evaluate", evaluation_func)
 
-    def load(self, GA_auto_save_file):
+    def load(self, GA_auto_save_file, max_gen=None):
         with open(GA_auto_save_file, "rb") as f:
             snap_shot = pickle.load(f)
         for key in snap_shot:  # Load back all the previous class attributions.
@@ -199,19 +199,22 @@ class GA_DEAP(object):
 
         # Ask for extension of max_gen.
         config = self.config
-        max_gen = config["max_gen"]
-        print("Enter the new max_gen (original max_gen = {})".format(max_gen)
-              +" or Press Enter to continue.")
-        ans1 = input()
+        max_gen_org = config["max_gen"]
+        if max_gen is None:
+            print("Enter the new max_gen (original max_gen = {})".format(max_gen)
+                  +" or Press Enter to continue.")
+            ans1 = input()
+        else:
+            ans1 = max_gen
         if ans1 != "":
             ans2 = int(ans1)
-            if ans2 <= max_gen:
+            if ans2 <= max_gen_org:
                 print("Fail to update MaxGen. Note that new max_gen must be"
                       +" larger than original max_gen. Please reload.")
             else:
                 self.config["max_gen"] = ans2
                 # Add random seed if increased max gen.
-                self.rng_seeds += self.ss.spawn(ans2-max_gen)
+                self.rng_seeds += self.ss.spawn(ans2-max_gen_org)
         # Add toolbox
         if config["min_or_max"] == "min":
             tb.register("population", gen_init_pop, creator.Individual_min)
@@ -221,7 +224,7 @@ class GA_DEAP(object):
                           lower_bound=self.lower_bound)
         tb.register("descale", descale, bound_scale=self.bound_scale,
                           lower_bound=self.lower_bound)
-
+        
     def set(self, inputs, config, formatter=None,
             name="Calibration"):
         self.name = name

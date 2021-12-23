@@ -1,12 +1,12 @@
-# Main HydroCNHS simulator.
-# This module is design to couple the human model with semi-distributed 
-# hydrological model to form a coupled natural human system.
+# Primary HydroCNHS simulator.
+# This file control the coupling logic of CHNS model.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# 2021/02/05
+# 2021/02/05.
+# Last update at 2021/12/22.
 
 import time
 import traceback
-from copy import Error, deepcopy    # For deepcopy dictionary.
+from copy import Error, deepcopy
 import numpy as np
 from pandas import date_range, to_datetime
 from joblib import Parallel, delayed
@@ -14,7 +14,6 @@ from tqdm import tqdm
 import logging
 from .land_surface_model.abcd import run_ABCD
 from .land_surface_model.gwlf import run_GWLF
-from .land_surface_model.hymod import run_HYMOD
 from .land_surface_model.pet_hamon import cal_pet_Hamon
 from .routing import form_UH_Lohmann, run_step_Lohmann, run_step_Lohmann_convey
 from .util import (load_system_config, load_model,
@@ -22,12 +21,26 @@ from .util import (load_system_config, load_model,
 from .data_collector import Data_collector
 
 class Model(object):
-    def __init__(self, model, name=None, rn_gen=None, checked=False, parsed=False):
-        """HydroCNHS model object.
+    def __init__(self, model, name=None, rn_gen=None, checked=False,
+                 parsed=False):
+        """Create HydroCNHS model.
 
-        Args:
-            model (str/dict): model.yaml file (prefer) or dictionary. 
-            name ([str], optional): Object name. Defaults to None.
+        Parameters
+        ----------
+        model : dict/str
+            HydroCNHS model. It can be provided by a dictionary or .yaml file
+            name.
+        name : str, optional
+            The name of the created model, by default None
+        rn_gen : object, optional
+            Random number generator created by create_rn_gen(), by default None.
+            If given, randomness of the designed model is controled by rn_gen.
+            We encourage user to assign it to maintain the reproducibility of
+            the stochastic simulation. 
+        checked : bool, optional
+            If true, no checking process will be conducted, by default False
+        parsed : bool, optional
+            If true, the model will not be re-parsed, by default False
         """
         # Assign model name and get logger.
         self.name = name
@@ -36,14 +49,14 @@ class Model(object):
         else:
             self.logger = logging.getLogger("HydroCNHS."+name) # Get logger 
         
-        # Load HydroCNHS system configuration.
+        # Load HydroCNHS system configuration, Config.yaml located at package's
+        # installed location.
         self.sys_config = load_system_config()   
             
-        # Load model.yaml and distribute into several variables.
-        ## We design model to be either str or dictionary.
+        # Load model.yaml
         model = load_model(model, checked=checked, parsed=parsed)
         
-        # Create random number generator for feeding into ABM.
+        # Create random number generator for ABM.
         if rn_gen is None:
             # Assign a random seed.
             seed = np.random.randint(0, 100000)
@@ -64,23 +77,29 @@ class Model(object):
             self.abm = model.get("ABM")     # abm can be none (decoupled model)
             self.sys_parsed_data = model["SystemParsedData"]
         except:
-            self.logger.error("Model file is incomplete for HydroCNHS.")
+            self.logger.error("Model file is incomplete or error.")
             
         # Initialize output
         self.Q_routed = {}     # [cms] Streamflow for routing outlets.
         self.data_collector = Data_collector()  # For collecting ABM's data.
 
     def load_weather_data(self, temp, prec, pet=None, lsm_outlets=None):
-        """[Include in run] Load temperature and precipitation data.
-        Can add some check functions or deal with miss values here.
-        Args:
-            temp (dict): [degC] Daily mean temperature time series data (value)
-                for each sub-basin named by its outlet.
-            prec (dict): [cm] Daily precipitation time series data (value) for
-                each sub-basin named by its outlet.
-            pet(dict/None): [cm] Daily potential evapotranpiration time series
-                data (value) for each sub-basin named by its outlet.
-            LSM_outlets(dict/None): Should equal to self.ws["Outlets"]
+        """Load temperature and precipitation data.
+
+        Parameters
+        ----------
+        temp : dict
+            [degC] Daily mean temperature time series data (value) for each
+            subbasin named by its outlet.
+        prec : dict
+            [cm] Daily precipitation time series data (value) for each 
+            subbasin named by its outlet.
+        pet : dict, optional
+            [cm] Daily potential evapotranpiration time series data (value) for
+            each subbasin named by its outlet, by default None
+        lsm_outlets : list, optional
+            Name list of subbasins' outlets (i.e., self.ws["Outlets"]), by
+            default None
         """
         ws = self.ws
         lsm = self.lsm
@@ -101,18 +120,29 @@ class Model(object):
     def run(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
                  disable=False):
         """Run HydroCNHS simulation.
-        
-        Args:
-            temp (dict): [degC] Daily mean temperature.
-            prec (dict): [cm] Daily precipitation.
-            pet (dict, optional): [cm] Potential evapotranspiration calculted
-                by Hamon's method. Defaults to None.
-            assigned_Q (dict, optional): [cms] If user want to manually assign
-                Q for certain outlet {"outlet": array}. Defaults to None.
-            assigned_UH (dict, optional): If user want to manually assign UH
-                (Lohmann) for certain outlet {"outlet": array}. Defaults to
-                None.
-            disable (bool): Disable tqdm. Defaults to False.
+
+        Parameters
+        ----------
+        temp : dict
+            [degC] Daily mean temperature.
+        prec : dict
+            [cm] Daily precipitation.
+        pet : dict, optional
+            [cm] Potential evapotranspiration, by
+            default None. If none, pet is calculted by Hamon's method.
+        assigned_Q : dict, optional
+            [cms] If user want to manually assign Q for certain outlet
+            {"outlet": array}, by default {}.
+        assigned_UH : dict, optional
+            If user want to manually assign UH (Lohmann) for certain outlet
+            {"outlet": array}, by default {}.
+        disable : bool, optional
+            Disable display progress bar, by default False.
+
+        Returns
+        -------
+        dict
+            A dictionary of flow time series.
         """
         # Variables
         paral_setting = self.sys_config["Parallelization"]
@@ -143,20 +173,21 @@ class Model(object):
         # If ABM section is not found, then we consider it as none coupled 
         # model.
         # Technical note:
-        #   We will load user-defined modules (e.g., AgentType.py) into 
+        # We will load user-defined modules (e.g., AgentType.py) into 
         # HydroCNHS and store them under the UserModules class. Then, User 
-        # object is created for Hydro CNHS to apply those user-defined classes.
+        # object is created for HydroCNHS to apply those user-defined classes.
         # We use eval() to turn string into python variable.
-        #   Detailed instruction for designing proper modules for HydroCNHS, 
+        # Detailed instruction for designing proper modules for HydroCNHS, 
         # please check the documentation. Certain protocals have to be followed.
         
         self.agents = {}     # Store all agent objects with key = agentname.
-        self.DM_classes = {}   # Store all DM function Ex {"DMFunc": DMFunc()}
+        self.DM_classes = {} # Store all DM function Ex {"DMFunc": DMFunc()}
         agents = self.agents
         DM_classes = self.DM_classes
         
         if abm is not None: 
-            # Data collector
+            # Data collector/container.
+            # This dc will be passed around.
             dc = self.data_collector
             
             # Import user-defined module --------------------------------------
@@ -185,34 +216,10 @@ class Model(object):
                                 dmclass))
                     except Exception as _:
                         logger.error(traceback.format_exc())
-                        logger.debug(e)
+                        logger.error(e)
                         raise Error("Fail to load {}.\n".format(dmclass)
                                     +"Make sure the class is well-defined in "
                                     +"given modules.")
-            
-            r"""
-            Temp save
-                        for dmclass in abm["Inputs"]["DMClasses"]:
-                try:    # Try to load from user-defined module first.
-                    DM_classes[dmclass] = eval("UserModules."+dmclass)(
-                        start_date, data_length, abm)
-                    logger.info(
-                        "Load {} from the user-defined classes.".format(
-                            dmclass))
-                except Exception as e:
-                    try:    # Detect if it is a built-in class.
-                        DM_classes[dmclass] = eval(dmclass)(
-                            start_date, data_length, abm)
-                        logger.info(
-                            "Load {} from the built-in classes.".format(
-                                dmclass))
-                    except Exception as _:
-                        logger.error(traceback.format_exc())
-                        logger.debug(e)
-                        raise Error("Fail to load {}.\n".format(dmclass)
-                                    +"Make sure the class is well-defined in "
-                                    +"given modules.")
-            """
             
             # Initialize agent action groups ----------------------------------
             # The agent action groups is different from the DMFunc. Action 
@@ -256,7 +263,7 @@ class Model(object):
                             logger.info(
                                 "Load {} for {} ".format(ag_type, agG)
                                 +"from the user-defined classes.")
-                        except Exception as e:
+                        except Exception as e1:
                             try:  # Detect if it is a built-in class.
                                 logger.info(
                                     "Try to load {} for {} ".format(ag_type,
@@ -270,8 +277,9 @@ class Model(object):
                                 logger.info(
                                     "Load {} for {} ".format(ag_type, agG)
                                     +"from the built-in classes.")
-                            except Exception as e:
-                                logger.debug(e)
+                            except Exception as e2:
+                                logger.error(e1)
+                                logger.error(e2)
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to load {} for {}.".format(ag_type,
@@ -307,7 +315,7 @@ class Model(object):
                         logger.info(
                             "Load {} for {} ".format(ag_type, ag)
                             +"from the user-defined classes.")
-                    except Exception as e:
+                    except Exception as e1:
                         try:    # Detect if it is a built-in class.
                             agents[ag] = eval(ag_type)(
                                 name=ag, config=ag_config,
@@ -316,7 +324,9 @@ class Model(object):
                             logger.info(
                                 "Load {} for {} ".format(ag_type, ag)
                                 +"from the built-in classes.")
-                        except Exception as e:
+                        except Exception as e2:
+                            logger.error(e1)
+                            logger.error(e2)
                             logger.error(traceback.format_exc())
                             raise Error(
                                 "Fail to load {} for {}.".format(ag_type, ag)
@@ -355,19 +365,6 @@ class Model(object):
                                  weather["temp"][sb], weather["prec"][sb],
                                  weather["pet"][sb], ws["StartDate"],
                                  data_length) \
-                                for sb in outlets ) 
-                            
-        # Start HYMOD simulation in parallel.
-        # Not verify this model yet.
-        if lsm["Model"] == "HYMOD":
-            logger.info("Start HYMOD for {} sub-basins. [{}]".format(
-                len(outlets), get_elapsed_time()))   
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
-                              verbose=paral_setting["verbose"]) \
-                            ( delayed(run_HYMOD)\
-                                (lsm[sb]["Pars"], lsm[sb]["Inputs"],
-                                 weather["temp"][sb], weather["prec"][sb],
-                                 weather["pet"][sb], data_length) \
                                 for sb in outlets ) 
         
         # Start ABCD simulation in parallel.
@@ -633,4 +630,11 @@ class Model(object):
         return Q_routed   
     
     def get_model_object(self):
+        """Get the model object in a dictionary form.
+
+        Returns
+        -------
+        dict
+            model object dictionary.
+        """
         return self.__dict__
