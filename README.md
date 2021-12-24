@@ -1,2 +1,2 @@
-# CNHS_UASA
-The uncertainty and sensitivity analysis of Coupled Natural Human Systems
+# HydroCNHS
+A Python Package of Hydrological Model for Coupled Natural Human Systems
