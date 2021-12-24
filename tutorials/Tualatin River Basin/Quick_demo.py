@@ -24,11 +24,10 @@ model_dict_gwlf["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
 ##### Create HydroCNHS Model Object for Simulation.
 model_gwlf = HydroCNHS.Model(model_dict_gwlf, "gwlf")
 
-##### Run simulation
+##### Run Simulation
 Q_gwlf = model_gwlf.run(temp, prec, pet) # pet is optional.
 
-
-
+##### Plot Time Series Streamflow.
 sim_Q_D_gwlf = pd.DataFrame(Q_gwlf, index=model_gwlf.pd_date_index)
 sim_Q_M_gwlf = sim_Q_D_gwlf.resample("MS").mean()
 sim_res_M_gwlf = model_gwlf.data_collector.R1["release"]

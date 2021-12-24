@@ -122,21 +122,22 @@ config = {'min_or_max': 'max',
          'max_gen': 100,
          'sampling_method': 'LHC',
          'drop_record': False,
-         'paral_cores': -2,
+         'paral_cores': -1,
          'paral_verbose': 1,
          'auto_save': True,
          'print_level': 1,
          'plot': True}
 
-rn_gen = HydroCNHS.get_rn_gen(9)
+rn_gen = HydroCNHS.create_rn_gen(9)
 ga = cali.GA_DEAP(evaluation, rn_gen)
 ga.set(cali_inputs, config, formatter, name="Cali_gwlf_abm_KGE")
 ga.run()
-ga.run_individual(ga.solution)
+ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
+
 #%%
+##### Output Calibrated Model.
 individual = ga.solution
 df_list = cali.Convertor.to_df_list(individual, formatter)
-    # ModelDict is from Model Builder (template with -99).
 model_best = deepcopy(model_dict)
 for i, df in enumerate(df_list):
     s = df_name[i].split("_")[0]
@@ -145,53 +146,29 @@ HydroCNHS.write_model(model_best, os.path.join(ga.cali_wd, "Best_gwlf_abm_KGE.ya
 
 summary = ga.summary
 
-##### Run simuluation
+##### Run Simuluation Again for Plotting.
 model = HydroCNHS.Model(model_best, "Best")
 Q = model.run(temp, prec, pet)
+
+##### Collect Simulated Date to Dataframe.
 cali_target = ["DLLO", "WSLO"]
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[cali_target]
-sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]
-sim_Q_D["SCOO"] = model.data_collector.R1["release"]
-sim_Q_D["HaggIn"] = Q["SCOO"]
+# Extract agents' data from data collector
+sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]      # Diversion (DivAgt)
+sim_Q_D["SCOO"] = model.data_collector.R1["release"]    # Release (ResAgt)
 cali_target += ["SHPP", "SCOO"]
-
-sim_Q_D["storage"] = model.data_collector.R1["storage"]
-cali_target += ["SHPP"]
+# Resample to monthly scale
 sim_Q_M = sim_Q_D.resample("MS").mean()
-sim_Q_Y = sim_Q_D.resample("YS").mean()
 
 visual = HydroCNHS.Visual()
 
-xy_label_reg = ["Observed streamflow (cms)","Simulated streamflow (cms)"]
-xy_label_ts = ["Time","Streamflow (cms)"]
+xy_label_reg = ["Observed data (cms)","Simulated data (cms)"]
+xy_label_ts = ["Observed","Simulated"]
 for item in cali_target:
-    visual.plot_reg(obv_D[item], sim_Q_D[item], title="Daily_"+item,
-                    xy_labal=xy_label_reg)
     visual.plot_reg(obv_M[item], sim_Q_M[item], title="Monthly_"+item,
-                    xy_labal=xy_label_reg)
-    visual.plot_reg(obv_Y[item], sim_Q_Y[item], title="Annually_"+item,
                     xy_labal=xy_label_reg)
     visual.plot_timeseries(obv_M[[item]], sim_Q_M[[item]],
                            title="Monthly_"+item, xy_labal=xy_label_ts)
-    visual.plot_timeseries(obv_Y[[item]], sim_Q_Y[[item]],
-                           title="Annually_"+item, xy_labal=xy_label_ts)
 
 
-all_indiv = []
-for i, v in ga.records.items():
-    all_indiv += v
-all_indiv_fitness = [i.fitness.values[0] for i in all_indiv]
-df_ga = pd.DataFrame(all_indiv)
-df_ga["fitness"] = all_indiv_fitness
-df_ga.drop_duplicates()
 
-
-# visual.plot_yearly_stacked(sim_Q_M[["SCOO"]])
-# visual.plot_yearly_stacked(sim_Q_M[["HaggIn"]])
-# cali_period = ("1981-1-1", "2005-12-31")
-# ind = cal_batch_indicator(cali_period, cali_target, obv_M, sim_Q_M)[["KGE", "iKGE"]]
-# ind.mean(axis=1)
-
-# mask = [True if i.month in [6,7,8,9] else False for i in sim_Q_M.index]
-# ind = cal_batch_indicator(cali_period, cali_target, obv_M[mask], sim_Q_M[mask])[["KGE", "iKGE"]]
-# ind.mean(axis=1)

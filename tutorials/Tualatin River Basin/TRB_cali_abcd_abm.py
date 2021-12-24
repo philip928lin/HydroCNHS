@@ -134,9 +134,10 @@ rn_gen = HydroCNHS.create_rn_gen(9)
 ga = cali.GA_DEAP(evaluation, rn_gen)
 ga.set(cali_inputs, config, formatter, name="Cali_abcd_abm_KGE")
 ga.run()
-ga.run_individual(ga.solution)
+ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
 
 #%%
+##### Output Calibrated Model.
 individual = ga.solution
 df_list = cali.Convertor.to_df_list(individual, formatter)
 model_best = deepcopy(model_dict)
@@ -147,48 +148,28 @@ HydroCNHS.write_model(model_best, os.path.join(ga.cali_wd, "Best_abcd_abm_KGE.ya
 
 summary = ga.summary
 
-##### Run simuluation
+##### Run Simuluation Again for Plotting.
 model = HydroCNHS.Model(model_best, "Best")
 Q = model.run(temp, prec, pet)
+
+##### Collect Simulated Date to Dataframe.
 cali_target = ["DLLO", "WSLO"]
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[cali_target]
-sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]
-sim_Q_D["SCOO"] = model.data_collector.R1["release"]
+# Extract agents' data from data collector
+sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]      # Diversion (DivAgt)
+sim_Q_D["SCOO"] = model.data_collector.R1["release"]    # Release (ResAgt)
 cali_target += ["SHPP", "SCOO"]
-
-sim_Q_D["storage"] = model.data_collector.R1["storage"]
-cali_target += ["SHPP"]
+# Resample to monthly scale
 sim_Q_M = sim_Q_D.resample("MS").mean()
-sim_Q_Y = sim_Q_D.resample("YS").mean()
 
 visual = HydroCNHS.Visual()
 
-xy_label_reg = ["Observed streamflow (cms)","Simulated streamflow (cms)"]
-xy_label_ts = ["Time","Streamflow (cms)"]
+xy_label_reg = ["Observed data (cms)","Simulated data (cms)"]
+xy_label_ts = ["Observed","Simulated"]
 for item in cali_target:
-    visual.plot_reg(obv_D[item], sim_Q_D[item], title="Daily_"+item,
-                    xy_labal=xy_label_reg)
     visual.plot_reg(obv_M[item], sim_Q_M[item], title="Monthly_"+item,
-                    xy_labal=xy_label_reg)
-    visual.plot_reg(obv_Y[item], sim_Q_Y[item], title="Annually_"+item,
                     xy_labal=xy_label_reg)
     visual.plot_timeseries(obv_M[[item]], sim_Q_M[[item]],
                            title="Monthly_"+item, xy_labal=xy_label_ts)
-    visual.plot_timeseries(obv_Y[[item]], sim_Q_Y[[item]],
-                           title="Annually_"+item, xy_labal=xy_label_ts)
-#%%
-all_indiv = []
-for i, v in ga.records.items():
-    all_indiv += v
-all_indiv_fitness = [i.fitness.values[0] for i in all_indiv]
-df_ga = pd.DataFrame(all_indiv)
-df_ga["fitness"] = all_indiv_fitness
-df_ga = df_ga.drop_duplicates()
-df_ga_q99 = df_ga[df_ga["fitness"] > df_ga["fitness"].quantile(0.99)]
-stds = df_ga_q99.std()
-df_ga_q99.std().mean()
-df_ga_q99.std().median()
-#df_ga_q99.std().plot.bar()
-#stds = df_ga_q99.std()
-#df_ga_q99.plot()
+
 
