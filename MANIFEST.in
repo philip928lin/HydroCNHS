@@ -1,7 +1,5 @@
 include HydroCNHS/*.yaml
-include Examples/*.yaml
-include Examples/*.ipynb
-include Examples/*.csv
+recursive-include docs *
+recursive-include tutorials *
 include HydroCNHS/calibration/*.py
 include HydroCNHS/land_surface_model/*.py
-include Tests/*.py
