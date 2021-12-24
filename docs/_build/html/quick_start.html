@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick start! &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> HydroCNHS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">HydroCNHS</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HydroCNHS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Quick start!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="quick-start">
+<h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
+<p>Let’s start with running a simulation!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS</span>
+
+<span class="c1">##### Setup Working Directory</span>
+<span class="c1"># Get this .py file&#39;s directory.</span>
+<span class="n">prj_path</span><span class="p">,</span> <span class="n">this_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Template_for_calibration&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_dm_abcd.yaml&quot;</span><span class="p">)</span>
+<span class="n">bound_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;ParBound&quot;</span><span class="p">)</span>
+<span class="n">wd</span> <span class="o">=</span> <span class="n">prj_path</span>
+
+<span class="c1">##### Load Daily Weather Time Series.</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_inputs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">)</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+<span class="c1">##### Load Model.yaml.</span>
+<span class="n">best_gwlf_abm_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Calibrated_model&quot;</span><span class="p">,</span> <span class="s2">&quot;Best_gwlf_abm_KGE.yaml&quot;</span><span class="p">)</span>
+<span class="n">model_dict_gwlf</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">best_gwlf_abm_path</span><span class="p">)</span>
+<span class="c1"># Change the path according to this .py file&#39;s directory.</span>
+<span class="n">model_dict_gwlf</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;WD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wd</span>
+<span class="n">model_dict_gwlf</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;Modules&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;ABM_modules&quot;</span><span class="p">)</span>
+
+<span class="c1">##### Create HydroCNHS Model Object for Simulation.</span>
+<span class="n">model_gwlf</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model_dict_gwlf</span><span class="p">,</span> <span class="s2">&quot;gwlf&quot;</span><span class="p">)</span>
+
+<span class="c1">##### Run simulation</span>
+<span class="n">Q_gwlf</span> <span class="o">=</span> <span class="n">model_gwlf</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span> <span class="c1"># pet is optional.</span>
+</pre></div>
+</div>
+<p>To run a coupled natural human model simulation, three items are required.
+1. Daily weather time series including</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

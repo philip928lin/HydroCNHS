@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick start! &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydroCNHS" href="modules.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> HydroCNHS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#daily-weather-time-series">Daily weather time series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-yaml">Model.yaml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abm-module-s">ABM module(s)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">HydroCNHS</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HydroCNHS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Quick start!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="quick-start">
+<h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
+<p>Let’s start with running a simulation!
+Here we will use the Tualatin River Basin (TRB) in the Northwest US as an example. The full code is located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong>.</p>
+<p>Take one minute to browse through the following simulation code.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS</span>
+
+<span class="c1">##### Setup Working Directory</span>
+<span class="c1"># Get this .py file&#39;s directory.</span>
+<span class="n">prj_path</span><span class="p">,</span> <span class="n">this_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">wd</span> <span class="o">=</span> <span class="n">prj_path</span>
+
+<span class="c1">##### Load Daily Weather Time Series.</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_inputs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">)</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+<span class="c1">##### Load Model.yaml.</span>
+<span class="n">best_gwlf_abm_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Calibrated_model&quot;</span><span class="p">,</span> <span class="s2">&quot;Best_gwlf_abm_KGE.yaml&quot;</span><span class="p">)</span>
+<span class="n">model_dict_gwlf</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">best_gwlf_abm_path</span><span class="p">)</span>
+<span class="c1"># Change the path according to this .py file&#39;s directory.</span>
+<span class="n">model_dict_gwlf</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;WD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wd</span>
+<span class="n">model_dict_gwlf</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;Modules&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;ABM_modules&quot;</span><span class="p">)</span>
+
+<span class="c1">##### Create HydroCNHS Model Object for Simulation.</span>
+<span class="n">model_gwlf</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model_dict_gwlf</span><span class="p">)</span>
+
+<span class="c1">##### Run simulation</span>
+<span class="n">Q_gwlf</span> <span class="o">=</span> <span class="n">model_gwlf</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span> <span class="c1"># pet is optional.</span>
+</pre></div>
+</div>
+<p>To run a coupled natural human model simulation, three items are required.</p>
+<ol class="arabic simple">
+<li><p>Daily weather time series including temperture (temp) and precipitation (prec). Potential evapotranspiration (pet) is optional.</p></li>
+<li><p>Model file (e.g., Best_gwlf_abm_KGE.yaml).</p></li>
+<li><p>User-provided ABM module(s) (e.g., TRB_ABM_dm.py). This is not required for pure hydrological model, non-coupled model.</p></li>
+</ol>
+<p>Now, we are going to introduce these three items in a more detail.</p>
+<div class="section" id="daily-weather-time-series">
+<h2>Daily weather time series<a class="headerlink" href="#daily-weather-time-series" title="Permalink to this headline"></a></h2>
+<p>Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in dictionary form shown below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;DAIRY&#39;, &#39;DLLO&#39;, &#39;RCTV&#39;, &#39;SCOO&#39;, &#39;TRGC&#39;, &#39;TRTR&#39;, and &#39;WSLO&#39; are subbasins&#39; names.</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DAIRY&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.7</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;DLLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;RCTV&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;SCOO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.1</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;TRGC&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.7</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;TRTR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">6.9</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+                <span class="s1">&#39;WSLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">]}</span>
+<span class="c1"># Similar to prep and pet.</span>
+</pre></div>
+</div>
+<p>The dictionary will contain a time series (i.e., a list) for each subbasin. The length of each time series has to be identical.</p>
+</div>
+<div class="section" id="model-yaml">
+<h2>Model.yaml<a class="headerlink" href="#model-yaml" title="Permalink to this headline"></a></h2>
+<p>The model file (.yaml) contains settings for hydrological model (e.g., rainfall-runoff and routing) and ABM model (e.g., how to coupled).
+The model file has six sections:</p>
+<ol class="arabic simple">
+<li><p>Path</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span>
+<span class="nt">  WD</span><span class="p">:</span> <span class="s">&#39;wd</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">,</span>
+<span class="nt">  Modules</span><span class="p">:</span> <span class="s">&#39;ABM</span><span class="nv"> </span><span class="s">module</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>WaterSystem</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">WaterSystem</span><span class="p">:</span>
+  <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
+  <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>
+  <span class="nt">NumSubbasins</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
+  <span class="nt">NumGauges</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+  <span class="nt">NumAgents</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+  <span class="nt">Outlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRTR</span><span class="p p-Indicator">,</span> <span class="nv">SCOO</span><span class="p p-Indicator">,</span> <span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">TRGC</span><span class="p p-Indicator">,</span> <span class="nv">DAIRY</span><span class="p p-Indicator">,</span> <span class="nv">RCTV</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>
+  <span class="nt">GaugedOutlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>
+  <span class="nt">DataLength</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12053</span>
+</pre></div>
+</div>
+<p>DataLength can be automatically calculated if EndDate is provided, vice versa.</p>
+<ol class="arabic simple" start="3">
+<li><p>LSM</p></li>
+</ol>
+<p>HydroCNHS provides user two rainfall-runoff simulation options, GWLF (9 parameters) and ABCD (5 parameters). Their settings are shown below.
+The detailed documentation for GWLF and ABCD can be found at: SM.</p>
+<p><strong>GWLF</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
+  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
+</pre></div>
+</div>
+<p><strong>ABCD</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
+  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
+</pre></div>
+</div>
+<p>4. Routing
+HydroCNHS adopt Lohmann routing model to simulate within-subbasin routing and inter subbasin routing process. Its setting is shown below.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Routing</span><span class="p">:</span>
+  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
+  <span class="nt">WSLO</span><span class="p">:</span>
+        <span class="nt">TRGC</span><span class="p">:</span>
+          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">80064.864</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">27.96625624979407</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">2863.4082828311643</span><span class="p p-Indicator">}</span>
+        <span class="nt">DAIRY</span><span class="p">:</span>
+          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">70988.16384</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">81.12165115626</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">6.33</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">23.556139717018198</span><span class="p p-Indicator">,</span>
+<span class="nt">                Diff</span><span class="p">:</span> <span class="nv">2555.76308439851</span><span class="p p-Indicator">}</span>
+        <span class="nt">RCTV</span><span class="p">:</span>
+          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">60398.68032</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">93.65203474797343</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">9.35</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">53.6240069222664</span><span class="p p-Indicator">,</span>
+<span class="nt">                Diff</span><span class="p">:</span> <span class="nv">416.6625889040875</span><span class="p p-Indicator">}</span>
+        <span class="nt">WSLO</span><span class="p">:</span>
+          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">84.11705456562375</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">3.45</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
+  <span class="nt">TRGC</span><span class="p">:</span>
+        <span class="nt">DLLO</span><span class="p">:</span>
+          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">11748.2112</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">7.814731413762071</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">844.2277689361871</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<p>Put the system diagram here.</p>
+<ol class="arabic simple" start="5">
+<li><p>ABM</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">ABM</span><span class="p">:</span>
+  <span class="nt">Inputs</span><span class="p">:</span>
+        <span class="nt">DamAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDam_AgType</span><span class="p p-Indicator">]</span>
+        <span class="nt">RiverDivAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">IrrDiv_AgType</span><span class="p p-Indicator">]</span>
+        <span class="nt">InsituAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+        <span class="nt">ConveyAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">Pipe_AgType</span><span class="p p-Indicator">]</span>
+        <span class="nt">DMClasses</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDM</span><span class="p p-Indicator">,</span> <span class="nv">DivDM</span><span class="p p-Indicator">,</span> <span class="nv">PipeDM</span><span class="p p-Indicator">]</span>
+        <span class="nt">Modules</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRB_ABM_dm.py</span><span class="p p-Indicator">]</span>
+        <span class="nt">AgGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+  <span class="nt">Pipe_AgType</span><span class="p">:</span>
+        <span class="nt">Barney</span><span class="p">:</span>
+          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
+          <span class="nt">Inputs</span><span class="p">:</span>
+                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">TRTR</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
+                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PipeDM</span>
+          <span class="nt">Pars</span><span class="p">:</span>
+                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+  <span class="nt">ResDam_AgType</span><span class="p">:</span>
+        <span class="nt">R1</span><span class="p">:</span>
+          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
+          <span class="nt">Inputs</span><span class="p">:</span>
+                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">SCOO</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> R1</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
+                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ResDM</span>
+          <span class="nt">Pars</span><span class="p">:</span>
+                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+  <span class="nt">IrrDiv_AgType</span><span class="p">:</span>
+        <span class="nt">SHPP</span><span class="p">:</span>
+          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
+          <span class="nt">Inputs</span><span class="p">:</span>
+                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+                <span class="nt">Links</span><span class="p">:</span>
+                  <span class="nt">TRGC</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-1</span>
+                  <span class="nt">WSLO</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ReturnFactor</span><span class="p p-Indicator">,</span> <span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">Plus</span><span class="p p-Indicator">]</span>
+                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DivDM</span>
+          <span class="nt">Pars</span><span class="p">:</span>
+                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">0.23561383574933084</span><span class="p p-Indicator">]</span>
+                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.4152467680396592</span>
+                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-0.012094413038078455</span>
+</pre></div>
+</div>
+<p>6. SystemParsedData
+This section will be automatically generated by HydroCNHS. The model file don’t need to include this section.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ModelBuilder can help you to create an initial model template! Check it out!</p>
+</div>
+</div>
+<div class="section" id="abm-module-s">
+<h2>ABM module(s)<a class="headerlink" href="#abm-module-s" title="Permalink to this headline"></a></h2>
+<p>Agent-based model (ABM) is an user-provided human model. HydroCNHS support multiple ABM modules to be used at a single simulation. In the ABM module, users have 100% of freedom to design agent class (e.g., irrigation diversion agent class, reservoir agent class, etc.); however, some input and output protocals have to be followed.
+Please visit Build ABM module for more detailed instruction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you only need a hydrological model and don’t require any human components, then you can skip this ABM part!</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="HydroCNHS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

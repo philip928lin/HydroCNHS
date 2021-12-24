@@ -6,19 +6,16 @@ import matplotlib.pyplot as plt
 import HydroCNHS
 
 ##### Path and Load Model Test
-pc = "Philip"
-prj_path = r"C:\Users\{}\OneDrive\Lehigh\0_Proj2_HydroCNHS".format(pc)
-model_path = os.path.join(prj_path, "Model", "Best_gwlf_abm_KGE_urbanization.yaml")
-data_path = os.path.join(prj_path, "Data")
-bound_path = os.path.join(prj_path, "Model", "ParBound")
-wd = r"C:\Users\{}\Documents\TRB".format(pc)
+prj_path, this_filename = os.path.split(__file__)
+model_path = os.path.join(prj_path, "Calibrated_model", "Best_gwlf_abm_KGE_urbanization.yaml")
+bound_path = os.path.join(prj_path, "ParBound")
+wd = prj_path
+
 model_dict = HydroCNHS.load_model(model_path)
+model_dict["Path"]["WD"] = wd
+model_dict["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
 
-
-for k in model_dict["Path"]:
-    model_dict["Path"][k] = os.path.join(prj_path, "Model")
-
-with open(os.path.join(prj_path, "Model", "TRB_inputs.pickle"), "rb") as file:
+with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
     (temp, prec, pet, obv_D, obv_M, obv_Y) = pickle.load(file)
 
 model_urban = HydroCNHS.Model(model_dict, "Urban")
@@ -28,8 +25,11 @@ sim_Q_D_u = pd.DataFrame(Q_urban, index=model_urban.pd_date_index)
 sim_Q_Y_u = sim_Q_D_u.resample("YS").mean()
 
 #%%
-best_path = os.path.join(prj_path, "Model", "Best_gwlf_abm_KGE.yaml")
-model = HydroCNHS.Model(best_path, "Original")
+best_path = os.path.join(prj_path, "Calibrated_model", "Best_gwlf_abm_KGE.yaml")
+model_dict = HydroCNHS.load_model(best_path)
+model_dict["Path"]["WD"] = wd
+model_dict["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
+model = HydroCNHS.Model(model_dict, "Original")
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)
 sim_Q_Y = sim_Q_D.resample("YS").mean()
@@ -42,11 +42,3 @@ ax.set_xlim([1981, 2013])
 ax.legend()
 ax.set_ylabel("Streamflow ($m^3$/sec)")
 ax.set_xlabel("Year")
-
-
-
-#%%
-# Test random seed~
-rn_gen = HydroCNHS.create_rn_gen(9)
-model_urban = HydroCNHS.Model(model_dict, "Urban", rn_gen)
-rnn = model_urban.data_collector.U_RCTV

@@ -6,25 +6,25 @@ import matplotlib.pyplot as plt
 import HydroCNHS
 
 ##### Path and Load Model Test
-pc = "Philip"
-prj_path = r"C:\Users\{}\OneDrive\Lehigh\0_Proj2_HydroCNHS".format(pc)
-data_path = os.path.join(prj_path, "Data")
-bound_path = os.path.join(prj_path, "Model", "ParBound")
-wd = r"C:\Users\{}\Documents\TRB".format(pc)
+# Get this file directory.
+prj_path, this_filename = os.path.split(__file__)
+model_path = os.path.join(prj_path, "Template_for_calibration", "TRB_dm_abcd.yaml")
+bound_path = os.path.join(prj_path, "ParBound")
+wd = prj_path
 
-
-with open(os.path.join(prj_path, "Model", "TRB_inputs.pickle"), "rb") as file:
+with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
     (temp, prec, pet, obv_D, obv_M, obv_Y) = pickle.load(file)
+
     
-best_gwlf_abm_path = os.path.join(prj_path, "Model", "Best_gwlf_abm_KGE.yaml")
-best_abcd_abm_path = os.path.join(prj_path, "Model", "Best_abcd_abm_KGE.yaml")
+best_gwlf_abm_path = os.path.join(prj_path, "Calibrated_model", "Best_gwlf_abm_KGE.yaml")
+best_abcd_abm_path = os.path.join(prj_path, "Calibrated_model", "Best_abcd_abm_KGE.yaml")
 model_dict_gwlf = HydroCNHS.load_model(best_gwlf_abm_path)
 model_dict_abcd = HydroCNHS.load_model(best_abcd_abm_path)
-for k in model_dict_abcd["Path"]:
-    model_dict_gwlf["Path"][k] = os.path.join(prj_path, "Model")
-    model_dict_abcd["Path"][k] = os.path.join(prj_path, "Model")
-    
-    
+model_dict_gwlf["Path"]["WD"] = wd
+model_dict_gwlf["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
+model_dict_abcd["Path"]["WD"] = wd
+model_dict_abcd["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
+
 model_gwlf = HydroCNHS.Model(model_dict_gwlf, "gwlf")
 model_abcd = HydroCNHS.Model(model_dict_abcd, "abcd")
 
