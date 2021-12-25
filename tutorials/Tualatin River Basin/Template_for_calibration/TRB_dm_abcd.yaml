@@ -52,6 +52,9 @@ Routing:
     DLLO:
       Inputs: {FlowLength: 11748.2112, InstreamControl: false}
       Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+    TRGC:
+      Inputs: {FlowLength: 0, InstreamControl: false}
+      Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
   DLLO:
     R1:
       Inputs: {FlowLength: 9656.064, InstreamControl: true}

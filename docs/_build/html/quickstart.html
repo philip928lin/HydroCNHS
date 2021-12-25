@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quick start! &mdash; HydroCNHS  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,6 +16,8 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -97,7 +100,7 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="quick-start">
+<section id="quick-start">
 <h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
 <p>Let’s start with running a simulation!
 Here we will use the Tualatin River Basin (TRB) in the Northwest US as an example. The full code is located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong>.</p>
@@ -136,30 +139,32 @@ Here we will use the Tualatin River Basin (TRB) in the Northwest US as an exampl
 <li><p>User-provided ABM module(s) (e.g., TRB_ABM_dm.py). This is not required for pure hydrological model, non-coupled model.</p></li>
 </ol>
 <p>Now, we are going to introduce these three items in a more detail.</p>
-<div class="section" id="daily-weather-time-series">
+<section id="daily-weather-time-series">
 <h2>Daily weather time series<a class="headerlink" href="#daily-weather-time-series" title="Permalink to this headline"></a></h2>
 <p>Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in dictionary form shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;DAIRY&#39;, &#39;DLLO&#39;, &#39;RCTV&#39;, &#39;SCOO&#39;, &#39;TRGC&#39;, &#39;TRTR&#39;, and &#39;WSLO&#39; are subbasins&#39; names.</span>
 <span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DAIRY&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.7</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;DLLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;RCTV&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;SCOO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.1</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;TRGC&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.7</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;TRTR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">6.9</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-                <span class="s1">&#39;WSLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">]}</span>
+        <span class="s1">&#39;DLLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;RCTV&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;SCOO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.1</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;TRGC&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.7</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;TRTR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">6.9</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;WSLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">]}</span>
 <span class="c1"># Similar to prep and pet.</span>
 </pre></div>
 </div>
 <p>The dictionary will contain a time series (i.e., a list) for each subbasin. The length of each time series has to be identical.</p>
-</div>
-<div class="section" id="model-yaml">
+</section>
+<section id="model-yaml">
 <h2>Model.yaml<a class="headerlink" href="#model-yaml" title="Permalink to this headline"></a></h2>
 <p>The model file (.yaml) contains settings for hydrological model (e.g., rainfall-runoff and routing) and ABM model (e.g., how to coupled).
 The model file has six sections:</p>
 <ol class="arabic simple">
 <li><p>Path</p></li>
 </ol>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Path for working directory (outputing log file) and user-provided ABM</span>
+<span class="c1"># modules (optional).</span>
+<span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span>
 <span class="nt">  WD</span><span class="p">:</span> <span class="s">&#39;wd</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">,</span>
 <span class="nt">  Modules</span><span class="p">:</span> <span class="s">&#39;ABM</span><span class="nv"> </span><span class="s">module</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">}</span>
 </pre></div>
@@ -168,124 +173,289 @@ The model file has six sections:</p>
 <li><p>WaterSystem</p></li>
 </ol>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">WaterSystem</span><span class="p">:</span>
-  <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
-  <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>
-  <span class="nt">NumSubbasins</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
-  <span class="nt">NumGauges</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
-  <span class="nt">NumAgents</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
-  <span class="nt">Outlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRTR</span><span class="p p-Indicator">,</span> <span class="nv">SCOO</span><span class="p p-Indicator">,</span> <span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">TRGC</span><span class="p p-Indicator">,</span> <span class="nv">DAIRY</span><span class="p p-Indicator">,</span> <span class="nv">RCTV</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>
-  <span class="nt">GaugedOutlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>
-  <span class="nt">DataLength</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12053</span>
+        <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
+        <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>
+        <span class="nt">NumSubbasins</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">7</span>
+        <span class="nt">NumGauges</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+        <span class="nt">NumAgents</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+        <span class="nt">Outlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRTR</span><span class="p p-Indicator">,</span> <span class="nv">SCOO</span><span class="p p-Indicator">,</span> <span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">TRGC</span><span class="p p-Indicator">,</span> <span class="nv">DAIRY</span><span class="p p-Indicator">,</span> <span class="nv">RCTV</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>
+        <span class="nt">GaugedOutlets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">DLLO</span><span class="p p-Indicator">,</span> <span class="nv">WSLO</span><span class="p p-Indicator">]</span>             <span class="c1"># Optional</span>
+        <span class="nt">DataLength</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12053</span>
 </pre></div>
 </div>
 <p>DataLength can be automatically calculated if EndDate is provided, vice versa.</p>
 <ol class="arabic simple" start="3">
 <li><p>LSM</p></li>
 </ol>
-<p>HydroCNHS provides user two rainfall-runoff simulation options, GWLF (9 parameters) and ABCD (5 parameters). Their settings are shown below.
-The detailed documentation for GWLF and ABCD can be found at: SM.</p>
+<p>HydroCNHS provides user two rainfall-runoff simulation options, the General
+Water Loading Function (GWLF; 9 parameters) and ABCD (5 parameters). Their
+settings are shown below.</p>
+<p>The detailed documentation for GWLF and ABCD can be found at: SM.</p>
 <p><strong>GWLF</strong></p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
-  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
+        <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">GWLF</span>
+        <span class="nt">TRTR</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">329.80</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.45</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">85.450</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.415</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.054</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.311</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.862</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.348</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">13.215</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.920</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.838</span><span class="p p-Indicator">}</span>
+        <span class="nt">SCOO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">10034.24</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.46</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">46.490</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.268</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.289</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.078</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.174</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.477</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">12.266</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.899</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.651</span><span class="p p-Indicator">}</span>
+        <span class="nt">DLLO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">22238.43</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.47</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">39.047</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.224</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.425</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.284</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.101</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.398</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">6.386</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.753</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.918</span><span class="p p-Indicator">}</span>
+        <span class="nt">TRGC</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">24044.63</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.50</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">59.783</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.450</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.407</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.135</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.939</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.441</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">2.579</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.516</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.733</span><span class="p p-Indicator">}</span>
+        <span class="nt">DAIRY</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">59822.75</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.52</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">99.729</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.107</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.198</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.332</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.043</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.101</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">8.570</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.914</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">1.468</span><span class="p p-Indicator">}</span>
+        <span class="nt">RCTV</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">19682.60</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.50</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">57.345</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.251</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.094</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.416</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.772</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.034</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">5.6732</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.334</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.576</span><span class="p p-Indicator">}</span>
+        <span class="nt">WSLO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">47646.84</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.35</span><span class="p p-Indicator">,</span><span class="nt"> S0</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> U0</span><span class="p">:</span> <span class="nv">10.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">CN2</span><span class="p">:</span> <span class="nv">60.151</span><span class="p p-Indicator">,</span><span class="nt"> IS</span><span class="p">:</span> <span class="nv">0.498</span><span class="p p-Indicator">,</span><span class="nt"> Res</span><span class="p">:</span> <span class="nv">0.095</span><span class="p p-Indicator">,</span><span class="nt"> Sep</span><span class="p">:</span> <span class="nv">0.038</span><span class="p p-Indicator">,</span><span class="nt"> Alpha</span><span class="p">:</span> <span class="nv">0.484</span><span class="p p-Indicator">,</span>
+<span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.371</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">14.347</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.811</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.720</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
 <p><strong>ABCD</strong></p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
-  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
+        <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
+        <span class="nt">TRTR</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">329.80</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.45</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.241</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">281.131</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.915</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.510</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.492</span><span class="p p-Indicator">}</span>
+        <span class="nt">SCOO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">10034.24</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.46</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.438</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">13.751</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.990</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.330</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.576</span><span class="p p-Indicator">}</span>
+        <span class="nt">DLLO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">22238.43</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.47</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.438</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">317.570</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.765</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.400</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.834</span><span class="p p-Indicator">}</span>
+        <span class="nt">TRGC</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">24044.63</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.50</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.197</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">157.836</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.785</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.584</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.503</span><span class="p p-Indicator">}</span>
+        <span class="nt">DAIRY</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">59822.75</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.52</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.294</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">102.755</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.466</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.529</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.503</span><span class="p p-Indicator">}</span>
+        <span class="nt">RCTV</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">19682.60</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.50</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.195</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">52.505</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.226</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.492</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.865</span><span class="p p-Indicator">}</span>
+        <span class="nt">WSLO</span><span class="p">:</span>
+                <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">Area</span><span class="p">:</span> <span class="nv">47646.84</span><span class="p p-Indicator">,</span><span class="nt"> Latitude</span><span class="p">:</span> <span class="nv">45.35</span><span class="p p-Indicator">,</span><span class="nt"> XL</span><span class="p">:</span> <span class="nv">2.0</span><span class="p p-Indicator">,</span><span class="nt"> SnowS</span><span class="p">:</span> <span class="nv">5.0</span><span class="p p-Indicator">}</span>
+                <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.781</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">2.738</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.961</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.785</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.055</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p>4. Routing
-HydroCNHS adopt Lohmann routing model to simulate within-subbasin routing and inter subbasin routing process. Its setting is shown below.</p>
+<ol class="arabic simple" start="4">
+<li><p>Routing</p></li>
+</ol>
+<p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter subbasin routing process. Its setting is shown below.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Routing</span><span class="p">:</span>
-  <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
-  <span class="nt">WSLO</span><span class="p">:</span>
-        <span class="nt">TRGC</span><span class="p">:</span>
-          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">80064.864</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
-          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">27.96625624979407</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">2863.4082828311643</span><span class="p p-Indicator">}</span>
-        <span class="nt">DAIRY</span><span class="p">:</span>
-          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">70988.16384</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
-          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">81.12165115626</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">6.33</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">23.556139717018198</span><span class="p p-Indicator">,</span>
-<span class="nt">                Diff</span><span class="p">:</span> <span class="nv">2555.76308439851</span><span class="p p-Indicator">}</span>
-        <span class="nt">RCTV</span><span class="p">:</span>
-          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">60398.68032</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
-          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">93.65203474797343</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">9.35</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">53.6240069222664</span><span class="p p-Indicator">,</span>
-<span class="nt">                Diff</span><span class="p">:</span> <span class="nv">416.6625889040875</span><span class="p p-Indicator">}</span>
+        <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
+        <span class="c1"># WSLO, TRGC, DLLO, and SCOO are four routing outlets.</span>
         <span class="nt">WSLO</span><span class="p">:</span>
-          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
-          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">84.11705456562375</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">3.45</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
-  <span class="nt">TRGC</span><span class="p">:</span>
+                <span class="c1"># TRGC is a routing outlet. No within-subbasin routing at here (at</span>
+                <span class="c1"># its own routing setting below). Namely, TRGC will be routed</span>
+                <span class="c1"># first. Therefore, GShape and GScale are null.</span>
+                <span class="nt">TRGC</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">80064.86</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">53.28</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">1991.52</span><span class="p p-Indicator">}</span>
+                <span class="nt">DAIRY</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">70988.16</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">68.40</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">545.55</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">45.32</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">935.13</span><span class="p p-Indicator">}</span>
+                <span class="nt">RCTV</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">60398.68</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">53.37</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">462.47</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">53.57</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">3339.43</span><span class="p p-Indicator">}</span>
+                <span class="c1"># WSLO is the routing outlet itself. No river routing is needed</span>
+                <span class="c1"># since the FlowLength is 0. Therefore, Velo and Diff are null.</span>
+                <span class="nt">WSLO</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">6.86</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">0.67</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
+        <span class="nt">TRGC</span><span class="p">:</span>
+                <span class="c1"># DLLO is a routing outlet. No within-subbasin routing at here (at</span>
+                <span class="c1"># its own routing setting below). Namely, DLLO will be routed</span>
+                <span class="c1"># first. Therefore, GShape and GScale are null.</span>
+                <span class="nt">DLLO</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">11748.21</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">5.97</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">1864.99</span><span class="p p-Indicator">}</span>
+                <span class="c1"># TRGC is the routing outlet itself. No river routing is needed</span>
+                <span class="c1"># since the FlowLength is 0. Therefore, Velo and Diff are null.</span>
+                <span class="nt">TRGC</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">27.22</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">0.29</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
         <span class="nt">DLLO</span><span class="p">:</span>
-          <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">11748.2112</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
-          <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">7.814731413762071</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">844.2277689361871</span><span class="p p-Indicator">}</span>
+                <span class="c1"># R1 is the reservoir agent. There is no within-subbasin routing.</span>
+                <span class="c1"># Its release flow is the streamflow at this spot. Therefore,</span>
+                <span class="c1"># GShape and GScale are null.</span>
+                <span class="nt">R1</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">9656.06</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">true</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">53.95</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">852.67</span><span class="p p-Indicator">}</span>
+                <span class="nt">TRTR</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">30899.40</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">83.52</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">755.91</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">18.73</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">2388.09</span><span class="p p-Indicator">}</span>
+                <span class="c1"># DLLO is the routing outlet itself. No river routing is needed</span>
+                <span class="c1"># since the FlowLength is 0. Therefore, Velo and Diff are null.</span>
+                <span class="nt">DLLO</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">75.30</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">1.62</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
+        <span class="nt">SCOO</span><span class="p">:</span>
+                <span class="c1"># SCOO is the routing outlet itself. No river routing is needed</span>
+                <span class="c1"># since the FlowLength is 0. Therefore, Velo and Diff are null</span>
+                <span class="nt">SCOO</span><span class="p">:</span>
+                        <span class="nt">Inputs</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">FlowLength</span><span class="p">:</span> <span class="nv">0</span><span class="p p-Indicator">,</span><span class="nt"> InstreamControl</span><span class="p">:</span> <span class="nv">false</span><span class="p p-Indicator">}</span>
+                        <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">27.22</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">0.29</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
 <p>Put the system diagram here.</p>
 <ol class="arabic simple" start="5">
 <li><p>ABM</p></li>
 </ol>
+<p>For the “Inputs” setting of ABM section, first, we assign the user-defined
+agent classes (defined in ABM modules) to corresponding coupling APIs. Then,
+we ativate the decision-making classes (defined in ABM modules) if any. Next,
+we assign ABM module(s), where agent classes and decision-making classes are
+defined. Finally, agent group is for agents make decisions and act together.
+For example, two diversion agents make diversion requests together and share
+the water deficiency together based on their water rights. Namely, their
+diversion behaviors are not piority-based. The agent group will be defined as
+a single function in a ABM module, which users can define a more detailed
+interactions amond agents in an agent group. See Build ABM for more details.</p>
+<p>Following the “Inputs” setting, we will define agent objects created by certain
+agent classes (defined in ABM modules). For example, we create Barney agent
+using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
+sub-sections: “Attributes”, “Inputs”, and “Pars.”</p>
+<p><strong>“Inputs”</strong> is required information including “Piority”, “Links”, and “DMClass.”</p>
+<ul class="simple">
+<li><p>Piority:</p></li>
+</ul>
+<p>The lower value has higher piority when conflicts happen. For example, two
+diverion agents divert at the same routing outlet. If users want a
+non-priority-based behaviors. “AgGroup” should be applied. See Build ABM for
+more details.</p>
+<p>Note that agents coupling with Dam API has to have Piority = 0.</p>
+<ul class="simple">
+<li><p>Links:</p></li>
+</ul>
+<p>“Links” is a dictionary containing information which outlets for agent to
+take/add water from/to. The positive number means add the water to that outlet.
+Negative number means take water from that outlet. The number is a “factor”
+in a range of [-1,1] defining the portion of the agent’s decision to be
+implemented at this specific outlet. For example, an irrigation diversion agent
+divert from a point but reture to b and c points with the ratios, 0.3
+and 0.7. Then, we have</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.7</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<p>Assuming the diversion request is 10, the actual diversion is also 10 (i.e., no
+deficiency), and return flow coefficent is 0.5.</p>
+<div class="math notranslate nohighlight">
+\[Flow_{a,new} = Flow_{a,org} -1 \times 10\]</div>
+<div class="math notranslate nohighlight">
+\[reture_flow = 0.5 \times 10 = 5\]</div>
+<div class="math notranslate nohighlight">
+\[Flow_{b,new} = Flow_{b,org} + 0.3 \times 5\]</div>
+<div class="math notranslate nohighlight">
+\[Flow_{c,new} = Flow_{c,org} + 0.7 \times 5\]</div>
+<p>If the “factor” is a calibrated parameter. We can link it to a parameter by
+[parameter name, its index, Plus/Minus]. The parameter has to be a list
+format. For example, if Links = {WSLO: [ReturnFactor, 0, Plus]}, the factor
+will be extracted from ReturnFactor parameter (a list) at index 0. “Plus”
+will tell the program that we add water to WSLO (for forming simulation
+purpose).</p>
+<ul class="simple">
+<li><p>DMClass:</p></li>
+</ul>
+<p>This is optional. If there is no specific decision-making class to be assigned,
+put “null” instead. See Build ABM for more details.</p>
+<p><strong>“Pars”</strong> is a section for collecting agents’ parameters for calibration. We offer
+two types of parameter formats: a single constant (e.g., 9), (2) a list of
+constants (e.g., [9, 4.5]).</p>
+<p><strong>“Attributes”</strong> is a space for users to store any other information for their
+agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">ABM</span><span class="p">:</span>
-  <span class="nt">Inputs</span><span class="p">:</span>
-        <span class="nt">DamAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDam_AgType</span><span class="p p-Indicator">]</span>
-        <span class="nt">RiverDivAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">IrrDiv_AgType</span><span class="p p-Indicator">]</span>
-        <span class="nt">InsituAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
-        <span class="nt">ConveyAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">Pipe_AgType</span><span class="p p-Indicator">]</span>
-        <span class="nt">DMClasses</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDM</span><span class="p p-Indicator">,</span> <span class="nv">DivDM</span><span class="p p-Indicator">,</span> <span class="nv">PipeDM</span><span class="p p-Indicator">]</span>
-        <span class="nt">Modules</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRB_ABM_dm.py</span><span class="p p-Indicator">]</span>
-        <span class="nt">AgGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-  <span class="nt">Pipe_AgType</span><span class="p">:</span>
-        <span class="nt">Barney</span><span class="p">:</span>
-          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
-          <span class="nt">Inputs</span><span class="p">:</span>
-                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
-                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">TRTR</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
-                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PipeDM</span>
-          <span class="nt">Pars</span><span class="p">:</span>
-                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
-                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-  <span class="nt">ResDam_AgType</span><span class="p">:</span>
-        <span class="nt">R1</span><span class="p">:</span>
-          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
-          <span class="nt">Inputs</span><span class="p">:</span>
-                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
-                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">SCOO</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> R1</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
-                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ResDM</span>
-          <span class="nt">Pars</span><span class="p">:</span>
-                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
-                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-  <span class="nt">IrrDiv_AgType</span><span class="p">:</span>
-        <span class="nt">SHPP</span><span class="p">:</span>
-          <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
-          <span class="nt">Inputs</span><span class="p">:</span>
-                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
-                <span class="nt">Links</span><span class="p">:</span>
-                  <span class="nt">TRGC</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-1</span>
-                  <span class="nt">WSLO</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ReturnFactor</span><span class="p p-Indicator">,</span> <span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">Plus</span><span class="p p-Indicator">]</span>
-                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DivDM</span>
-          <span class="nt">Pars</span><span class="p">:</span>
-                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">0.23561383574933084</span><span class="p p-Indicator">]</span>
-                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.4152467680396592</span>
-                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-0.012094413038078455</span>
+        <span class="nt">Inputs</span><span class="p">:</span>
+                <span class="c1"># Assign user-defined agent classes to corresponding APIs. Here, we</span>
+                <span class="c1"># define three agent classes in TRB_ABM_dm.py: ResDam_AgType</span>
+                <span class="c1"># (reservoir), IrrDiv_AgType (diversion), and Pipe_AgType</span>
+                <span class="c1"># (trans-basin conveying water).</span>
+                <span class="nt">DamAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDam_AgType</span><span class="p p-Indicator">]</span>          <span class="c1"># Dam API</span>
+                <span class="nt">RiverDivAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">IrrDiv_AgType</span><span class="p p-Indicator">]</span>     <span class="c1"># RiverDiv API</span>
+                <span class="nt">InsituAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[]</span>                            <span class="c1"># InSitu API</span>
+                <span class="nt">ConveyAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">Pipe_AgType</span><span class="p p-Indicator">]</span>         <span class="c1"># Conveying API</span>
+                <span class="c1"># Activate user-defined decision-making classes in TRB_ABM_dm.py.</span>
+                <span class="nt">DMClasses</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDM</span><span class="p p-Indicator">,</span> <span class="nv">DivDM</span><span class="p p-Indicator">,</span> <span class="nv">PipeDM</span><span class="p p-Indicator">]</span>
+                <span class="c1"># User-defined ABM module, TRB_ABM_dm.py.</span>
+                <span class="nt">Modules</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRB_ABM_dm.py</span><span class="p p-Indicator">]</span>
+                <span class="c1"># Agent group is for agents make decisions and act together.</span>
+                <span class="nt">AgGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+        <span class="nt">Pipe_AgType</span><span class="p">:</span>
+                <span class="c1"># Create agent objects using Pipe_AgType class. Here, we only have</span>
+                <span class="c1"># one Pipe_AgType agent, Barney.</span>
+                <span class="nt">Barney</span><span class="p">:</span>
+                        <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
+                        <span class="c1"># Inputs are required information.</span>
+                        <span class="nt">Inputs</span><span class="p">:</span>
+                                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+                                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">TRTR</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
+                                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PipeDM</span>
+                        <span class="nt">Pars</span><span class="p">:</span>                   <span class="c1"># According to users&#39; needs, optional.</span>
+                                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+                                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+                                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+        <span class="nt">ResDam_AgType</span><span class="p">:</span>
+                <span class="c1"># Create agent objects using ResDam_AgType class. Here, we only</span>
+                <span class="c1"># have one ResDam_AgType agent, R1.</span>
+                <span class="nt">R1</span><span class="p">:</span>
+                        <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
+                        <span class="c1"># Inputs are required information.</span>
+                        <span class="nt">Inputs</span><span class="p">:</span>
+                                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+                                <span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">SCOO</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> R1</span><span class="p">:</span> <span class="nv">1</span><span class="p p-Indicator">}</span>
+                                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ResDM</span>
+                        <span class="nt">Pars</span><span class="p">:</span>                   <span class="c1"># According to users&#39; needs, optional.</span>
+                                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[]</span>
+                                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+                                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
+        <span class="nt">IrrDiv_AgType</span><span class="p">:</span>
+                <span class="c1"># Create agent objects using IrrDiv_AgType class. Here, we only</span>
+                <span class="c1"># have one IrrDiv_AgType agent, SHPP.</span>
+                <span class="nt">SHPP</span><span class="p">:</span>
+                        <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
+                        <span class="c1"># Inputs are required information.</span>
+                        <span class="nt">Inputs</span><span class="p">:</span>
+                                <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+                                <span class="nt">Links</span><span class="p">:</span>
+                                <span class="nt">TRGC</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-1</span>
+                                <span class="nt">WSLO</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ReturnFactor</span><span class="p p-Indicator">,</span> <span class="nv">0</span><span class="p p-Indicator">,</span> <span class="nv">Plus</span><span class="p p-Indicator">]</span>
+                                <span class="nt">DMClass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DivDM</span>
+                        <span class="nt">Pars</span><span class="p">:</span>                   <span class="c1"># According to users&#39; needs, optional.</span>
+                                <span class="nt">ReturnFactor</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">0.30086264868779805</span><span class="p p-Indicator">]</span>
+                                <span class="nt">a</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-0.92169837578325</span>
+                                <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.09731044387555121</span>
 </pre></div>
 </div>
 <p>6. SystemParsedData
-This section will be automatically generated by HydroCNHS. The model file don’t need to include this section.</p>
+This section will be automatically generated by HydroCNHS. The model file don’t
+need to include this section.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ModelBuilder can help you to create an initial model template! Check it out!</p>
-</div>
-</div>
-<div class="section" id="abm-module-s">
+</aside>
+</section>
+<section id="abm-module-s">
 <h2>ABM module(s)<a class="headerlink" href="#abm-module-s" title="Permalink to this headline"></a></h2>
 <p>Agent-based model (ABM) is an user-provided human model. HydroCNHS support multiple ABM modules to be used at a single simulation. In the ABM module, users have 100% of freedom to design agent class (e.g., irrigation diversion agent class, reservoir agent class, etc.); however, some input and output protocals have to be followed.
 Please visit Build ABM module for more detailed instruction.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you only need a hydrological model and don’t require any human components, then you can skip this ABM part!</p>
-</div>
-</div>
-</div>
+</aside>
+</section>
+</section>
 
 
            </div>
