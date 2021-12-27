@@ -15,8 +15,10 @@ with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
     (temp, prec, pet, obv_D, obv_M, obv_Y) = pickle.load(file)
 
 ##### Load Model.yaml.
-best_gwlf_abm_path = os.path.join(prj_path, "Calibrated_model", "Best_gwlf_abm_KGE.yaml")
-best_abcd_abm_path = os.path.join(prj_path, "Calibrated_model", "Best_abcd_abm_KGE.yaml")
+best_gwlf_abm_path = os.path.join(
+    prj_path, "Calibrated_model", "Best_gwlf_abm_KGE.yaml") # from RN seed 4.
+best_abcd_abm_path = os.path.join(
+    prj_path, "Calibrated_model", "Best_abcd_abm_KGE.yaml") # from RN seed 3.
 model_dict_gwlf = HydroCNHS.load_model(best_gwlf_abm_path)
 model_dict_abcd = HydroCNHS.load_model(best_abcd_abm_path)
 # Change the path according to this .py file's directory.

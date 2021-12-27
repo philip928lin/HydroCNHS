@@ -130,7 +130,7 @@ config = {'min_or_max': 'max',
          'print_level': 1,
          'plot': True}
 
-seeds = [3,4]
+seeds = [3,4, 9]
 for seed in seeds:
     rn_gen = HydroCNHS.create_rn_gen(seed)
     ga = cali.GA_DEAP(evaluation, rn_gen)
@@ -149,7 +149,9 @@ for seed in seeds:
     HydroCNHS.write_model(model_best, os.path.join(ga.cali_wd, "Best_abcd_abm_KGE.yaml"))
 
     summary = ga.summary
-
+#%%
+# Note: the random seed 3 gives us the best model.
+r"""
 ##### Run Simuluation Again for Plotting.
 model = HydroCNHS.Model(model_best, "Best")
 Q = model.run(temp, prec, pet)
@@ -173,5 +175,5 @@ for item in cali_target:
                     xy_labal=xy_label_reg)
     visual.plot_timeseries(obv_M[[item]], sim_Q_M[[item]],
                            title="Monthly_"+item, xy_labal=xy_label_ts)
-
+"""
 
