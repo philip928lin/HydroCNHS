@@ -13,68 +13,71 @@ LSM:
   Model: ABCD
   TRTR:
     Inputs: {Area: 329.8013, Latitude: 45.458136, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.24109634877278474, b: 281.1312644656732, c: 0.9153772556071967, d: 0.5100499437661167,
-      Df: 0.4920129528075392}
+    Pars: {a: 0.890553302628887, b: 172.23600171922243, c: 0.7155770880172071, d: 0.20809344615165526,
+      Df: 0.06701900053478936}
   SCOO:
     Inputs: {Area: 10034.2408, Latitude: 45.469444, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.4385378047615227, b: 13.751994864416561, c: 0.9903274224388926, d: 0.33065803571457275,
-      Df: 0.5765080538151063}
+    Pars: {a: 0.9146018072106304, b: 12.07729464585916, c: 0.9842795541879239, d: 0.68606209679354,
+      Df: 0.48461470794246364}
   DLLO:
     Inputs: {Area: 22238.4391, Latitude: 45.475, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.43800188086154496, b: 317.5709026633489, c: 0.7654318921543916, d: 0.40014361569442036,
-      Df: 0.8349878753155408}
+    Pars: {a: 0.7854444337934934, b: 16.689564699523054, c: 0.026341374108708515,
+      d: 0.9673789760378199, Df: 0.4312505471058701}
   TRGC:
     Inputs: {Area: 24044.6363, Latitude: 45.502222, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.19738498319999243, b: 157.83601209882164, c: 0.7851341214791941, d: 0.5842447581102016,
-      Df: 0.5035132764966791}
+    Pars: {a: 0.1332418983062724, b: 236.39628055799992, c: 0.26442824498005, d: 0.3585813051218742,
+      Df: 0.32950116623240083}
   DAIRY:
     Inputs: {Area: 59822.7546, Latitude: 45.52, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.29469168935506607, b: 102.75558955537095, c: 0.46621489405830574,
-      d: 0.5294638044581759, Df: 0.5038350963068597}
+    Pars: {a: 0.5224691447010853, b: 175.137996518796, c: 0.6462368245246382, d: 0.9179993288207193,
+      Df: 0.3216240262772537}
   RCTV:
     Inputs: {Area: 19682.6046, Latitude: 45.502222, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.19517219140973485, b: 52.50583532201076, c: 0.22601514260198374, d: 0.4923722813104639,
-      Df: 0.8653161981559102}
+    Pars: {a: 0.9202374869831834, b: 21.104212080196618, c: 0.12495211101947234, d: 0.6724328581562491,
+      Df: 0.859022692865331}
   WSLO:
     Inputs: {Area: 47646.8477, Latitude: 45.350833, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.7816759594706737, b: 2.738280894101397, c: 0.9612348203978619, d: 0.7857631757628737,
-      Df: 0.055136001099027346}
+    Pars: {a: 0.5394432056990935, b: 306.14323556386665, c: 0.6776637830544362, d: 0.6691210687661646,
+      Df: 0.8527220152672992}
 Routing:
   Model: Lohmann
   WSLO:
     TRGC:
       Inputs: {FlowLength: 80064.864, InstreamControl: false}
-      Pars: {GShape: null, GScale: null, Velo: 35.32092260415871, Diff: 1799.6580022401606}
+      Pars: {GShape: null, GScale: null, Velo: 48.54150471235312, Diff: 3435.3747911796254}
     DAIRY:
       Inputs: {FlowLength: 70988.16384, InstreamControl: false}
-      Pars: {GShape: 30.426287738984787, GScale: 107.66636189536567, Velo: 2.1774873109263533,
-        Diff: 2899.2430640107814}
+      Pars: {GShape: 49.1980385341278, GScale: 371.99950028972813, Velo: 2.9844142550861115,
+        Diff: 2815.2199025860723}
     RCTV:
       Inputs: {FlowLength: 60398.68032, InstreamControl: false}
-      Pars: {GShape: 93.65409094240366, GScale: 292.986611037298, Velo: 2.870600016206555,
-        Diff: 2205.8490365364282}
+      Pars: {GShape: 86.67341804898835, GScale: 561.0759014372939, Velo: 19.545546629543992,
+        Diff: 1790.4357299074504}
     WSLO:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 9.030888544254232, GScale: 179.62235675973713, Velo: null, Diff: null}
+      Pars: {GShape: 14.132398589877555, GScale: 659.3864671145553, Velo: null, Diff: null}
   TRGC:
     DLLO:
       Inputs: {FlowLength: 11748.2112, InstreamControl: false}
-      Pars: {GShape: null, GScale: null, Velo: 39.827306124302254, Diff: 503.27012831651706}
+      Pars: {GShape: null, GScale: null, Velo: 11.803076958028061, Diff: 2406.995476247831}
+    TRGC:
+      Inputs: {FlowLength: 0, InstreamControl: false}
+      Pars: {GShape: 30.193209672919032, GScale: 668.3418747613292, Velo: null, Diff: null}
   DLLO:
     R1:
       Inputs: {FlowLength: 9656.064, InstreamControl: true}
-      Pars: {GShape: null, GScale: null, Velo: 45.31930222390759, Diff: 1579.52395312447}
+      Pars: {GShape: null, GScale: null, Velo: 41.34813760462713, Diff: 3946.0152528454496}
     TRTR:
       Inputs: {FlowLength: 30899.4048, InstreamControl: false}
-      Pars: {GShape: 27.378588710905575, GScale: 380.97353298805183, Velo: 4.698994898825228,
-        Diff: 3114.91876954467}
+      Pars: {GShape: 97.51754320185125, GScale: 261.53589405881246, Velo: 22.96875463041642,
+        Diff: 3829.1551166728186}
     DLLO:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 11.150580175736248, GScale: 29.70612000327381, Velo: null, Diff: null}
+      Pars: {GShape: 3.258599362082821, GScale: 643.1913849375637, Velo: null, Diff: null}
   SCOO:
     SCOO:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 3.0853251585506594, GScale: 558.1399791431262, Velo: null, Diff: null}
+      Pars: {GShape: 61.106882067569494, GScale: 4.04531652720192, Velo: null, Diff: null}
 ABM:
   Inputs:
     DamAgentTypes: [ResDam_AgType]
@@ -116,9 +119,9 @@ ABM:
           WSLO: [ReturnFactor, 0, Plus]
         DMClass: DivDM
       Pars:
-        ReturnFactor: [0.4292353711381357]
-        a: -0.36496830315980966
-        b: 0.02822961851394523
+        ReturnFactor: [0.4230386856507557]
+        a: -0.2119854664338594
+        b: 0.022026526238529076
 SystemParsedData:
   SimSeq: [SCOO, R1, DLLO, TRGC, WSLO]
   AgSimSeq:

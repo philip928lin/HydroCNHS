@@ -128,24 +128,25 @@ config = {'min_or_max': 'max',
          'print_level': 1,
          'plot': True}
 
-rn_gen = HydroCNHS.create_rn_gen(9)
-ga = cali.GA_DEAP(evaluation, rn_gen)
-ga.set(cali_inputs, config, formatter, name="Cali_gwlf_abm_KGE")
-ga.run()
-ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
+seeds = [3,4]
+for seed in seeds:
+    rn_gen = HydroCNHS.create_rn_gen(seed)
+    ga = cali.GA_DEAP(evaluation, rn_gen)
+    ga.set(cali_inputs, config, formatter, name="Cali_gwlf_abm_KGE_{}".format(seed))
+    ga.run()
+    ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
 
+    ##### Output Calibrated Model.
+    individual = ga.solution
+    df_list = cali.Convertor.to_df_list(individual, formatter)
+    model_best = deepcopy(model_dict)
+    for i, df in enumerate(df_list):
+        s = df_name[i].split("_")[0]
+        model = HydroCNHS.load_df_to_model_dict(model_best, df, s, "Pars")
+    HydroCNHS.write_model(model_best, os.path.join(ga.cali_wd, "Best_gwlf_abm_KGE.yaml"))
+
+    summary = ga.summary
 #%%
-##### Output Calibrated Model.
-individual = ga.solution
-df_list = cali.Convertor.to_df_list(individual, formatter)
-model_best = deepcopy(model_dict)
-for i, df in enumerate(df_list):
-    s = df_name[i].split("_")[0]
-    model = HydroCNHS.load_df_to_model_dict(model_best, df, s, "Pars")
-HydroCNHS.write_model(model_best, os.path.join(ga.cali_wd, "Best_gwlf_abm_KGE.yaml"))
-
-summary = ga.summary
-
 ##### Run Simuluation Again for Plotting.
 model = HydroCNHS.Model(model_best, "Best")
 Q = model.run(temp, prec, pet)

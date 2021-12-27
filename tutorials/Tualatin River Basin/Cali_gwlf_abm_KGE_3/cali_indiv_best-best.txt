@@ -1,0 +1,105 @@
+Annual cali/vali result
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.969	0.94	1.097	0.916	0.838	0.865	0.773	0.908	0.29WSLO	0.984	0.968	6.874	0.814	0.871	0.701	0.88	0.766	0.432SHPP	-0.302	0.091	0.056	-0.183	-0.217	-0.538	-0.524	0.501	1.088SCOO	0.962	0.925	0.496	0.848	0.827	0.747	0.773	0.841	0.389Mean	0.653	0.731	2.131	0.599	0.58	0.444	0.475	0.754	0.55
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.956	0.914	1.318	0.837	0.885	0.829	0.869	0.923	0.403WSLO	0.986	0.971	4.584	0.889	0.868	0.888	0.865	0.949	0.334SHPP	-0.509	0.26	0.057	-0.454	-0.367	-0.755	-0.771	-0.581	1.206SCOO	0.981	0.963	0.598	0.661	0.044	0.85	0.475	0.872	0.582Mean	0.603	0.777	1.639	0.483	0.357	0.453	0.359	0.541	0.631
+
+Monthly cali/vali result
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.919	0.845	4.414	0.822	-22.872	0.886	-3.179	0.73	0.422WSLO	0.931	0.867	18.647	0.857	-12.609	0.833	-2.129	0.755	0.378SHPP	0.942	0.888	0.18	0.887	0.166	0.919	0.102	0.808	0.336SCOO	0.808	0.653	1.777	0.631	-2.18	0.785	-0.267	0.674	0.607Mean	0.9	0.813	6.255	0.799	-9.374	0.856	-1.368	0.742	0.436
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.906	0.821	4.967	0.763	-4.236	0.824	-0.726	0.743	0.486WSLO	0.953	0.908	15.107	0.899	-4.406	0.9	-0.961	0.871	0.318SHPP	0.946	0.896	0.18	0.894	0.196	0.904	0.524	0.832	0.326SCOO	0.899	0.807	1.41	0.769	-4.538	0.818	-0.784	0.832	0.48Mean	0.926	0.858	5.416	0.831	-3.246	0.861	-0.487	0.819	0.403
+
+Daily cali/vali result
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.798	0.637	8.939	0.542	-42.944	0.769	-4.745	-2.767	0.676WSLO	0.725	0.525	42.925	0.436	-32.198	0.702	-4.121	-22.803	0.751SHPP	0.588	0.346	0.477	-0.048	-1.268	0.132	-0.309	-20.155	1.024SCOO	0.627	0.393	3.434	0.352	-4.294	0.579	-0.632	-3.261	0.805Mean	0.685	0.475	13.944	0.321	-20.176	0.545	-2.452	-12.246	0.814
+	r	r2	rmse	NSE	iNSE	KGE	iKGE	CP	RSRDLLO	0.806	0.65	9.05	0.459	-51.003	0.687	-5.268	-4.153	0.735WSLO	0.761	0.579	41.403	0.415	-29.205	0.7	-3.825	-27.774	0.765SHPP	0.834	0.696	0.314	0.69	0.119	0.81	0.189	-6.224	0.557SCOO	0.665	0.443	3.329	0.397	-1.068	0.598	-0.266	-1.911	0.776Mean	0.767	0.592	13.524	0.49	-20.289	0.699	-2.292	-10.016	0.708
+=========================================================
+Sol:
+CN2|TRTR                                    72.5541
+CN2|SCOO                                    72.5083
+CN2|DLLO                                    78.6334
+CN2|TRGC                                    61.9614
+CN2|DAIRY                                   38.5279
+CN2|RCTV                                    88.8763
+CN2|WSLO                                    96.6732
+IS|TRTR                                      0.0168
+IS|SCOO                                      0.0193
+IS|DLLO                                      0.0967
+IS|TRGC                                      0.3363
+IS|DAIRY                                     0.3142
+IS|RCTV                                      0.0553
+IS|WSLO                                      0.0971
+Res|TRTR                                     0.1758
+Res|SCOO                                     0.1896
+Res|DLLO                                     0.4803
+Res|TRGC                                     0.3892
+Res|DAIRY                                    0.2939
+Res|RCTV                                     0.0134
+Res|WSLO                                     0.3196
+Sep|TRTR                                     0.3251
+Sep|SCOO                                     0.0331
+Sep|DLLO                                     0.0943
+Sep|TRGC                                     0.0555
+Sep|DAIRY                                    0.2365
+Sep|RCTV                                     0.2710
+Sep|WSLO                                     0.2559
+Alpha|TRTR                                   0.5029
+Alpha|SCOO                                   0.9833
+Alpha|DLLO                                   0.5621
+Alpha|TRGC                                   0.9076
+Alpha|DAIRY                                  0.9397
+Alpha|RCTV                                   0.4584
+Alpha|WSLO                                   0.4368
+Beta|TRTR                                    0.7329
+Beta|SCOO                                    0.0206
+Beta|DLLO                                    0.0079
+Beta|TRGC                                    0.2802
+Beta|DAIRY                                   0.0310
+Beta|RCTV                                    0.0523
+Beta|WSLO                                    0.5614
+Ur|TRTR                                      9.8790
+Ur|SCOO                                     14.9207
+Ur|DLLO                                      2.9864
+Ur|TRGC                                     14.0445
+Ur|DAIRY                                     4.1134
+Ur|RCTV                                      8.4362
+Ur|WSLO                                      4.8494
+Df|TRTR                                      0.5378
+Df|SCOO                                      0.0705
+Df|DLLO                                      0.6813
+Df|TRGC                                      0.2813
+Df|DAIRY                                     0.7606
+Df|RCTV                                      0.3563
+Df|WSLO                                      0.8898
+Kc|TRTR                                      1.1089
+Kc|SCOO                                      0.5884
+Kc|DLLO                                      1.0675
+Kc|TRGC                                      1.0400
+Kc|DAIRY                                     0.7449
+Kc|RCTV                                      0.9465
+Kc|WSLO                                      1.0265
+GShape|('DAIRY', 'WSLO')                    37.6773
+GShape|('RCTV', 'WSLO')                     92.1345
+GShape|('WSLO', 'WSLO')                     12.3869
+GShape|('TRGC', 'TRGC')                     10.2615
+GShape|('TRTR', 'DLLO')                     87.4403
+GShape|('DLLO', 'DLLO')                      3.0593
+GShape|('SCOO', 'SCOO')                      3.0701
+GScale|('DAIRY', 'WSLO')                   735.0009
+GScale|('RCTV', 'WSLO')                    923.8164
+GScale|('WSLO', 'WSLO')                    350.0243
+GScale|('TRGC', 'TRGC')                    655.2026
+GScale|('TRTR', 'DLLO')                    109.7034
+GScale|('DLLO', 'DLLO')                     39.1366
+GScale|('SCOO', 'SCOO')                    108.8652
+Velo|('TRGC', 'WSLO')                        1.6271
+Velo|('DAIRY', 'WSLO')                      50.0263
+Velo|('RCTV', 'WSLO')                       54.3225
+Velo|('DLLO', 'TRGC')                       49.2996
+Velo|('R1', 'DLLO')                         21.1608
+Velo|('TRTR', 'DLLO')                       32.1898
+Diff|('TRGC', 'WSLO')                     3144.7482
+Diff|('DAIRY', 'WSLO')                    2017.3723
+Diff|('RCTV', 'WSLO')                      305.2177
+Diff|('DLLO', 'TRGC')                     2933.7500
+Diff|('R1', 'DLLO')                       1248.6193
+Diff|('TRTR', 'DLLO')                      951.3615
+ReturnFactor.0|('SHPP', 'IrrDiv_AgType')     0.1714
+a|('SHPP', 'IrrDiv_AgType')                  0.6284
+b|('SHPP', 'IrrDiv_AgType')                 -0.0559

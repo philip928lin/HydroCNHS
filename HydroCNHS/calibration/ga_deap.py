@@ -513,10 +513,10 @@ class GA_DEAP(object):
                     ax1.set_ylabel("Fitness (Min)")
                 x = np.arange(len(fitness))
                 lns1 = ax1.plot(x, fitness, label="Fitness", linewidth=2,
-                                color="black", marker=".")
+                                color="black", marker=".", zorder=2)
                 lns2 = ax2.plot(x, self.summary["std"], label="Fitness std",
                                 linewidth=2, color="grey", linestyle="--",
-                                marker="x")
+                                marker="x", zorder=1)
                 ax2.set_ylabel("Fitness standard deviation")
 
                 ax1.set_title(
