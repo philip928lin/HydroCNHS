@@ -12,6 +12,9 @@ HydroCNHS User Manual
    
    installation
    quickstart
+   model_builder
+   calibration
+   how_to_build_abm
    modules
 
 

@@ -1,0 +1,8 @@
+# This will overwrite logger("HydroCNHS")'s setting if given.
+LogHandlers: [console, file]
+
+Parallelization:
+  verbose: 10 
+  Cores_formUH_Lohmann: -1 
+  Cores_runGWLF: -1
+

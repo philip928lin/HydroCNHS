@@ -21,7 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="HydroCNHS" href="modules.html" />
+    <link rel="next" title="Model builder" href="model_builder.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
@@ -44,11 +44,23 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#run-a-simulation">Run a simulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#daily-weather-time-series">Daily weather time series</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#model-yaml">Model.yaml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-yaml">Model.yaml</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#path">1. Path</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#watersystem">2. WaterSystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lsm">3. LSM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#routing">4. Routing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#abm-optional">5. ABM (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#systemparseddata-auto-generated">6. SystemParsedData (auto-generated)</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#abm-module-s">ABM module(s)</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="model_builder.html">Model builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to_build_abm.html">How to build a ABM module?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">HydroCNHS</a></li>
 </ul>
 
@@ -102,9 +114,19 @@
 </style>
 <section id="quick-start">
 <h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
-<p>Let’s start with running a simulation!
-Here we will use the Tualatin River Basin (TRB) in the Northwest US as an example. The full code is located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong>.</p>
-<p>Take one minute to browse through the following simulation code.</p>
+<p>Let’s start with running a simulation using the Tualatin River Basin (TRB) example!</p>
+<p>The TRB tutorial codes are located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong></p>
+<figure class="align-center" id="id1">
+<span id="trb"></span><a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<p>The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by densely populated area (20%), agricultural area (30%), and forest (50%) (Tualatin River Watershed Council, 2021). Its agriculture heavily relies on irrigation because seasonal rainfall concentrates in winter (November - February). The Spring Hill Pumping Plant is the largest diversion facility in the TRB for irrigating Tualatin Valley Irrigation District (TVID; DivAgt), where the Hagg reservoir (ResAgt) is the primary water source. During the summer period, water is transferred from the Barney reservoir (outside of the TRB) through a trans-basin aqueduct (PipeAgt) to augment the low flow for ecological purposes.</p>
+<p>The full background of the TRB can be found in Lin et al., (2022).</p>
+<section id="run-a-simulation">
+<h2>Run a simulation<a class="headerlink" href="#run-a-simulation" title="Permalink to this headline"></a></h2>
+<p>Assuming we have already calibrated the TRB model, let’s take one minute to browse through the following simulation code. Then, you should be able run the script directly.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">HydroCNHS</span>
@@ -115,6 +137,7 @@ Here we will use the Tualatin River Basin (TRB) in the Northwest US as an exampl
 <span class="n">wd</span> <span class="o">=</span> <span class="n">prj_path</span>
 
 <span class="c1">##### Load Daily Weather Time Series.</span>
+<span class="c1"># We store all required time series data in the pickle format.</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_inputs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">)</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 
@@ -128,7 +151,7 @@ Here we will use the Tualatin River Basin (TRB) in the Northwest US as an exampl
 <span class="c1">##### Create HydroCNHS Model Object for Simulation.</span>
 <span class="n">model_gwlf</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model_dict_gwlf</span><span class="p">)</span>
 
-<span class="c1">##### Run simulation</span>
+<span class="c1">##### Run a simulation</span>
 <span class="n">Q_gwlf</span> <span class="o">=</span> <span class="n">model_gwlf</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span> <span class="c1"># pet is optional.</span>
 </pre></div>
 </div>
@@ -139,9 +162,10 @@ Here we will use the Tualatin River Basin (TRB) in the Northwest US as an exampl
 <li><p>User-provided ABM module(s) (e.g., TRB_ABM_dm.py). This is not required for pure hydrological model, non-coupled model.</p></li>
 </ol>
 <p>Now, we are going to introduce these three items in a more detail.</p>
+</section>
 <section id="daily-weather-time-series">
 <h2>Daily weather time series<a class="headerlink" href="#daily-weather-time-series" title="Permalink to this headline"></a></h2>
-<p>Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in dictionary form shown below.</p>
+<p>Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in a dictionary format shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;DAIRY&#39;, &#39;DLLO&#39;, &#39;RCTV&#39;, &#39;SCOO&#39;, &#39;TRGC&#39;, &#39;TRTR&#39;, and &#39;WSLO&#39; are subbasins&#39; names.</span>
 <span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DAIRY&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.7</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;DLLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
@@ -153,15 +177,14 @@ Here we will use the Tualatin River Basin (TRB) in the Northwest US as an exampl
 <span class="c1"># Similar to prep and pet.</span>
 </pre></div>
 </div>
-<p>The dictionary will contain a time series (i.e., a list) for each subbasin. The length of each time series has to be identical.</p>
+<p>The dictionary will contain weather time series (i.e., a list) for each subbasin. The length of each time series has to be identical.</p>
 </section>
 <section id="model-yaml">
 <h2>Model.yaml<a class="headerlink" href="#model-yaml" title="Permalink to this headline"></a></h2>
 <p>The model file (.yaml) contains settings for hydrological model (e.g., rainfall-runoff and routing) and ABM model (e.g., how to coupled).
 The model file has six sections:</p>
-<ol class="arabic simple">
-<li><p>Path</p></li>
-</ol>
+<section id="path">
+<h3>1. Path<a class="headerlink" href="#path" title="Permalink to this headline"></a></h3>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Path for working directory (outputing log file) and user-provided ABM</span>
 <span class="c1"># modules (optional).</span>
 <span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span>
@@ -169,9 +192,9 @@ The model file has six sections:</p>
 <span class="nt">  Modules</span><span class="p">:</span> <span class="s">&#39;ABM</span><span class="nv"> </span><span class="s">module</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="2">
-<li><p>WaterSystem</p></li>
-</ol>
+</section>
+<section id="watersystem">
+<h3>2. WaterSystem<a class="headerlink" href="#watersystem" title="Permalink to this headline"></a></h3>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">WaterSystem</span><span class="p">:</span>
         <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
         <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>
@@ -184,14 +207,14 @@ The model file has six sections:</p>
 </pre></div>
 </div>
 <p>DataLength can be automatically calculated if EndDate is provided, vice versa.</p>
-<ol class="arabic simple" start="3">
-<li><p>LSM</p></li>
-</ol>
-<p>HydroCNHS provides user two rainfall-runoff simulation options, the General
+</section>
+<section id="lsm">
+<h3>3. LSM<a class="headerlink" href="#lsm" title="Permalink to this headline"></a></h3>
+<p>HydroCNHS provides user two rainfall-runoff simulation options, General
 Water Loading Function (GWLF; 9 parameters) and ABCD (5 parameters). Their
 settings are shown below.</p>
-<p>The detailed documentation for GWLF and ABCD can be found at: SM.</p>
-<p><strong>GWLF</strong></p>
+<p>The detailed documentation for GWLF and ABCD can be found at the supplementary material of (Lin et al., 2022).</p>
+<p><strong>GWLF:</strong></p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
         <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">GWLF</span>
         <span class="nt">TRTR</span><span class="p">:</span>
@@ -224,7 +247,7 @@ settings are shown below.</p>
 <span class="nt">                        Beta</span><span class="p">:</span> <span class="nv">0.371</span><span class="p p-Indicator">,</span><span class="nt"> Ur</span><span class="p">:</span> <span class="nv">14.347</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.811</span><span class="p p-Indicator">,</span><span class="nt"> Kc</span><span class="p">:</span> <span class="nv">0.720</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p><strong>ABCD</strong></p>
+<p><strong>ABCD:</strong></p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">LSM</span><span class="p">:</span>
         <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ABCD</span>
         <span class="nt">TRTR</span><span class="p">:</span>
@@ -250,10 +273,10 @@ settings are shown below.</p>
                 <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.781</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">2.738</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.961</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.785</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.055</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
-<li><p>Routing</p></li>
-</ol>
-<p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter subbasin routing process. Its setting is shown below.</p>
+</section>
+<section id="routing">
+<h3>4. Routing<a class="headerlink" href="#routing" title="Permalink to this headline"></a></h3>
+<p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter-subbasin routing process. We adpot a nested struture to setup the routing setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 1</span></a>), as shown below.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Routing</span><span class="p">:</span>
         <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
         <span class="c1"># WSLO, TRGC, DLLO, and SCOO are four routing outlets.</span>
@@ -310,76 +333,15 @@ settings are shown below.</p>
                         <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">27.22</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">0.29</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p>Put the system diagram here.</p>
-<ol class="arabic simple" start="5">
-<li><p>ABM</p></li>
-</ol>
-<p>For the “Inputs” setting of ABM section, first, we assign the user-defined
-agent classes (defined in ABM modules) to corresponding coupling APIs. Then,
-we ativate the decision-making classes (defined in ABM modules) if any. Next,
-we assign ABM module(s), where agent classes and decision-making classes are
-defined. Finally, agent group is for agents make decisions and act together.
-For example, two diversion agents make diversion requests together and share
-the water deficiency together based on their water rights. Namely, their
-diversion behaviors are not piority-based. The agent group will be defined as
-a single function in a ABM module, which users can define a more detailed
-interactions amond agents in an agent group. See Build ABM for more details.</p>
-<p>Following the “Inputs” setting, we will define agent objects created by certain
-agent classes (defined in ABM modules). For example, we create Barney agent
-using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
-sub-sections: “Attributes”, “Inputs”, and “Pars.”</p>
-<p><strong>“Inputs”</strong> is required information including “Piority”, “Links”, and “DMClass.”</p>
-<ul class="simple">
-<li><p>Piority:</p></li>
-</ul>
-<p>The lower value has higher piority when conflicts happen. For example, two
-diverion agents divert at the same routing outlet. If users want a
-non-priority-based behaviors. “AgGroup” should be applied. See Build ABM for
-more details.</p>
-<p>Note that agents coupling with Dam API has to have Piority = 0.</p>
-<ul class="simple">
-<li><p>Links:</p></li>
-</ul>
-<p>“Links” is a dictionary containing information which outlets for agent to
-take/add water from/to. The positive number means add the water to that outlet.
-Negative number means take water from that outlet. The number is a “factor”
-in a range of [-1,1] defining the portion of the agent’s decision to be
-implemented at this specific outlet. For example, an irrigation diversion agent
-divert from a point but reture to b and c points with the ratios, 0.3
-and 0.7. Then, we have</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.7</span><span class="p p-Indicator">}</span>
-</pre></div>
-</div>
-<p>Assuming the diversion request is 10, the actual diversion is also 10 (i.e., no
-deficiency), and return flow coefficent is 0.5.</p>
-<div class="math notranslate nohighlight">
-\[Flow_{a,new} = Flow_{a,org} -1 \times 10\]</div>
-<div class="math notranslate nohighlight">
-\[reture_flow = 0.5 \times 10 = 5\]</div>
-<div class="math notranslate nohighlight">
-\[Flow_{b,new} = Flow_{b,org} + 0.3 \times 5\]</div>
-<div class="math notranslate nohighlight">
-\[Flow_{c,new} = Flow_{c,org} + 0.7 \times 5\]</div>
-<p>If the “factor” is a calibrated parameter. We can link it to a parameter by
-[parameter name, its index, Plus/Minus]. The parameter has to be a list
-format. For example, if Links = {WSLO: [ReturnFactor, 0, Plus]}, the factor
-will be extracted from ReturnFactor parameter (a list) at index 0. “Plus”
-will tell the program that we add water to WSLO (for forming simulation
-purpose).</p>
-<ul class="simple">
-<li><p>DMClass:</p></li>
-</ul>
-<p>This is optional. If there is no specific decision-making class to be assigned,
-put “null” instead. See Build ABM for more details.</p>
-<p><strong>“Pars”</strong> is a section for collecting agents’ parameters for calibration. We offer
-two types of parameter formats: a single constant (e.g., 9), (2) a list of
-constants (e.g., [9, 4.5]).</p>
-<p><strong>“Attributes”</strong> is a space for users to store any other information for their
-agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
+</section>
+<section id="abm-optional">
+<h3>5. ABM (optional)<a class="headerlink" href="#abm-optional" title="Permalink to this headline"></a></h3>
+<p>ABM section is a highly customized setting section. Users will assign each
+active agent class to corresponding APIs.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">ABM</span><span class="p">:</span>
         <span class="nt">Inputs</span><span class="p">:</span>
                 <span class="c1"># Assign user-defined agent classes to corresponding APIs. Here, we</span>
-                <span class="c1"># define three agent classes in TRB_ABM_dm.py: ResDam_AgType</span>
+                <span class="c1"># defined three agent classes in TRB_ABM_dm.py: ResDam_AgType</span>
                 <span class="c1"># (reservoir), IrrDiv_AgType (diversion), and Pipe_AgType</span>
                 <span class="c1"># (trans-basin conveying water).</span>
                 <span class="nt">DamAgentTypes</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">ResDam_AgType</span><span class="p p-Indicator">]</span>          <span class="c1"># Dam API</span>
@@ -395,7 +357,7 @@ agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
         <span class="nt">Pipe_AgType</span><span class="p">:</span>
                 <span class="c1"># Create agent objects using Pipe_AgType class. Here, we only have</span>
                 <span class="c1"># one Pipe_AgType agent, Barney.</span>
-                <span class="nt">Barney</span><span class="p">:</span>
+                <span class="nt">Barney</span><span class="p">:</span> <span class="c1"># == PipeAgt</span>
                         <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
                         <span class="c1"># Inputs are required information.</span>
                         <span class="nt">Inputs</span><span class="p">:</span>
@@ -409,7 +371,7 @@ agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
         <span class="nt">ResDam_AgType</span><span class="p">:</span>
                 <span class="c1"># Create agent objects using ResDam_AgType class. Here, we only</span>
                 <span class="c1"># have one ResDam_AgType agent, R1.</span>
-                <span class="nt">R1</span><span class="p">:</span>
+                <span class="nt">R1</span><span class="p">:</span>             <span class="c1"># == ResAgt</span>
                         <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
                         <span class="c1"># Inputs are required information.</span>
                         <span class="nt">Inputs</span><span class="p">:</span>
@@ -423,7 +385,7 @@ agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
         <span class="nt">IrrDiv_AgType</span><span class="p">:</span>
                 <span class="c1"># Create agent objects using IrrDiv_AgType class. Here, we only</span>
                 <span class="c1"># have one IrrDiv_AgType agent, SHPP.</span>
-                <span class="nt">SHPP</span><span class="p">:</span>
+                <span class="nt">SHPP</span><span class="p">:</span>   <span class="c1"># == DivAgt</span>
                         <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>  <span class="c1"># According to users&#39; needs, optional.</span>
                         <span class="c1"># Inputs are required information.</span>
                         <span class="nt">Inputs</span><span class="p">:</span>
@@ -438,21 +400,90 @@ agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
                                 <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.09731044387555121</span>
 </pre></div>
 </div>
-<p>6. SystemParsedData
-This section will be automatically generated by HydroCNHS. The model file don’t
+<p>For the “Inputs” setting of ABM section, first, we assign the user-defined
+agent classes (defined in ABM modules) to corresponding coupling APIs. Then,
+we ativate the decision-making classes (defined in ABM modules) if any. Next,
+we assign ABM module(s), where agent classes and decision-making classes are
+defined. Finally, agent group is for agents make decisions and act together.
+For example, two diversion agents make diversion requests together and share
+the water deficiency together based on their water rights. Namely, their
+diversion behaviors are not piority-based. The agent group will be defined as
+a single function in a ABM module, which users can define a more detailed
+interactions among agents in an agent group. See Build ABM for more details.</p>
+<p>Following the “Inputs” setting, we will define agent objects created by certain
+agent classes (defined in ABM modules). For example, we create Barney agent
+using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
+sub-sections: “Attributes”, “Inputs”, and “Pars.”</p>
+<p><strong>a) Inputs</strong> are required information including “Piority”, “Links”, and “DMClass.”</p>
+<ul class="simple">
+<li><p>Piority:</p></li>
+</ul>
+<p>The lower value has higher piority when conflicts happen. For example, two
+diverion agents divert at the same routing outlet. If users want a
+non-priority-based behaviors. “AgGroup” should be applied. See Build ABM for
+more details.</p>
+<p>Note that agents coupling with Dam API has to have Piority = 0.</p>
+<ul class="simple">
+<li><p>Links:</p></li>
+</ul>
+<p>“Links” is a dictionary containing information of which outlets for agent to
+take/add water from/to (e.g., {&lt;outlet&gt;: factor}). The <strong>positive</strong> factor
+means add the water to that outlet. The <strong>negative</strong> number factor take water
+from that outlet. The “factor” is a number in a range of [-1,1] defining the
+portion of the agent’s decision to be implemented at this specific outlet. For
+example, an irrigation diversion agent divert from <em>a</em> outlet but reture to <em>b</em>
+and <em>c</em> outlets (i.e., subbasins) with the ratios, 0.3 and 0.7. Then, we have</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Links</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">-1</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.7</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<p>Assuming the diversion request is 10, the actual diversion is also 10 (i.e., no
+deficiency), and return flow coefficent is 0.5, we have</p>
+<div class="math notranslate nohighlight">
+\[Flow_{a,new} = Flow_{a,org} + factor_a \times 10 = Flow_{a,org} -1 \times 10\]</div>
+<div class="math notranslate nohighlight">
+\[Flow_{return} = 0.5 \times 10 = 5\]</div>
+<div class="math notranslate nohighlight">
+\[Flow_{b,new} = Flow_{b,org} + factor_b \times 5 = Flow_{b,org} + 0.3 \times 5\]</div>
+<div class="math notranslate nohighlight">
+\[Flow_{c,new} = Flow_{c,org} + factor_c \times 5 = Flow_{c,org} + 0.7 \times 5\]</div>
+<p>If the “factor” is a calibrated parameter (i.e., an unknown). We can link it to
+a parameter by <em>[parameter name, its index, Plus/Minus]</em>. The parameter has to
+be a list format. For example, if <em>Links = {WSLO: [ReturnFactor, 0, Plus]}</em>,
+the factor will be extracted from ReturnFactor parameter (a list) at index 0.
+“Plus” will tell the program that we add water to WSLO (“Minus” means divert
+from the given outlet).</p>
+<ul class="simple">
+<li><p>DMClass:</p></li>
+</ul>
+<p>This is optional. If there is no specific decision-making class to be assigned,
+put “null” instead. Namely, users can code everything in “agent class.” See
+Build ABM for more details.</p>
+<p><strong>b) Pars</strong> collects agents’ parameters for calibration. We
+offer two types of parameter formats:</p>
+<ol class="arabic simple">
+<li><p>A constant (e.g., 9), or</p></li>
+<li><p>A list of constants (e.g., [9, 4.5]).</p></li>
+</ol>
+<p><strong>c) Attributes</strong> is a space for users to store any other information for their
+agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
+</section>
+<section id="systemparseddata-auto-generated">
+<h3>6. SystemParsedData (auto-generated)<a class="headerlink" href="#systemparseddata-auto-generated" title="Permalink to this headline"></a></h3>
+<p>This section will be automatically generated by HydroCNHS. The model file don’t
 need to include this section.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ModelBuilder can help you to create an initial model template! Check it out!</p>
 </aside>
 </section>
+</section>
 <section id="abm-module-s">
 <h2>ABM module(s)<a class="headerlink" href="#abm-module-s" title="Permalink to this headline"></a></h2>
 <p>Agent-based model (ABM) is an user-provided human model. HydroCNHS support multiple ABM modules to be used at a single simulation. In the ABM module, users have 100% of freedom to design agent class (e.g., irrigation diversion agent class, reservoir agent class, etc.); however, some input and output protocals have to be followed.
-Please visit Build ABM module for more detailed instruction.</p>
+Please visit Build ABM module for more detailed instructions.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you only need a hydrological model and don’t require any human components, then you can skip this ABM part!</p>
+<p>If you only need a hydrological model and do not require any human components, then you can skip this ABM part!</p>
 </aside>
 </section>
 </section>
@@ -462,7 +493,7 @@ Please visit Build ABM module for more detailed instruction.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="modules.html" class="btn btn-neutral float-right" title="HydroCNHS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="model_builder.html" class="btn btn-neutral float-right" title="Model builder" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

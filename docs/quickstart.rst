@@ -1,9 +1,24 @@
 Quick start!
 ============
-Let's start with running a simulation!
-Here we will use the Tualatin River Basin (TRB) in the Northwest US as an example. The full code is located at **./HydroCNHS/tutorials/Tualatin River Basin/**.
+Let's start with running a simulation using the Tualatin River Basin (TRB) example!
 
-Take one minute to browse through the following simulation code.
+The TRB tutorial codes are located at **./HydroCNHS/tutorials/Tualatin River Basin/** 
+
+.. _TRB:
+.. figure:: ./figs/TRB.png
+  :align: center
+  :width: 500
+  :alt: The Tualatin River Basin system diagram. 
+
+  The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system agents for the runoff-changing scenario.
+  
+The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by densely populated area (20%), agricultural area (30%), and forest (50%) (Tualatin River Watershed Council, 2021). Its agriculture heavily relies on irrigation because seasonal rainfall concentrates in winter (November - February). The Spring Hill Pumping Plant is the largest diversion facility in the TRB for irrigating Tualatin Valley Irrigation District (TVID; DivAgt), where the Hagg reservoir (ResAgt) is the primary water source. During the summer period, water is transferred from the Barney reservoir (outside of the TRB) through a trans-basin aqueduct (PipeAgt) to augment the low flow for ecological purposes.
+
+The full background of the TRB can be found in Lin et al., (2022).
+
+Run a simulation
+-----------------
+Assuming we have already calibrated the TRB model, let's take one minute to browse through the following simulation code. Then, you should be able run the script directly.
 
 .. code-block:: python
 
@@ -17,6 +32,7 @@ Take one minute to browse through the following simulation code.
 	wd = prj_path
 
 	##### Load Daily Weather Time Series.
+	# We store all required time series data in the pickle format.
 	with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
 		(temp, prec, pet, obv_D, obv_M, obv_Y) = pickle.load(file)
 		
@@ -30,9 +46,8 @@ Take one minute to browse through the following simulation code.
 	##### Create HydroCNHS Model Object for Simulation.
 	model_gwlf = HydroCNHS.Model(model_dict_gwlf)
 
-	##### Run simulation
+	##### Run a simulation
 	Q_gwlf = model_gwlf.run(temp, prec, pet) # pet is optional.
-
 
 
 To run a coupled natural human model simulation, three items are required.
@@ -46,7 +61,7 @@ Now, we are going to introduce these three items in a more detail.
 
 Daily weather time series
 -------------------------
-Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in dictionary form shown below.
+Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in a dictionary format shown below.
 
 .. code-block:: python
 
@@ -60,7 +75,7 @@ Temperture and precipitation are two required weather inputs for the simulation.
 		'WSLO': [7.8, 7.4, 7.3, 7.3, .......]}
 	# Similar to prep and pet.
 		
-The dictionary will contain a time series (i.e., a list) for each subbasin. The length of each time series has to be identical.
+The dictionary will contain weather time series (i.e., a list) for each subbasin. The length of each time series has to be identical.
 
 
 Model.yaml
@@ -69,7 +84,7 @@ The model file (.yaml) contains settings for hydrological model (e.g., rainfall-
 The model file has six sections:
 
 1. Path
-
+^^^^^^^^^^^^^^^^^^^
 .. code-block:: yaml
 	
 	# Path for working directory (outputing log file) and user-provided ABM
@@ -80,7 +95,7 @@ The model file has six sections:
 
 
 2. WaterSystem
-
+^^^^^^^^^^^^^^^^^^^
 .. code-block:: yaml
 
 	WaterSystem:
@@ -96,14 +111,14 @@ The model file has six sections:
 DataLength can be automatically calculated if EndDate is provided, vice versa.
 
 3. LSM
-
-HydroCNHS provides user two rainfall-runoff simulation options, the General
+^^^^^^^^^^^^^^^^^^^
+HydroCNHS provides user two rainfall-runoff simulation options, General
 Water Loading Function (GWLF; 9 parameters) and ABCD (5 parameters). Their
 settings are shown below. 
 
-The detailed documentation for GWLF and ABCD can be found at: SM.
+The detailed documentation for GWLF and ABCD can be found at the supplementary material of (Lin et al., 2022).
 
-**GWLF**
+**GWLF:**
 
 .. code-block:: yaml
 
@@ -138,7 +153,7 @@ The detailed documentation for GWLF and ABCD can be found at: SM.
 			Pars: {CN2: 60.151, IS: 0.498, Res: 0.095, Sep: 0.038, Alpha: 0.484,
 				Beta: 0.371, Ur: 14.347, Df: 0.811, Kc: 0.720}
 
-**ABCD** 
+**ABCD:** 
 
 .. code-block:: yaml
 
@@ -167,8 +182,8 @@ The detailed documentation for GWLF and ABCD can be found at: SM.
 			Pars: {a: 0.781, b: 2.738, c: 0.961, d: 0.785, Df: 0.055}
 
 4. Routing
-
-HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter subbasin routing process. Its setting is shown below.
+^^^^^^^^^^^^^^^^^^^
+HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter-subbasin routing process. We adpot a nested struture to setup the routing setting for each routing outlets (:numref:`TRB`), as shown below.
 
 .. code-block:: yaml
 
@@ -227,101 +242,22 @@ HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and i
 				Inputs: {FlowLength: 0, InstreamControl: false}
 				Pars: {GShape: 27.22, GScale: 0.29, Velo: null, Diff: null}
 
-Put the system diagram here.
-
-5. ABM
-
-For the "Inputs" setting of ABM section, first, we assign the user-defined
-agent classes (defined in ABM modules) to corresponding coupling APIs. Then,
-we ativate the decision-making classes (defined in ABM modules) if any. Next,
-we assign ABM module(s), where agent classes and decision-making classes are
-defined. Finally, agent group is for agents make decisions and act together.
-For example, two diversion agents make diversion requests together and share 
-the water deficiency together based on their water rights. Namely, their 
-diversion behaviors are not piority-based. The agent group will be defined as 
-a single function in a ABM module, which users can define a more detailed
-interactions amond agents in an agent group. See Build ABM for more details.
-
-Following the "Inputs" setting, we will define agent objects created by certain
-agent classes (defined in ABM modules). For example, we create Barney agent 
-using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
-sub-sections: "Attributes", "Inputs", and "Pars." 
-
-**"Inputs"** is required information including "Piority", "Links", and "DMClass." 
-
-* Piority: 
-  
-The lower value has higher piority when conflicts happen. For example, two
-diverion agents divert at the same routing outlet. If users want a 
-non-priority-based behaviors. "AgGroup" should be applied. See Build ABM for
-more details.
-
-Note that agents coupling with Dam API has to have Piority = 0.
-
-* Links:
-
-"Links" is a dictionary containing information which outlets for agent to
-take/add water from/to. The positive number means add the water to that outlet.
-Negative number means take water from that outlet. The number is a "factor" 
-in a range of [-1,1] defining the portion of the agent's decision to be
-implemented at this specific outlet. For example, an irrigation diversion agent
-divert from a point but reture to b and c points with the ratios, 0.3
-and 0.7. Then, we have
-
-.. code-block:: yaml
-
-	Links: {a: -1, b: 0.3, c: 0.7}
-
-Assuming the diversion request is 10, the actual diversion is also 10 (i.e., no
-deficiency), and return flow coefficent is 0.5.
-
-.. math::
-
-	 Flow_{a,new} = Flow_{a,org} -1 \times 10
-
-.. math::
-	
-	reture_flow = 0.5 \times 10 = 5
-
-.. math::
-	
-	Flow_{b,new} = Flow_{b,org} + 0.3 \times 5
-
-.. math::
-	
-	Flow_{c,new} = Flow_{c,org} + 0.7 \times 5
-
-
-If the "factor" is a calibrated parameter. We can link it to a parameter by
-[parameter name, its index, Plus/Minus]. The parameter has to be a list
-format. For example, if Links = {WSLO: [ReturnFactor, 0, Plus]}, the factor
-will be extracted from ReturnFactor parameter (a list) at index 0. "Plus" 
-will tell the program that we add water to WSLO (for forming simulation
-purpose).
-
-* DMClass:
-
-This is optional. If there is no specific decision-making class to be assigned,
-put "null" instead. See Build ABM for more details.
-
-**"Pars"** is a section for collecting agents' parameters for calibration. We offer
-two types of parameter formats: a single constant (e.g., 9), (2) a list of 
-constants (e.g., [9, 4.5]).
-
-**"Attributes"** is a space for users to store any other information for their 
-agents' calculation that is not belong to "Pars" or "Inputs."
+5. ABM (optional)
+^^^^^^^^^^^^^^^^^^^
+ABM section is a highly customized setting section. Users will assign each 
+active agent class to corresponding APIs.
 
 .. code-block:: yaml
 
 	ABM:
 		Inputs:
 			# Assign user-defined agent classes to corresponding APIs. Here, we
-			# define three agent classes in TRB_ABM_dm.py: ResDam_AgType 
+			# defined three agent classes in TRB_ABM_dm.py: ResDam_AgType 
 			# (reservoir), IrrDiv_AgType (diversion), and Pipe_AgType 
 			# (trans-basin conveying water).
 			DamAgentTypes: [ResDam_AgType]		# Dam API
 			RiverDivAgentTypes: [IrrDiv_AgType]	# RiverDiv API
-			InsituAgentTypes: []				# InSitu API
+			InsituAgentTypes: [] 				# InSitu API
 			ConveyAgentTypes: [Pipe_AgType]		# Conveying API
 			# Activate user-defined decision-making classes in TRB_ABM_dm.py.
 			DMClasses: [ResDM, DivDM, PipeDM]
@@ -332,7 +268,7 @@ agents' calculation that is not belong to "Pars" or "Inputs."
 		Pipe_AgType:
 			# Create agent objects using Pipe_AgType class. Here, we only have 
 			# one Pipe_AgType agent, Barney.
-			Barney:
+			Barney: # == PipeAgt
 				Attributes: {} 	# According to users' needs, optional.
 				# Inputs are required information.
 				Inputs:
@@ -346,7 +282,7 @@ agents' calculation that is not belong to "Pars" or "Inputs."
 		ResDam_AgType:
 			# Create agent objects using ResDam_AgType class. Here, we only 
 			# have one ResDam_AgType agent, R1.
-			R1:
+			R1:		# == ResAgt
 				Attributes: {}	# According to users' needs, optional.
 				# Inputs are required information.
 				Inputs:
@@ -360,7 +296,7 @@ agents' calculation that is not belong to "Pars" or "Inputs."
 		IrrDiv_AgType:
 			# Create agent objects using IrrDiv_AgType class. Here, we only 
 			# have one IrrDiv_AgType agent, SHPP.
-			SHPP:
+			SHPP: 	# == DivAgt
 				Attributes: {}	# According to users' needs, optional.
 				# Inputs are required information.
 				Inputs:
@@ -374,7 +310,94 @@ agents' calculation that is not belong to "Pars" or "Inputs."
 					a: -0.92169837578325
 					b: 0.09731044387555121
 
-6. SystemParsedData
+
+For the "Inputs" setting of ABM section, first, we assign the user-defined
+agent classes (defined in ABM modules) to corresponding coupling APIs. Then,
+we ativate the decision-making classes (defined in ABM modules) if any. Next,
+we assign ABM module(s), where agent classes and decision-making classes are
+defined. Finally, agent group is for agents make decisions and act together.
+For example, two diversion agents make diversion requests together and share 
+the water deficiency together based on their water rights. Namely, their 
+diversion behaviors are not piority-based. The agent group will be defined as 
+a single function in a ABM module, which users can define a more detailed
+interactions among agents in an agent group. See Build ABM for more details.
+
+Following the "Inputs" setting, we will define agent objects created by certain
+agent classes (defined in ABM modules). For example, we create Barney agent 
+using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
+sub-sections: "Attributes", "Inputs", and "Pars." 
+
+**a) Inputs** are required information including "Piority", "Links", and "DMClass." 
+
+* Piority: 
+  
+The lower value has higher piority when conflicts happen. For example, two
+diverion agents divert at the same routing outlet. If users want a 
+non-priority-based behaviors. "AgGroup" should be applied. See Build ABM for
+more details.
+
+Note that agents coupling with Dam API has to have Piority = 0.
+
+* Links:
+
+"Links" is a dictionary containing information of which outlets for agent to
+take/add water from/to (e.g., {<outlet>: factor}). The **positive** factor 
+means add the water to that outlet. The **negative** number factor take water
+from that outlet. The "factor" is a number in a range of [-1,1] defining the 
+portion of the agent's decision to be implemented at this specific outlet. For 
+example, an irrigation diversion agent divert from *a* outlet but reture to *b* 
+and *c* outlets (i.e., subbasins) with the ratios, 0.3 and 0.7. Then, we have
+
+.. code-block:: yaml
+
+	Links: {a: -1, b: 0.3, c: 0.7}
+
+Assuming the diversion request is 10, the actual diversion is also 10 (i.e., no
+deficiency), and return flow coefficent is 0.5, we have
+
+.. math::
+
+	 Flow_{a,new} = Flow_{a,org} + factor_a \times 10 = Flow_{a,org} -1 \times 10
+
+.. math::
+	
+	Flow_{return} = 0.5 \times 10 = 5
+
+.. math::
+	
+	Flow_{b,new} = Flow_{b,org} + factor_b \times 5 = Flow_{b,org} + 0.3 \times 5
+
+.. math::
+	
+	Flow_{c,new} = Flow_{c,org} + factor_c \times 5 = Flow_{c,org} + 0.7 \times 5
+
+
+If the "factor" is a calibrated parameter (i.e., an unknown). We can link it to 
+a parameter by *[parameter name, its index, Plus/Minus]*. The parameter has to  
+be a list format. For example, if *Links = {WSLO: [ReturnFactor, 0, Plus]}*, 
+the factor will be extracted from ReturnFactor parameter (a list) at index 0.  
+"Plus" will tell the program that we add water to WSLO ("Minus" means divert 
+from the given outlet).
+
+* DMClass:
+
+This is optional. If there is no specific decision-making class to be assigned,
+put "null" instead. Namely, users can code everything in "agent class." See 
+Build ABM for more details.
+
+**b) Pars** collects agents' parameters for calibration. We 
+offer two types of parameter formats: 
+
+(1) A constant (e.g., 9), or 
+
+(2) A list of constants (e.g., [9, 4.5]).
+
+**c) Attributes** is a space for users to store any other information for their 
+agents' calculation that is not belong to "Pars" or "Inputs."
+
+6. SystemParsedData (auto-generated)
+^^^^^^^^^^^^^^^^^^^
+
 This section will be automatically generated by HydroCNHS. The model file don't
 need to include this section.
 
@@ -385,9 +408,9 @@ need to include this section.
 ABM module(s)
 -------------------------
 Agent-based model (ABM) is an user-provided human model. HydroCNHS support multiple ABM modules to be used at a single simulation. In the ABM module, users have 100% of freedom to design agent class (e.g., irrigation diversion agent class, reservoir agent class, etc.); however, some input and output protocals have to be followed.
-Please visit Build ABM module for more detailed instruction. 
+Please visit Build ABM module for more detailed instructions. 
 
 .. note::
-   If you only need a hydrological model and don't require any human components, then you can skip this ABM part!
+   If you only need a hydrological model and do not require any human components, then you can skip this ABM part!
  
 
