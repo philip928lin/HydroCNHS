@@ -1,9 +1,10 @@
 # Data collector module
-# Future plan:
-# Turn field into a class, which can contain unit, attributes, etc.
 # Here we create a basic Data_collector aiming to collect agents' outputs.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # Last update at 2021/12/23.
+
+# Future plan:
+# Turn field into a class, which can contain unit, attributes, etc.
 
 import logging
 logger = logging.getLogger("HydroCNHS.dc")   

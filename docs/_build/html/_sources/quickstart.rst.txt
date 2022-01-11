@@ -10,15 +10,30 @@ The TRB tutorial codes are located at **./HydroCNHS/tutorials/Tualatin River Bas
   :width: 500
   :alt: The Tualatin River Basin system diagram. 
 
-  The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system agents for the runoff-changing scenario.
+  The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, 
+  Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. 
+  PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and 
+  TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system 
+  agents for the runoff-changing scenario.
   
-The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by densely populated area (20%), agricultural area (30%), and forest (50%) (Tualatin River Watershed Council, 2021). Its agriculture heavily relies on irrigation because seasonal rainfall concentrates in winter (November - February). The Spring Hill Pumping Plant is the largest diversion facility in the TRB for irrigating Tualatin Valley Irrigation District (TVID; DivAgt), where the Hagg reservoir (ResAgt) is the primary water source. During the summer period, water is transferred from the Barney reservoir (outside of the TRB) through a trans-basin aqueduct (PipeAgt) to augment the low flow for ecological purposes.
+The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by 
+densely populated area (20%), agricultural area (30%), and forest (50%) 
+(Tualatin River Watershed Council, 2021). Its agriculture heavily relies on 
+irrigation because seasonal rainfall concentrates in winter (November - 
+February). The Spring Hill Pumping Plant is the largest diversion facility in 
+the TRB for irrigating Tualatin Valley Irrigation District (TVID; DivAgt), 
+where the Hagg reservoir (ResAgt) is the primary water source. During the 
+summer period, water is transferred from the Barney reservoir (outside of the 
+TRB) through a trans-basin aqueduct (PipeAgt) to augment the low flow for 
+ecological purposes.
 
 The full background of the TRB can be found in Lin et al., (2022).
 
 Run a simulation
 -----------------
-Assuming we have already calibrated the TRB model, let's take one minute to browse through the following simulation code. Then, you should be able run the script directly.
+Assuming we have already calibrated the TRB model, let's take one minute to 
+browse through the following simulation code. Then, you should be able run the 
+script directly.
 
 .. code-block:: python
 
@@ -61,7 +76,10 @@ Now, we are going to introduce these three items in a more detail.
 
 Daily weather time series
 -------------------------
-Temperture and precipitation are two required weather inputs for the simulation. If potential evapotranspiration is not provided, HydroCNHS will automatically calculate it by Hamon method. The weather inputs are in a dictionary format shown below.
+Temperture and precipitation are two required weather inputs for the 
+simulation. If potential evapotranspiration is not provided, HydroCNHS will 
+automatically calculate it by Hamon method. The weather inputs are in a 
+dictionary format shown below.
 
 .. code-block:: python
 
@@ -75,12 +93,14 @@ Temperture and precipitation are two required weather inputs for the simulation.
 		'WSLO': [7.8, 7.4, 7.3, 7.3, .......]}
 	# Similar to prep and pet.
 		
-The dictionary will contain weather time series (i.e., a list) for each subbasin. The length of each time series has to be identical.
+The dictionary will contain weather time series (i.e., a list) for each 
+subbasin. The length of each time series has to be identical.
 
 
 Model.yaml
 -------------------------
-The model file (.yaml) contains settings for hydrological model (e.g., rainfall-runoff and routing) and ABM model (e.g., how to coupled).
+The model file (.yaml) contains settings for hydrological model (e.g., 
+rainfall-runoff and routing) and ABM model (e.g., how to coupled).
 The model file has six sections:
 
 1. Path
@@ -116,7 +136,8 @@ HydroCNHS provides user two rainfall-runoff simulation options, General
 Water Loading Function (GWLF; 9 parameters) and ABCD (5 parameters). Their
 settings are shown below. 
 
-The detailed documentation for GWLF and ABCD can be found at the supplementary material of (Lin et al., 2022).
+The detailed documentation for GWLF and ABCD can be found at the supplementary 
+material of (Lin et al., 2022).
 
 **GWLF:**
 
@@ -183,7 +204,9 @@ The detailed documentation for GWLF and ABCD can be found at the supplementary m
 
 4. Routing
 ^^^^^^^^^^^^^^^^^^^
-HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and inter-subbasin routing process. We adpot a nested struture to setup the routing setting for each routing outlets (:numref:`TRB`), as shown below.
+HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and 
+inter-subbasin routing process. We adpot a nested struture to setup the routing 
+setting for each routing outlets (:numref:`TRB`), as shown below.
 
 .. code-block:: yaml
 
@@ -320,7 +343,8 @@ For example, two diversion agents make diversion requests together and share
 the water deficiency together based on their water rights. Namely, their 
 diversion behaviors are not piority-based. The agent group will be defined as 
 a single function in a ABM module, which users can define a more detailed
-interactions among agents in an agent group. See Build ABM for more details.
+interactions among agents in an agent group. See 
+:ref:`How to build a ABM module?<How to build a ABM module?>` for more details.
 
 Following the "Inputs" setting, we will define agent objects created by certain
 agent classes (defined in ABM modules). For example, we create Barney agent 
@@ -333,8 +357,8 @@ sub-sections: "Attributes", "Inputs", and "Pars."
   
 The lower value has higher piority when conflicts happen. For example, two
 diverion agents divert at the same routing outlet. If users want a 
-non-priority-based behaviors. "AgGroup" should be applied. See Build ABM for
-more details.
+non-priority-based behaviors. "AgGroup" should be applied. See 
+:ref:`How to build a ABM module?<How to build a ABM module?>` for more details.
 
 Note that agents coupling with Dam API has to have Piority = 0.
 
@@ -383,7 +407,7 @@ from the given outlet).
 
 This is optional. If there is no specific decision-making class to be assigned,
 put "null" instead. Namely, users can code everything in "agent class." See 
-Build ABM for more details.
+:ref:`How to build a ABM module?<How to build a ABM module?>` for more details.
 
 **b) Pars** collects agents' parameters for calibration. We 
 offer two types of parameter formats: 
@@ -402,15 +426,22 @@ This section will be automatically generated by HydroCNHS. The model file don't
 need to include this section.
 
 .. note::
-   ModelBuilder can help you to create an initial model template! Check it out!
+   :ref:`ModelBuilder<Model builder>` can help you to create an initial model 
+   template! Check it out!
 
 
 ABM module(s)
 -------------------------
-Agent-based model (ABM) is an user-provided human model. HydroCNHS support multiple ABM modules to be used at a single simulation. In the ABM module, users have 100% of freedom to design agent class (e.g., irrigation diversion agent class, reservoir agent class, etc.); however, some input and output protocals have to be followed.
-Please visit Build ABM module for more detailed instructions. 
+Agent-based model (ABM) is an user-provided human model. HydroCNHS support 
+multiple ABM modules to be used at a single simulation. In the ABM module, 
+users have 100% of freedom to design agent class (e.g., irrigation diversion 
+agent class, reservoir agent class, etc.); however, some input and output 
+protocals have to be followed. Please visit 
+:ref:`How to build a ABM module?<How to build a ABM module?>` for more detailed 
+instructions. 
 
 .. note::
-   If you only need a hydrological model and do not require any human components, then you can skip this ABM part!
+   If you only need a hydrological model and do not require any human 
+   components, then you can skip this ABM part!
  
 
