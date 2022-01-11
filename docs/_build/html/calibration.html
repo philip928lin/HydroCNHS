@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="How to build a ABM module?" href="how_to_build_abm.html" />
-    <link rel="prev" title="Model builder" href="model_builder.html" /> 
+    <link rel="next" title="HydroCNHS" href="modules.html" />
+    <link rel="prev" title="How to build a ABM module?" href="how_to_build_abm.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,8 +43,13 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick start!</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model_builder.html">Model builder</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Calibration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="how_to_build_abm.html">How to build a ABM module?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Calibration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#genetic-algorithm-calibration-code-outline">Genetic algorithm calibration code outline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#converter">Converter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#trb-calibration-example">TRB calibration example</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">HydroCNHS</a></li>
 </ul>
 
@@ -98,14 +103,69 @@
 </style>
 <section id="calibration">
 <h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline"></a></h1>
+<section id="genetic-algorithm-calibration-code-outline">
+<h2>Genetic algorithm calibration code outline<a class="headerlink" href="#genetic-algorithm-calibration-code-outline" title="Permalink to this headline"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">HydroCNHS</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS.calibration</span> <span class="k">as</span> <span class="nn">cali</span>
+
+<span class="c1"># Assisting functions</span>
+<span class="n">cali</span><span class="o">.</span><span class="n">helper</span><span class="p">()</span>
+<span class="n">cali</span><span class="o">.</span><span class="n">get_config_template</span><span class="p">()</span>
+<span class="n">cali</span><span class="o">.</span><span class="n">get_inputs_template</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">cali_wd</span><span class="p">,</span> <span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">,</span>
+    <span class="n">formatter</span><span class="p">,</span> <span class="n">random_generator</span><span class="p">)</span> <span class="o">=</span> <span class="n">info</span>
+    <span class="c1"># Run model.</span>
+    <span class="c1"># Calculate fitness.</span>
+    <span class="c1"># E.g.,</span>
+    <span class="n">fitness</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">fitness</span><span class="p">,)</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;min_or_max&#39;</span><span class="p">:</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pop_size&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s1">&#39;num_ellite&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;prob_cross&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s1">&#39;prob_mut&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s1">&#39;stochastic&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;max_gen&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s1">&#39;sampling_method&#39;</span><span class="p">:</span> <span class="s1">&#39;LHC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;drop_record&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;paral_cores&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;paral_verbose&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;auto_save&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;print_level&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;plot&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+<span class="n">cali_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;par_name&quot;</span><span class="p">:</span>    <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;par_bound&quot;</span><span class="p">:</span>   <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]],</span>
+            <span class="s2">&quot;wd&quot;</span><span class="p">:</span>          <span class="s2">&quot;working directory&quot;</span><span class="p">}</span>
+
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">rn_gen</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">create_rn_gen</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>  <span class="c1"># Optional</span>
+<span class="n">ga</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">GA_DEAP</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">rn_gen</span><span class="p">)</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Cali_example&quot;</span><span class="p">)</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">run_individual</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>  <span class="c1"># Output performance (.txt) of solution.</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="converter">
+<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h2>
+</section>
+<section id="trb-calibration-example">
+<h2>TRB calibration example<a class="headerlink" href="#trb-calibration-example" title="Permalink to this headline"></a></h2>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="model_builder.html" class="btn btn-neutral float-left" title="Model builder" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="how_to_build_abm.html" class="btn btn-neutral float-right" title="How to build a ABM module?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="how_to_build_abm.html" class="btn btn-neutral float-left" title="How to build a ABM module?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="HydroCNHS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
