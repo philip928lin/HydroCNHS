@@ -141,7 +141,7 @@ class ResDM(Base):
     def make_dm(self, inflow, current_date):
         db = self.database
         flood_control = self.flood_control
-        records = self.data_collector.R1
+        records = self.data_collector.ResAgt
         min_release = self.min_release
         min_res_vol = self.min_release_vol
         day_of_year = current_date.dayofyear
@@ -267,7 +267,7 @@ class IrrDiv_AgType(Base):
             records["Shortage"].append(shortage_t)
             action = factor * div_t
         elif factor >= 0:   # factor > 0; Return flow
-            div_t = records["Div"][t]
+            div_t = records["Diversion"][t]
             action = factor * div_t
         
         return action
@@ -280,7 +280,7 @@ class PipeDM(Base):
 class Pipe_AgType(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.assigned_behavior = database["TRTR"]
+        self.assigned_behavior = database["Pipe_M_median"]
 
     def act(self, Q, outlet, agent_dict, current_date, t):
         
