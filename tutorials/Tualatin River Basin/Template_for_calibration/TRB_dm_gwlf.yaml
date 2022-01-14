@@ -7,7 +7,7 @@ WaterSystem:
   NumSubbasins: 7
   NumGauges: 2
   NumAgents: 3
-  Outlets: [TRTR, SCOO, DLLO, TRGC, DAIRY, RCTV, WSLO]
+  Outlets: [TRTR, HaggIn, DLLO, TRGC, DAIRY, RCTV, WSLO]
   GaugedOutlets: ["DLLO", "WSLO"]
 LSM:
   Model: GWLF
@@ -15,7 +15,7 @@ LSM:
     Inputs: {Area: 329.8013, Latitude: 45.458136, S0: 2.0, U0: 10.0, SnowS: 5.0}
     Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
       Df: -99, Kc: -99}
-  SCOO:
+  HaggIn:
     Inputs: {Area: 10034.2408, Latitude: 45.469444, S0: 2.0, U0: 10.0, SnowS: 5.0}
     Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
       Df: -99, Kc: -99}
@@ -63,7 +63,7 @@ Routing:
       Inputs: {FlowLength: 0, InstreamControl: false}
       Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
   DLLO:
-    R1:
+    ResAgt:
       Inputs: {FlowLength: 9656.064, InstreamControl: true}
       Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
     TRTR:
@@ -72,8 +72,8 @@ Routing:
     DLLO:
       Inputs: {FlowLength: 0, InstreamControl: false}
       Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
-  SCOO:
-    SCOO:
+  HaggIn:
+    HaggIn:
       Inputs: {FlowLength: 0, InstreamControl: false}
       Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
 ABM:
@@ -87,7 +87,7 @@ ABM:
     AgGroup:
       null
   Pipe_AgType:
-    Barney:
+    PipeAgt:
       Attributes: {}
       Inputs:
         Piority: 0
@@ -96,16 +96,16 @@ ABM:
       Pars:
         null
   ResDam_AgType:
-    R1:
+    ResAgt:
       Attributes: {}
       Inputs:
         Piority: 0
-        Links: {SCOO: -1, R1: 1}
+        Links: {HaggIn: -1, ResAgt: 1}
         DMClass: ResDM
       Pars:
         null
   IrrDiv_AgType:
-    SHPP:
+    DivAgt:
       Attributes: {}
       Inputs:
         Piority: 1

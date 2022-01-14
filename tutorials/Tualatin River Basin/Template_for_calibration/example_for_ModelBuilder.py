@@ -19,7 +19,7 @@ mb.set_water_system(start_date="1981/1/1", end_date="2013/12/31")
 
 ### Setup land surface model (rainfall-runoff model)
 # Here we have seven subbasins and we select GWLF as the rainfall-runoff model.
-outlet_list = ["TRTR", "SCOO", "DLLO", "TRGC", "DAIRY", "RCTV", "WSLO"]
+outlet_list = ["TRTR", "HaggIn", "DLLO", "TRGC", "DAIRY", "RCTV", "WSLO"]
 mb.set_lsm(outlet_list=outlet_list, lsm_model="GWLF")   # or lsm_model="ABCD"
 
 ### Setup routing 
@@ -30,12 +30,13 @@ mb.set_routing_outlet(routing_outlet="WSLO",
 mb.set_routing_outlet(routing_outlet="TRGC", 
                       upstream_outlet_list=["DLLO", "TRGC"])
 mb.set_routing_outlet(routing_outlet="DLLO", 
-                      upstream_outlet_list=["R1", "TRTR", "DLLO"], 
-                      instream_outlets=["R1"]) # R1 is the reservoir agent, 
-                                               # whcih is considerred as an 
-                                               # instream control object.
-mb.set_routing_outlet(routing_outlet="SCOO", 
-                      upstream_outlet_list=["SCOO"])
+                      upstream_outlet_list=["ResAgt", "TRTR", "DLLO"], 
+                      instream_outlets=["ResAgt"]) 
+# Note: ResAgt (Hagg Lake) is the reservoir agent, whcih is considerred as an 
+# instream control object.
+
+mb.set_routing_outlet(routing_outlet="HaggIn", 
+                      upstream_outlet_list=["HaggIn"])
 
 ### Setup ABM
 abm_module_path="abm_module path"

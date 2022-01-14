@@ -544,7 +544,7 @@ class Model(object):
                         if insitu_ags_plus is not None:
                             for ag, o in insitu_ags_plus:
                                 delta = agents[ag].act(
-                                    Q=Q_routed, outet=o, agent_dict=agents,
+                                    Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 Q_routed[o][t] += delta
                                 # For routing outlet in-grid routing.
@@ -553,7 +553,7 @@ class Model(object):
                         if insitu_ags_minus is not None:
                             for ag, o in insitu_ags_minus:
                                 delta = agents[ag].act(
-                                    Q=Q_routed, outet=o, agent_dict=agents,
+                                    Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 Q_routed[o][t] += delta
                                 # For routing outlet in-grid routing.
@@ -565,7 +565,7 @@ class Model(object):
                                 # self.Q_LSM + return flow   
                                 # return flow will join the in-grid routing. 
                                 delta = agents[ag].act(
-                                    Q=Q_routed, outet=o, agent_dict=agents,
+                                    Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 # For returning to other outlets.
                                 Q_routed[o][t] += delta
@@ -580,7 +580,7 @@ class Model(object):
                         """
                         for ag, o in dam_ags_plus:
                             delta = agents[ag].act(
-                                Q=Q_routed, outet=o, agent_dict=agents,
+                                Q=Q_routed, outlet=o, agent_dict=agents,
                                 current_date=current_date, t=t)
                             Q_routed[o][t] += delta
                             
@@ -588,7 +588,7 @@ class Model(object):
                         # Don't have in-grid routing.
                         for ag, o in convey_ags_plus:
                             delta = agents[ag].act(
-                                Q=Q_convey, outet=o, agent_dict=agents,
+                                Q=Q_convey, outlet=o, agent_dict=agents,
                                 current_date=current_date, t=t)
                             Q_convey[o][t] += delta
                             
@@ -606,7 +606,7 @@ class Model(object):
                     if convey_ags_minus is not None:    
                         for ag, o in convey_ags_minus:
                             delta = agents[ag].act(
-                                Q=Q_routed, outet=o, agent_dict=agents,
+                                Q=Q_routed, outlet=o, agent_dict=agents,
                                 current_date=current_date, t=t)
                             Q_routed[o][t] += delta
                             
@@ -617,7 +617,7 @@ class Model(object):
                         """
                         for ag, o in river_div_ags_minus:
                             delta = agents[ag].act(
-                                Q=Q_routed, outet=o, agent_dict=agents,
+                                Q=Q_routed, outlet=o, agent_dict=agents,
                                 current_date=current_date, t=t)
                             Q_routed[o][t] += delta
         # ---------------------------------------------------------------------

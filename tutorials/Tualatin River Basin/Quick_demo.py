@@ -30,9 +30,9 @@ Q_gwlf = model_gwlf.run(temp, prec, pet) # pet is optional.
 ##### Plot Time Series Streamflow.
 sim_Q_D_gwlf = pd.DataFrame(Q_gwlf, index=model_gwlf.pd_date_index)
 sim_Q_M_gwlf = sim_Q_D_gwlf.resample("MS").mean()
-sim_res_M_gwlf = model_gwlf.data_collector.R1["release"]
+sim_res_M_gwlf = model_gwlf.data_collector.ResAgt["Release"]
 sim_res_M_gwlf = pd.DataFrame(sim_res_M_gwlf, index=model_gwlf.pd_date_index).resample("MS").mean()
-sim_div_M_gwlf = model_gwlf.data_collector.SHPP["Div"]
+sim_div_M_gwlf = model_gwlf.data_collector.DivAgt["Diversion"]
 sim_div_M_gwlf = pd.DataFrame(sim_div_M_gwlf, index=model_gwlf.pd_date_index).resample("MS").mean()
 
 fig, axes = plt.subplots(nrows=4, sharex=True)
@@ -45,8 +45,8 @@ axes[3].plot(x, sim_div_M_gwlf[0], label="$M_{gwlf}$")
 
 axes[0].plot(x, obv_M["DLLO"], ls="--", lw=1, color="black", label="Obv")
 axes[1].plot(x, obv_M["WSLO"], ls="--", lw=1, color="black", label="Obv")
-axes[2].plot(x, obv_M["SCOO"], ls="--", lw=1, color="black", label="Obv")
-axes[3].plot(x, obv_M["SHPP"], ls="--", lw=1, color="black", label="Obv")
+axes[2].plot(x, obv_M["ResAgt"], ls="--", lw=1, color="black", label="Obv")
+axes[3].plot(x, obv_M["DivAgt"], ls="--", lw=1, color="black", label="Obv")
 
 axes[0].set_ylim([0,75])
 axes[1].set_ylim([0,230])

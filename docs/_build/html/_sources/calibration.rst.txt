@@ -2,7 +2,7 @@ Calibration
 ================
 
 Genetic algorithm calibration code outline
--------------------------------
+-------------------------------------------
 
 .. code-block:: python
 

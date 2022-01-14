@@ -72,9 +72,9 @@ def evaluation(individual, info):
     cali_period = ("1981-1-1", "2005-12-31")
     vali_period = ("2006-1-1", "2013-12-31")
     sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[cali_target]
-    sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]
-    sim_Q_D["SCOO"] = model.data_collector.R1["release"]
-    cali_target += ["SHPP", "SCOO"]
+    sim_Q_D["DivAgt"] = model.data_collector.DivAgt["Diversion"]
+    sim_Q_D["ResAgt"] = model.data_collector.ResAgt["Release"]
+    cali_target += ["DivAgt", "ResAgt"]
 
     sim_Q_M = sim_Q_D[cali_target].resample("MS").mean()
     sim_Q_Y = sim_Q_D[cali_target].resample("YS").mean()
@@ -130,7 +130,7 @@ config = {'min_or_max': 'max',
          'print_level': 1,
          'plot': True}
 
-seeds = [3,4, 9]
+seeds = [3, 4, 9]
 for seed in seeds:
     rn_gen = HydroCNHS.create_rn_gen(seed)
     ga = cali.GA_DEAP(evaluation, rn_gen)
@@ -160,9 +160,9 @@ Q = model.run(temp, prec, pet)
 cali_target = ["DLLO", "WSLO"]
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[cali_target]
 # Extract agents' data from data collector
-sim_Q_D["SHPP"] = model.data_collector.SHPP["Div"]      # Diversion (DivAgt)
-sim_Q_D["SCOO"] = model.data_collector.R1["release"]    # Release (ResAgt)
-cali_target += ["SHPP", "SCOO"]
+sim_Q_D["DivAgt"] = model.data_collector.DivAgt["Diversion"]
+sim_Q_D["ResAgt"] = model.data_collector.ResAgt["Release"]
+cali_target += ["DivAgt", "ResAgt"]
 # Resample to monthly scale
 sim_Q_M = sim_Q_D.resample("MS").mean()
 
