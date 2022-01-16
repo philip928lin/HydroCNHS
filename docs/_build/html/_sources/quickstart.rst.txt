@@ -13,7 +13,7 @@ The TRB tutorial codes are located at **./HydroCNHS/tutorials/Tualatin River Bas
   The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, 
   Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. 
   PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and 
-  TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system 
+  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system 
   agents for the runoff-changing scenario.
   
 The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by 
@@ -124,7 +124,7 @@ The model file has six sections:
 		NumSubbasins: 7
 		NumGauges: 2
 		NumAgents: 3
-		Outlets: [TRTR, SCOO, DLLO, TRGC, DAIRY, RCTV, WSLO]
+		Outlets: [TRTR, HaggIn, DLLO, TRGC, DAIRY, RCTV, WSLO]
 		GaugedOutlets: [DLLO, WSLO]		# Optional
 		DataLength: 12053
 
@@ -147,32 +147,32 @@ material of (Lin et al., 2022).
 		Model: GWLF
 		TRTR:
 			Inputs: {Area: 329.80, Latitude: 45.45, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 85.450, IS: 0.415, Res: 0.054, Sep: 0.311, Alpha: 0.862,
-				Beta: 0.348, Ur: 13.215, Df: 0.920, Kc: 0.838}
-		SCOO:
+			Pars: {CN2: 97.148, IS: 0.404, Res: 0.178, Sep: 0.482, Alpha: 0.868, Beta: 0.708,
+			Ur: 14.341, Df: 0.124, Kc: 0.988}
+		HaggIn:
 			Inputs: {Area: 10034.24, Latitude: 45.46, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 46.490, IS: 0.268, Res: 0.289, Sep: 0.078, Alpha: 0.174,
-				Beta: 0.477, Ur: 12.266, Df: 0.899, Kc: 0.651}
+			Pars: {CN2: 36.984, IS: 0.178, Res: 0.122, Sep: 0.178, Alpha: 0.235, Beta: 0.112,
+			Ur: 13.932, Df: 0.588, Kc: 0.765}
 		DLLO:
 			Inputs: {Area: 22238.43, Latitude: 45.47, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 39.047, IS: 0.224, Res: 0.425, Sep: 0.284, Alpha: 0.101,
-				Beta: 0.398, Ur: 6.386, Df: 0.753, Kc: 0.918}
+			Pars: {CN2: 98.249, IS: 0.369, Res: 0.281, Sep: 0.117, Alpha: 0.909, Beta: 0.381,
+			Ur: 9.0, Df: 0.947, Kc: 1.057}
 		TRGC:
 			Inputs: {Area: 24044.63, Latitude: 45.50, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 59.783, IS: 0.450, Res: 0.407, Sep: 0.135, Alpha: 0.939,
-				Beta: 0.441, Ur: 2.579, Df: 0.516, Kc: 0.733}
+			Pars: {CN2: 89.963, IS: 0.098, Res: 0.047, Sep: 0.418, Alpha: 0.535, Beta: 0.115,
+			Ur: 9.107, Df: 0.727, Kc: 1.013}
 		DAIRY:
 			Inputs: {Area: 59822.75, Latitude: 45.52, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 99.729, IS: 0.107, Res: 0.198, Sep: 0.332, Alpha: 0.043,
-				Beta: 0.101, Ur: 8.570, Df: 0.914, Kc: 1.468}
+			Pars: {CN2: 95.962, IS: 0.026, Res: 0.241, Sep: 0.199, Alpha: 0.432, Beta: 0.299,
+			Ur: 4.049, Df: 0.034, Kc: 1.012}
 		RCTV:
 			Inputs: {Area: 19682.60, Latitude: 45.50, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 57.345, IS: 0.251, Res: 0.094, Sep: 0.416, Alpha: 0.772,
-				Beta: 0.034, Ur: 5.6732, Df: 0.334, Kc: 0.576}
+			Pars: {CN2: 93.049, IS: 0.341, Res: 0.319, Sep: 0.05, Alpha: 0.316, Beta: 0.7,
+			Ur: 11.288, Df: 0.741, Kc: 0.746}
 		WSLO:
 			Inputs: {Area: 47646.84, Latitude: 45.35, S0: 2.0, U0: 10.0, SnowS: 5.0}
-			Pars: {CN2: 60.151, IS: 0.498, Res: 0.095, Sep: 0.038, Alpha: 0.484,
-				Beta: 0.371, Ur: 14.347, Df: 0.811, Kc: 0.720}
+			Pars: {CN2: 63.818, IS: 0.039, Res: 0.305, Sep: 0.045, Alpha: 0.207, Beta: 0.496,
+			Ur: 13.919, Df: 0.175, Kc: 1.451}
 
 **ABCD:** 
 
@@ -182,27 +182,27 @@ material of (Lin et al., 2022).
 		Model: ABCD
 		TRTR:
 			Inputs: {Area: 329.80, Latitude: 45.45, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.241, b: 281.131, c: 0.915, d: 0.510, Df: 0.492}
-		SCOO:
+			Pars: {a: 0.998, b: 53.403, c: 0.345, d: 0.559, Df: 0.636}
+		HaggIn:
 			Inputs: {Area: 10034.24, Latitude: 45.46, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.438, b: 13.751, c: 0.990, d: 0.330, Df: 0.576}
+			Pars: {a: 0.196, b: 2.316, c: 0.78, d: 0.248, Df: 0.697}
 		DLLO:
 			Inputs: {Area: 22238.43, Latitude: 45.47, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.438, b: 317.570, c: 0.765, d: 0.400, Df: 0.834}
+			Pars: {a: 0.237, b: 16.746, c: 0.693, d: 0.834, Df: 0.16}
 		TRGC:
 			Inputs: {Area: 24044.63, Latitude: 45.50, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.197, b: 157.836, c: 0.785, d: 0.584, Df: 0.503}
+			Pars: {a: 0.306, b: 91.475, c: 0.695, d: 0.263, Df: 0.727}
 		DAIRY:
 			Inputs: {Area: 59822.75, Latitude: 45.52, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.294, b: 102.755, c: 0.466, d: 0.529, Df: 0.503}
+			Pars: {a: 0.836, b: 5.536, c: 0.795, d: 0.491, Df: 0.515}
 		RCTV:
 			Inputs: {Area: 19682.60, Latitude: 45.50, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.195, b: 52.505, c: 0.226, d: 0.492, Df: 0.865}
+			Pars: {a: 0.516, b: 6.632, c: 0.971, d: 0.148, Df: 0.681}
 		WSLO:
 			Inputs: {Area: 47646.84, Latitude: 45.35, XL: 2.0, SnowS: 5.0}
-			Pars: {a: 0.781, b: 2.738, c: 0.961, d: 0.785, Df: 0.055}
+			Pars: {a: 0.777, b: 307.23, c: 0.453, d: 0.638, Df: 0.159}
 
-4. Routing
+1. Routing
 ^^^^^^^^^^^^^^^^^^^
 HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and 
 inter-subbasin routing process. We adpot a nested struture to setup the routing 
@@ -212,58 +212,58 @@ setting for each routing outlets (:numref:`TRB`), as shown below.
 
 	Routing:
 		Model: Lohmann
-		# WSLO, TRGC, DLLO, and SCOO are four routing outlets.
+		# WSLO, TRGC, DLLO, and HaggIn are four routing outlets.
 		WSLO:
 			# TRGC is a routing outlet. No within-subbasin routing at here (at
 			# its own routing setting below). Namely, TRGC will be routed
 			# first. Therefore, GShape and GScale are null.
 			TRGC:
 				Inputs: {FlowLength: 80064.86, InstreamControl: false}
-				Pars: {GShape: null, GScale: null, Velo: 53.28, Diff: 1991.52}
+				Pars: {GShape: null, GScale: null, Velo: 29.84, Diff: 2840.985}
 			DAIRY:
 				Inputs: {FlowLength: 70988.16, InstreamControl: false}
-				Pars: {GShape: 68.40, GScale: 545.55, Velo: 45.32, Diff: 935.13}
+				Pars: {GShape: 38.652, GScale: 393.641, Velo: 15.281, Diff: 1753.171}
 			RCTV:
 				Inputs: {FlowLength: 60398.68, InstreamControl: false}
-				Pars: {GShape: 53.37, GScale: 462.47, Velo: 53.57, Diff: 3339.43}
+				Pars: {GShape: 55.996, GScale: 751.942, Velo: 2.973, Diff: 2573.258}
 			# WSLO is the routing outlet itself. No river routing is needed
 			# since the FlowLength is 0. Therefore, Velo and Diff are null.
 			WSLO:
 				Inputs: {FlowLength: 0, InstreamControl: false}
-				Pars: {GShape: 6.86, GScale: 0.67, Velo: null, Diff: null}
+      			Pars: {GShape: 1.026, GScale: 119.961, Velo: null, Diff: null}
 		TRGC:
 			# DLLO is a routing outlet. No within-subbasin routing at here (at
 			# its own routing setting below). Namely, DLLO will be routed
 			# first. Therefore, GShape and GScale are null.
 			DLLO:
 				Inputs: {FlowLength: 11748.21, InstreamControl: false}
-				Pars: {GShape: null, GScale: null, Velo: 5.97, Diff: 1864.99}
+				Pars: {GShape: null, GScale: null, Velo: 15.178, Diff: 2382.476}
 			# TRGC is the routing outlet itself. No river routing is needed
 			# since the FlowLength is 0. Therefore, Velo and Diff are null.
 			TRGC:
 				Inputs: {FlowLength: 0, InstreamControl: false}
-				Pars: {GShape: 27.22, GScale: 0.29, Velo: null, Diff: null}
+				Pars: {GShape: 3.823, GScale: 694.564, Velo: null, Diff: null}
 		DLLO:
-			# R1 is the reservoir agent. There is no within-subbasin routing. 
+			# ResAgt is a reservoir agent. There is no within-subbasin routing. 
 			# Its release flow is the streamflow at this spot. Therefore,
 			# GShape and GScale are null.
-			R1:
+			ResAgt:
 				Inputs: {FlowLength: 9656.06, InstreamControl: true}
-				Pars: {GShape: null, GScale: null, Velo: 53.95, Diff: 852.67}
+				Pars: {GShape: null, GScale: null, Velo: 40.546, Diff: 2250.142}
 			TRTR:
 				Inputs: {FlowLength: 30899.40, InstreamControl: false}
-				Pars: {GShape: 83.52, GScale: 755.91, Velo: 18.73, Diff: 2388.09}
+				Pars: {GShape: 50.454, GScale: 444.699, Velo: 27.168, Diff: 3625.861}
 			# DLLO is the routing outlet itself. No river routing is needed
 			# since the FlowLength is 0. Therefore, Velo and Diff are null.
 			DLLO:
 				Inputs: {FlowLength: 0, InstreamControl: false}
-				Pars: {GShape: 75.30, GScale: 1.62, Velo: null, Diff: null}
-		SCOO:
-			# SCOO is the routing outlet itself. No river routing is needed
+				Pars: {GShape: 2.505, GScale: 85.004, Velo: null, Diff: null}
+		HaggIn:
+			# HaggIn is the routing outlet itself. No river routing is needed
 			# since the FlowLength is 0. Therefore, Velo and Diff are null
-			SCOO:
+			HaggIn:
 				Inputs: {FlowLength: 0, InstreamControl: false}
-				Pars: {GShape: 27.22, GScale: 0.29, Velo: null, Diff: null}
+				Pars: {GShape: 49.412, GScale: 1.774, Velo: null, Diff: null}
 
 5. ABM (optional)
 ^^^^^^^^^^^^^^^^^^^
@@ -280,7 +280,7 @@ active agent class to corresponding APIs.
 			# (trans-basin conveying water).
 			DamAgentTypes: [ResDam_AgType]		# Dam API
 			RiverDivAgentTypes: [IrrDiv_AgType]	# RiverDiv API
-			InsituAgentTypes: [] 				# InSitu API
+			InsituAgentTypes: [Drain_AgType] 	# InSitu API
 			ConveyAgentTypes: [Pipe_AgType]		# Conveying API
 			# Activate user-defined decision-making classes in TRB_ABM_dm.py.
 			DMClasses: [ResDM, DivDM, PipeDM]
@@ -289,49 +289,51 @@ active agent class to corresponding APIs.
 			# Agent group is for agents make decisions and act together.
 			AgGroup: null
 		Pipe_AgType:
-			# Create agent objects using Pipe_AgType class. Here, we only have 
-			# one Pipe_AgType agent, Barney.
-			Barney: # == PipeAgt
-				Attributes: {} 	# According to users' needs, optional.
-				# Inputs are required information.
-				Inputs:
-					Piority: 0 	
-					Links: {TRTR: 1}
-					DMClass: PipeDM
-				Pars:			# According to users' needs, optional.
-					ReturnFactor: []
-					a: null
-					b: null
+			PipeAgt:
+			Attributes: {}
+			Inputs:
+				Piority: 0
+				Links: {TRTR: 1}
+				DMClass: PipeDM
+			Pars: null
 		ResDam_AgType:
-			# Create agent objects using ResDam_AgType class. Here, we only 
-			# have one ResDam_AgType agent, R1.
-			R1:		# == ResAgt
-				Attributes: {}	# According to users' needs, optional.
-				# Inputs are required information.
-				Inputs:
-					Piority: 0
-					Links: {SCOO: -1, R1: 1}
-					DMClass: ResDM
-				Pars:			# According to users' needs, optional.
-					ReturnFactor: []
-					a: null
-					b: null
+			ResAgt:
+			Attributes: {}
+			Inputs:
+				Piority: 0
+				Links: {HaggIn: -1, ResAgt: 1}
+				DMClass: ResDM
+			Pars: null
 		IrrDiv_AgType:
-			# Create agent objects using IrrDiv_AgType class. Here, we only 
-			# have one IrrDiv_AgType agent, SHPP.
-			SHPP: 	# == DivAgt
-				Attributes: {}	# According to users' needs, optional.
-				# Inputs are required information.
-				Inputs:
-					Piority: 1
-					Links:
-					TRGC: -1
-					WSLO: [ReturnFactor, 0, Plus]
-					DMClass: DivDM
-				Pars:			# According to users' needs, optional.
-					ReturnFactor: [0.30086264868779805]
-					a: -0.92169837578325
-					b: 0.09731044387555121
+			DivAgt:
+			Attributes: {}
+			Inputs:
+				Piority: 1
+				Links:
+				TRGC: -1
+				WSLO: [ReturnFactor, 0, Plus]
+				DMClass: DivDM
+			Pars:
+				ReturnFactor: [0.12]
+				a: 0.52
+				b: -0.04
+		Drain_AgType:
+			DrainAgt1:
+			Attributes: {}
+			Inputs:
+				Piority: 1
+				Links:
+				RCTV: 1
+				DMClass: null
+			Pars: null
+			DrainAgt2:
+			Attributes: {}
+			Inputs:
+				Piority: 1
+				Links:
+				WSLO: 1
+				DMClass: null
+			Pars: null
 
 
 For the "Inputs" setting of ABM section, first, we assign the user-defined
@@ -419,7 +421,7 @@ offer two types of parameter formats:
 **c) Attributes** is a space for users to store any other information for their 
 agents' calculation that is not belong to "Pars" or "Inputs."
 
-6. SystemParsedData (auto-generated)
+1. SystemParsedData (auto-generated)
 ^^^^^^^^^^^^^^^^^^^
 
 This section will be automatically generated by HydroCNHS. The model file don't

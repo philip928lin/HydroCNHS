@@ -40,8 +40,8 @@ River Basin (TRB).
   The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, 
   Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. 
   PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and 
-  TVID agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system 
-  agents for the runoff-changing scenario.
+  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two 
+  drainage-system agents for the runoff-changing scenario.
 
 
 .. code-block:: python
@@ -51,7 +51,7 @@ River Basin (TRB).
 
     ### Setup land surface model (rainfall-runoff model)
     # Here we have seven subbasins and we select GWLF as the rainfall-runoff model.
-    outlet_list = ["TRTR", "SCOO", "DLLO", "TRGC", "DAIRY", "RCTV", "WSLO"]
+    outlet_list = ["TRTR", "HaggIn", "DLLO", "TRGC", "DAIRY", "RCTV", "WSLO"]
     mb.set_lsm(outlet_list=outlet_list, lsm_model="GWLF")   # or lsm_model="ABCD"
 
     ### Setup routing 
@@ -62,12 +62,13 @@ River Basin (TRB).
     mb.set_routing_outlet(routing_outlet="TRGC", 
                         upstream_outlet_list=["DLLO", "TRGC"])
     mb.set_routing_outlet(routing_outlet="DLLO", 
-                        upstream_outlet_list=["R1", "TRTR", "DLLO"], 
-                        instream_outlets=["R1"]) # R1 is the reservoir agent, 
-                                                # whcih is considerred as an 
-                                                # instream control object.
-    mb.set_routing_outlet(routing_outlet="SCOO", 
-                        upstream_outlet_list=["SCOO"])
+                        upstream_outlet_list=["ResAgt", "TRTR", "DLLO"], 
+                        instream_outlets=["ResAgt"]) 
+    # Note: ResAgt (Hagg Lake) is the reservoir agent, whcih is considerred as 
+    # an instream control object.
+
+    mb.set_routing_outlet(routing_outlet="HaggIn", 
+                        upstream_outlet_list=["HaggIn"])
 
     ### Setup ABM
     abm_module_path="abm_module path"
@@ -89,14 +90,14 @@ required :ref:`calibration<Calibration>`.
   
 .. code-block:: yaml
 
-    Path: {WD: '', Modules: abm_module path}
+    Path: {WD: working directory, Modules: abm_module path}
     WaterSystem:
     StartDate: 1981/1/1
     EndDate: 2013/12/31
     NumSubbasins: 7
     NumGauges: null
     NumAgents: null
-    Outlets: [TRTR, SCOO, DLLO, TRGC, DAIRY, RCTV, WSLO]
+    Outlets: [TRTR, HaggIn, DLLO, TRGC, DAIRY, RCTV, WSLO]
     GaugedOutlets: []
     DataLength: 12053
     LSM:
@@ -105,7 +106,7 @@ required :ref:`calibration<Calibration>`.
         Inputs: {Area: null, Latitude: null, S0: null, U0: null, SnowS: null}
         Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
         Df: -99, Kc: -99}
-    SCOO:
+    HaggIn:
         Inputs: {Area: null, Latitude: null, S0: null, U0: null, SnowS: null}
         Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
         Df: -99, Kc: -99}
@@ -133,38 +134,38 @@ required :ref:`calibration<Calibration>`.
     Model: Lohmann
     WSLO:
         TRGC:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         DAIRY:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         RCTV:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         WSLO:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     TRGC:
         DLLO:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         TRGC:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     DLLO:
-        R1:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+        ResAgt:
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         TRTR:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         DLLO:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
-    SCOO:
-        SCOO:
-        Inputs: {FlowLength: null, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+    HaggIn:
+        HaggIn:
+            Inputs: {FlowLength: null, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     ABM:
     Inputs:
         DamAgentTypes: []
@@ -187,7 +188,7 @@ After filling in the necessary information, we will obtain a model template
     NumSubbasins: 7
     NumGauges: 2
     NumAgents: 3
-    Outlets: [TRTR, SCOO, DLLO, TRGC, DAIRY, RCTV, WSLO]
+    Outlets: [TRTR, HaggIn, DLLO, TRGC, DAIRY, RCTV, WSLO]
     GaugedOutlets: [DLLO, WSLO]
     DataLength: 12053
     LSM:
@@ -196,7 +197,7 @@ After filling in the necessary information, we will obtain a model template
         Inputs: {Area: 329.8013, Latitude: 45.458136, XL: 2.0, SnowS: 5.0}
         Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
         Df: -99, Kc: -99}
-    SCOO:
+    HaggIn:
         Inputs: {Area: 10034.2408, Latitude: 45.469444, XL: 2.0, SnowS: 5.0}
         Pars: {CN2: -99, IS: -99, Res: -99, Sep: -99, Alpha: -99, Beta: -99, Ur: -99,
         Df: -99, Kc: -99}
@@ -224,38 +225,38 @@ After filling in the necessary information, we will obtain a model template
     Model: Lohmann
     WSLO:
         TRGC:
-        Inputs: {FlowLength: 80064.864, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: 80064.864, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         DAIRY:
-        Inputs: {FlowLength: 70988.16384, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: 70988.16384, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         RCTV:
-        Inputs: {FlowLength: 60398.68032, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: 60398.68032, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         WSLO:
-        Inputs: {FlowLength: 0, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: 0, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     TRGC:
         DLLO:
-        Inputs: {FlowLength: 11748.2112, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: 11748.2112, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         TRGC:
-        Inputs: {FlowLength: 0, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: 0, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     DLLO:
-        R1:
-        Inputs: {FlowLength: 9656.064, InstreamControl: false}
-        Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
+        ResAgt:
+            Inputs: {FlowLength: 9656.064, InstreamControl: false}
+            Pars: {GShape: null, GScale: null, Velo: -99, Diff: -99}
         TRTR:
-        Inputs: {FlowLength: 30899.4048, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
+            Inputs: {FlowLength: 30899.4048, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: -99, Diff: -99}
         DLLO:
-        Inputs: {FlowLength: 0, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
-    SCOO:
-        SCOO:
-        Inputs: {FlowLength: 0, InstreamControl: false}
-        Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+            Inputs: {FlowLength: 0, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
+    HaggIn:
+        HaggIn:
+            Inputs: {FlowLength: 0, InstreamControl: false}
+            Pars: {GShape: -99, GScale: -99, Velo: null, Diff: null}
     ABM:
     Inputs:
         DamAgentTypes: [ResDam_AgType]
@@ -266,7 +267,7 @@ After filling in the necessary information, we will obtain a model template
         Modules: [TRB_ABM_dm.py]        # user-provided ABM module.
         AgGroup: null
     Pipe_AgType:
-        Barney:
+        PipeAgt:
         Attributes: {}
         Inputs:
             Piority: 0
@@ -274,7 +275,7 @@ After filling in the necessary information, we will obtain a model template
             DMClass: PipeDM
         Pars: {}    # No parameter
     ResDam_AgType:
-        R1:
+        ResAgt:
         Attributes: {}
         Inputs:
             Piority: 0
@@ -282,7 +283,7 @@ After filling in the necessary information, we will obtain a model template
             DMClass: ResDM
         Pars: {}    # No parameter
     IrrDiv_AgType:
-        SHPP:
+        DivAgt:
         Attributes: {}
         Inputs:
             Piority: 1

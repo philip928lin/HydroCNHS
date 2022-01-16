@@ -89,7 +89,7 @@ ABM:
   Inputs:
     DamAgentTypes: [ResDam_AgType]
     RiverDivAgentTypes: [IrrDiv_AgType]
-    InsituAgentTypes: [Urban_AgType]
+    InsituAgentTypes: [Drain_AgType]
     ConveyAgentTypes: [Pipe_AgType]
     DMClasses: [ResDM, DivDM, PipeDM]
     Modules: [TRB_ABM_dm.py]
@@ -129,8 +129,8 @@ ABM:
         ReturnFactor: [0.1242449598644457]
         a: 0.5213621295681152
         b: -0.04152777174191291
-  Urban_AgType:
-    U_RCTV:
+  Drain_AgType:
+    DrainAgt1:
       Attributes: {}
       Inputs:
         Piority: 1
@@ -139,7 +139,7 @@ ABM:
         DMClass: null
       Pars:
         null
-    U_WSLO:
+    DrainAgt1:
       Attributes: {}
       Inputs:
         Piority: 1

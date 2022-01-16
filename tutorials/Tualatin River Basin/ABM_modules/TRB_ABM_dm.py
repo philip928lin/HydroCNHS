@@ -9,11 +9,12 @@ logger = logging.getLogger("ABM")               # Set logger to log msg.
 # ABM Global Setting
 # Users can load common data that can be read by every agent.
 # =============================================================================
+# E.g.,
 this_dir, this_filename = os.path.split(__file__)   # Get this file directory.
 with open(os.path.join(
         this_dir, "TRB_ABM_database.pickle"), "rb") as file:
     database = pickle.load(file)
-# Items include in database (the pickle file):
+# Items included in database (the pickle file) for the TRB example:
 # ['Storage_q95', 'Storage_mean', 'Storage_q05', 'Storage_max',
 # 'Release_q50', 'Release_max', 
 # 'Div_M_median_mean', 'Div_M_median_max', 'Div_M_median_min', 'Prec_M_mean', 
@@ -124,6 +125,38 @@ class Agent_DM(Base):                   # Inherit base class.
 #%% ===========================================================================
 # The Tualatin River Basin Example
 # =============================================================================
+
+##### Reservoir Agent Type Class ######
+class ResDam_AgType(Base):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # self.config is auto loaded into the class. See above explanation.
+        self.inputs = self.config["Inputs"]
+
+    def act(self, Q, outlet, agent_dict, current_date, t):
+        # Read corresponding factor
+        factor = read_factor(self.config, outlet)
+
+        # Release (factor should be 1)
+        if factor <= 0:
+            print("Something is not right in ResDam agent.")
+        elif factor > 0:
+            # Make the water release decision by self.dm.make_dm, which 
+            # is an instance of the ResDM class defined below that is sent 
+            # by HydroCNHS during the simulation.
+            # Q["HaggIn"][t] is the resevoir inflow at time t.
+            res_t = self.dm.make_dm(Q["HaggIn"][t], current_date)
+            action = res_t
+            return action
+        
+##### Reservoir Decision-making Class ######
+r"""
+Reservoir agents determine reservoir releases by a generic operational
+rule modified from Neitsch et al. (2011), where target storages and
+target releases  are adopted for flood control (October - May) and storage 
+control (June - September) period. See the supplementary material of Lin et al. 
+(2022) for more details.
+"""
 class ResDM(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -183,45 +216,8 @@ class ResDM(Base):
         records["Release"].append(release)
         return release
 
-class ResDam_AgType(Base):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.inputs = self.config["Inputs"]
 
-    def act(self, Q, outlet, agent_dict, current_date, t):
-        # Read corresponding factor
-        factor = read_factor(self.config, outlet)
-
-        # Release (factor should be 1)
-        if factor <= 0:
-            print("Something is not right in ResDam agent.")
-        elif factor > 0:
-            # Q["HaggIn"][t] is the resevoir inflow at time t.
-            res_t = self.dm.make_dm(Q["HaggIn"][t], current_date)
-            action = res_t
-            return action
-        
-class DivDM(Base):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.database = database
-
-    def make_dm(self, a, b, current_date):
-        db = self.database
-        prec_M_mean = db["Prec_M_mean"][current_date.year-1981,
-                                        (current_date.month-1)]
-        div_M_mean = db["Div_M_median_mean"][(current_date.month-1)]
-        div_M_max = db["Div_M_median_max"][(current_date.month-1)]
-        div_M_min = db["Div_M_median_min"][(current_date.month-1)]
-        if current_date.month in [6,7,8,9]:
-            div_M_req = div_M_mean + a * prec_M_mean + b
-            # Bound by historical max and min
-            div_M_req = min( max(div_M_req, div_M_min), div_M_max)
-        else:
-            div_M_req = div_M_mean
-        div_D_req = [div_M_req] * (current_date.days_in_month)
-        return div_D_req
-
+##### Diversion Agent Type Class ######
 class IrrDiv_AgType(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -246,15 +242,20 @@ class IrrDiv_AgType(Base):
         if isinstance(factor, list):
             factor = self.pars[factor[0]][factor[1]]
 
-        # Compute actual diversion or return flow
+        # Compute actual diversion (factor < 0) or return flow (factor >= 0)
         if factor < 0:  # Diversion
             # Make diversion request at 1st of each month
             if current_date.day == 1:
+                # Get the parameters.
                 a = self.pars["a"]
                 b = self.pars["b"]
+                # Make the diversion request decision by self.dm.make_dm, which 
+                # is an instance of the DivDM class defined below that is sent 
+                # by HydroCNHS during the simulation.
                 div_req = self.dm.make_dm(a, b, current_date)
                 records["DivReq"] = records["DivReq"] + div_req
 
+            # Apply the physical constraints for the available water at time t.
             div_req_t = records["DivReq"][t]
             available_water_t = Q[outlet][t]
             if div_req_t > available_water_t:
@@ -272,14 +273,46 @@ class IrrDiv_AgType(Base):
         
         return action
 
-class PipeDM(Base):
+##### Diversion Request Decision-making Class ######
+r"""
+Diversion agents make monthly-diversion-request decisions at the beginning of 
+each month and has return flow back to the river. For this example, we design 
+the diversion-request decisions in June to September are governed by linear 
+functions (i.e., y = ax + b), where predictors are the perfect forecast of 
+monthly precipitation (Prec_M_mean). Minor diversions in other months are 
+filled with monthly mean values (Div_M_median_mean). Note that we bound the 
+monthly-diversion-request decision by the historical maximum (Div_M_median_max)
+and minimum (Div_M_median_min) monthly diversion values to prevent unrealistic
+decisions. See the supplementary material of Lin et al. (2022) for more details.
+"""
+class DivDM(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        pass
+        # Global input data loaded at the top of the file.
+        self.database = database    
 
+    def make_dm(self, a, b, current_date):
+        db = self.database
+        prec_M_mean = db["Prec_M_mean"][current_date.year-1981,
+                                        (current_date.month-1)]
+        div_M_mean = db["Div_M_median_mean"][(current_date.month-1)]
+        div_M_max = db["Div_M_median_max"][(current_date.month-1)]
+        div_M_min = db["Div_M_median_min"][(current_date.month-1)]
+        if current_date.month in [6,7,8,9]:
+            div_M_req = div_M_mean + a * prec_M_mean + b
+            # Bound by historical max and min
+            div_M_req = min( max(div_M_req, div_M_min), div_M_max)
+        else:
+            div_M_req = div_M_mean
+        div_D_req = [div_M_req] * (current_date.days_in_month)
+        return div_D_req
+
+
+##### Pipe Agent Type Class ######
 class Pipe_AgType(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # Historical inputs
         self.assigned_behavior = database["Pipe_M_median"]
 
     def act(self, Q, outlet, agent_dict, current_date, t):
@@ -299,15 +332,28 @@ class Pipe_AgType(Base):
             if y < 1991:
                 Res_t = 0
             else:
+                # Historical inputs.
                 Res_t = self.assigned_behavior[y-1991, m-1]
             action = factor * Res_t
             return action
 
-class Urban_AgType(Base):
+##### Conveying Water Decision-making Class ######
+r"""
+This is an empty decision-making class. We simply assigned the amount of 
+conveying water to the pipe agent with a historical inputs. Namely, PipeDM() 
+can be deleted and removed from the model file (.yaml). 
+"""
+class PipeDM(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # We assume a linear urbanization rate. Namely, urbanized are linearly
-        # increase from 5% to 50% of the subbasin area in 33 years.
+        pass
+
+##### Drainage System Agent Type Class ######
+class Drain_AgType(Base):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # We assume a linear urbanization rate. Namely, urbanized areas are 
+        # linearly increase from 5% to 50% of the subbasin area in 33 years.
         # We assume the urbanization will increase 50% of the orignal runoff
         # contributed by the unbanized region.
         # Therefore, the subbasin's runoff change due to the unbanization is
@@ -329,3 +375,8 @@ class Urban_AgType(Base):
         rn = self.data_collector.get_field(self.name)
         rn.append(self.rn_gen.random())
         return action
+r"""
+No runoff changing decision-making class is defined here. As you may have 
+observed, we code the simple runoff changing calculation in the Drain_AgType()
+directly.
+"""

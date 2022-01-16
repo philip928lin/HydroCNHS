@@ -22,7 +22,7 @@ model_dict["Path"]["WD"] = wd
 model_dict["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
 
 ##### Create HydroCNHS Model Object for Simulation.
-model_urban = HydroCNHS.Model(model_dict, "Urban")
+model_urban = HydroCNHS.Model(model_dict, "Urbanization")
 
 ##### Run Simulation for GWLF Coupled Model with Urbanization Scenario.
 Q_urban = model_urban.run(temp, prec, pet)
