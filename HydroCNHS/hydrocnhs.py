@@ -2,7 +2,7 @@
 # This file control the coupling logic of CHNS model.
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # 2021/02/05.
-# Last update at 2021/12/22.
+# Last update at 2022/1/16.
 
 import time
 import traceback
@@ -16,13 +16,13 @@ from .land_surface_model.abcd import run_ABCD
 from .land_surface_model.gwlf import run_GWLF
 from .land_surface_model.pet_hamon import cal_pet_Hamon
 from .routing import form_UH_Lohmann, run_step_Lohmann, run_step_Lohmann_convey
-from .util import (load_system_config, load_model,
+from .util import (set_logging_config, load_model,
                    load_customized_module_to_class)
 from .data_collector import Data_collector
 
 class Model(object):
     def __init__(self, model, name=None, rn_gen=None, checked=False,
-                 parsed=False):
+                 parsed=False, log_filename=None):
         """Create HydroCNHS model.
 
         Parameters
@@ -41,18 +41,24 @@ class Model(object):
             If true, no checking process will be conducted, by default False
         parsed : bool, optional
             If true, the model will not be re-parsed, by default False
+        log_filename : If log filename is given, a log file will be created, by
+            default None. Note: Do not create the log file when calbrating the 
+            model in parallel. Unexpected I/O errors may occur.
         """
         # Assign model name and get logger.
         self.name = name
+        if log_filename is not None:
+            set_logging_config(log_filename)
+        
         if name is None:
             self.logger = logging.getLogger("HydroCNHS") # Get logger 
         else:
             self.logger = logging.getLogger("HydroCNHS."+name) # Get logger 
         
-        # Load HydroCNHS system configuration, Config.yaml located at package's
-        # installed location.
-        self.sys_config = load_system_config()   
-            
+        # Parallelization setting 
+        self.paral_setting = {"verbose": 0,
+                              "cores_formUH": -1,
+                              "cores_lsm": -1}
         # Load model.yaml
         model = load_model(model, checked=checked, parsed=parsed)
         
@@ -145,7 +151,7 @@ class Model(object):
             A dictionary of flow time series.
         """
         # Variables
-        paral_setting = self.sys_config["Parallelization"]
+        paral_setting = self.paral_setting
         sys_parsed_data = self.sys_parsed_data
         routing_outlets = sys_parsed_data["RoutingOutlets"]
         ws = self.ws
@@ -358,7 +364,7 @@ class Model(object):
         if lsm["Model"] == "GWLF":
             logger.info("Start GWLF for {} sub-basins. [{}]".format(
                 len(outlets), get_elapsed_time()))
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+            QParel = Parallel(n_jobs=paral_setting["cores_lsm"],
                               verbose=paral_setting["verbose"]) \
                             ( delayed(run_GWLF)\
                                 (lsm[sb]["Pars"], lsm[sb]["Inputs"],
@@ -372,7 +378,7 @@ class Model(object):
         if lsm["Model"] == "ABCD":
             logger.info("Start ABCD for {} sub-basins. [{}]".format(
                 len(outlets), get_elapsed_time())) 
-            QParel = Parallel(n_jobs=paral_setting["Cores_LSM"],
+            QParel = Parallel(n_jobs=paral_setting["cores_lsm"],
                               verbose=paral_setting["verbose"]) \
                             ( delayed(run_ABCD)\
                                 (lsm[sb]["Pars"], lsm[sb]["Inputs"],
@@ -406,7 +412,7 @@ class Model(object):
                 "Start forming {} UHs for Lohmann routing. [{}]".format(
                     len(UH_List_Lohmann), get_elapsed_time()))
             # pair = (outlet, routing outlet)
-            UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
+            UHParel = Parallel(n_jobs=paral_setting["cores_formUH"],
                                verbose=paral_setting["verbose"]) \
                             ( delayed(form_UH_Lohmann)\
                             (routing[pair[1]][pair[0]]["Inputs"],
@@ -442,7 +448,7 @@ class Model(object):
                             UH_Lohmann_convey = UH_Lohmann[uh]
                         else:
                             UH_convey_List.append(uh)
-                UHParel = Parallel(n_jobs=paral_setting["Cores_formUH_Lohmann"],
+                UHParel = Parallel(n_jobs=paral_setting["cores_formUH"],
                                 verbose=paral_setting["verbose"]) \
                                 ( delayed(form_UH_Lohmann)\
                                 (routing[pair[1]][pair[0]]["Inputs"],

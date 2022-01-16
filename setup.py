@@ -26,7 +26,7 @@ setup(name='hydrocnhs',
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.8",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: Unix",
@@ -38,7 +38,7 @@ setup(name='hydrocnhs',
       # Enable MANIFEST.in 
       # https://python-packaging.readthedocs.io/en/latest/non-code-files.html
       include_package_data = True,
-      python_requires='>=3.9')
+      python_requires='>=3.8')
 
 
 

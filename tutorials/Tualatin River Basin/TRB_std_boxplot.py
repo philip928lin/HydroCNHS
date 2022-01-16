@@ -12,7 +12,7 @@ def get_stds(model):
         pass
     # Collect GA evaluation from three random seeds.
     df_ga_all = pd.DataFrame()
-    for seed in [3, 4, 9]:
+    for seed in [5,10,13]:#[3, 4, 9]:
         save_ga_file_path = os.path.join(
             prj_path,
             "Cali_{}_abm_KGE_{}/GA_auto_save.pickle".format(model, seed))

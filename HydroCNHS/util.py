@@ -1,6 +1,6 @@
 # Untility functions' module
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
-# Last update at 2021/12/23.
+# Last update at 2022/1/16.
 
 import os 
 import ast
@@ -21,63 +21,25 @@ logger = logging.getLogger("HydroCNHS.SC")
 #---------- Read and Write Functions ----------
 # Acquire "this" file path. 
 this_dir, this_filename = os.path.split(__file__)
-
-def load_system_config():
-    """Load HydroCNHS Config.yaml.
-    
-    Config.yaml is located at package installed directory.
-
-    Returns
-    -------
-    dict
-        HydroCNHS system configuration dictionary.
-    """
-    # print(os.path.join(this_dir, 'Config.yaml'))
-    with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
-        config = yaml.safe_load(file.read())
-    return config
-
-def update_system_config(modified_config):
-    """Given the dictionary of modified setting, this function will over write
-    Config.yaml.
+def set_logging_config(log_filename=None):
+    """Set up logging config.
 
     Parameters
     ----------
-    modified_config : dict
-        Dictionary of modified config settings.
+    log_filename : str, optional
+        Log filename, by default None
     """
-    # Defaults to round-trip if no parameters given
-    yaml_round = ruamel.yaml.YAML()  
-    with open(os.path.join(this_dir, 'Config.yaml'), 'rt') as file:
-        config = yaml_round.load(file.read())
-        
-    # Replace nesting values
-    for key in modified_config:
-        if isinstance(modified_config[key], dict):    # Second level
-            for key2 in modified_config[key]:
-                config[key][key2] = modified_config[key][key2]
-        else:                                   # First level
-            config[key] = modified_config[key]
-            
-    with open(os.path.join(this_dir, 'Config.yaml'), 'w') as file:
-        yaml_round.dump(config, file)
-    logger.info("Update system Config to:\n{}".format(dict_to_string(config)))
-
-def default_config():
-    """Return HydroCNHS to default system configuration.
-    """
-    default_config = {
-        "LogHandlers": ["console"],   
-
-        "Parallelization": {
-            "verbose": 0,           
-            "Cores_formUH_Lohmann": 1,
-            "Cores_LSM": 1,
-            "Cores_DMC": 1,
-            "Cores_GA": -2}
-        }
-    update_system_config(default_config)
-    logger.info("Set HydroCNHS system configuration to default.")
+    with open(os.path.join(this_dir, 'Config_logging.yaml'), 'rt') as file:
+        logging_config = yaml.safe_load(file.read())
+    if log_filename is not None:
+        logging_config["loggers"]["HydroCNHS"]["handlers"] = ["console", "file"]
+        if log_filename is True:
+            logging_config["handlers"]["file"]["filename"] = "HydroCNHS.log"
+        else:
+            if ".log" not in log_filename:
+                log_filename = log_filename + ".log"
+            logging_config["handlers"]["file"]["filename"] = log_filename
+    logging.config.dictConfig(logging_config)
 
 def load_model(model, checked=False, parsed=False, print_summary=True):
     """Load model.yaml or model dictionary.

@@ -130,7 +130,7 @@ config = {'min_or_max': 'max',
          'print_level': 1,
          'plot': True}
 
-seeds = [3, 4, 9]
+seeds = [5,10,13]
 for seed in seeds:
     rn_gen = HydroCNHS.create_rn_gen(seed)
     ga = cali.GA_DEAP(evaluation, rn_gen)
@@ -138,7 +138,6 @@ for seed in seeds:
     ga.run()
     ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
 
-    #%%
     ##### Output Calibrated Model.
     individual = ga.solution
     df_list = cali.Convertor.to_df_list(individual, formatter)
@@ -150,7 +149,7 @@ for seed in seeds:
 
     summary = ga.summary
 #%%
-# Note: the random seed 3 gives us the best model.
+# Note: the random seed 13 gives us the best model.
 r"""
 ##### Run Simuluation Again for Plotting.
 model = HydroCNHS.Model(model_best, "Best")

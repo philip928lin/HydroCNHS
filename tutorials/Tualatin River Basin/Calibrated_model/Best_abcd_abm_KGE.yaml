@@ -1,83 +1,83 @@
-Path: {WD: 'C:\Users\ResearchPC\Desktop\HydroCNHS-TRB\tutorials\Tualatin River Basin',
-  Modules: 'C:\Users\ResearchPC\Desktop\HydroCNHS-TRB\tutorials\Tualatin River Basin\ABM_modules'}
+Path: {WD: 'C:\Users\ResearchPC\Desktop\HydroCNHS-nnew\tutorials\Tualatin River Basin',
+  Modules: 'C:\Users\ResearchPC\Desktop\HydroCNHS-nnew\tutorials\Tualatin River Basin\ABM_modules'}
 WaterSystem:
   StartDate: 1981/1/1
   EndDate: 2013/12/31
   NumSubbasins: 7
   NumGauges: 2
   NumAgents: 3
-  Outlets: [TRTR, SCOO, DLLO, TRGC, DAIRY, RCTV, WSLO]
+  Outlets: [TRTR, HaggIn, DLLO, TRGC, DAIRY, RCTV, WSLO]
   GaugedOutlets: [DLLO, WSLO]
   DataLength: 12053
 LSM:
   Model: ABCD
   TRTR:
     Inputs: {Area: 329.8013, Latitude: 45.458136, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.10782393039938254, b: 297.40511700441266, c: 0.6312396792496243, d: 0.32051623816609137,
-      Df: 0.7684680392768519}
-  SCOO:
+    Pars: {a: 0.998022077422731, b: 53.403437142760524, c: 0.3445534483817202, d: 0.5588647054648772,
+      Df: 0.6356104875279215}
+  HaggIn:
     Inputs: {Area: 10034.2408, Latitude: 45.469444, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.3091858631696345, b: 4.957721302094598, c: 0.7507841647038699, d: 0.2159967072920589,
-      Df: 0.5576352205885359}
+    Pars: {a: 0.196232967055494, b: 2.316113351162974, c: 0.7800965228966885, d: 0.24760983450594198,
+      Df: 0.6967433717697961}
   DLLO:
     Inputs: {Area: 22238.4391, Latitude: 45.475, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.900986833011003, b: 8.383128554578434, c: 0.17254591361697003, d: 0.6712885431232752,
-      Df: 0.14826735625512744}
+    Pars: {a: 0.2368591732190976, b: 16.746237730708337, c: 0.6932916639149709, d: 0.8335816685138346,
+      Df: 0.1596996820005856}
   TRGC:
     Inputs: {Area: 24044.6363, Latitude: 45.502222, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.46631202279093076, b: 37.743735443146896, c: 0.9298096397862207, d: 0.6288310740600671,
-      Df: 0.30463969198536756}
+    Pars: {a: 0.30633911829838706, b: 91.47481473254975, c: 0.6952025883295293, d: 0.2628178327580655,
+      Df: 0.7274618288792871}
   DAIRY:
     Inputs: {Area: 59822.7546, Latitude: 45.52, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.6808822028153079, b: 6.614771928994179, c: 0.24391432363751492, d: 0.8017211890428528,
-      Df: 0.14749219986678835}
+    Pars: {a: 0.8357341987114486, b: 5.536212155772402, c: 0.7949902872261505, d: 0.4908533757496938,
+      Df: 0.5151923881689678}
   RCTV:
     Inputs: {Area: 19682.6046, Latitude: 45.502222, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.7603077702351183, b: 2.495802877629716, c: 0.5511076285338472, d: 0.5595845740136363,
-      Df: 0.5628258187249415}
+    Pars: {a: 0.5163481400286637, b: 6.63194504895893, c: 0.9708210799242627, d: 0.1482665657481275,
+      Df: 0.6807946927144579}
   WSLO:
     Inputs: {Area: 47646.8477, Latitude: 45.350833, XL: 2.0, SnowS: 5.0}
-    Pars: {a: 0.6386765997459126, b: 346.1866146418189, c: 0.34523527749999605, d: 0.3836305675639754,
-      Df: 0.49275675622177273}
+    Pars: {a: 0.7766815933323709, b: 307.230108380631, c: 0.4534181803257735, d: 0.6377995404605877,
+      Df: 0.15887055816152457}
 Routing:
   Model: Lohmann
   WSLO:
     TRGC:
       Inputs: {FlowLength: 80064.864, InstreamControl: false}
-      Pars: {GShape: null, GScale: null, Velo: 3.1825538088533984, Diff: 3867.0739517010793}
+      Pars: {GShape: null, GScale: null, Velo: 49.87595812539884, Diff: 2525.657709695403}
     DAIRY:
       Inputs: {FlowLength: 70988.16384, InstreamControl: false}
-      Pars: {GShape: 23.90585348674807, GScale: 391.51589989024757, Velo: 17.1094145558614,
-        Diff: 1089.0386225377197}
+      Pars: {GShape: 34.686913873479455, GScale: 894.460280814386, Velo: 25.893926406320908,
+        Diff: 3384.0446755981975}
     RCTV:
       Inputs: {FlowLength: 60398.68032, InstreamControl: false}
-      Pars: {GShape: 61.59931275415078, GScale: 117.14606799661155, Velo: 25.23099481749346,
-        Diff: 1368.7850028585544}
+      Pars: {GShape: 30.696470292693622, GScale: 102.36797467745913, Velo: 37.12993943846733,
+        Diff: 1285.6959284459629}
     WSLO:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 47.6488015140379, GScale: 71.46834944917764, Velo: null, Diff: null}
+      Pars: {GShape: 72.21059513084315, GScale: 233.3911158752548, Velo: null, Diff: null}
   TRGC:
     DLLO:
       Inputs: {FlowLength: 11748.2112, InstreamControl: false}
-      Pars: {GShape: null, GScale: null, Velo: 34.51651190472215, Diff: 988.5451771641223}
+      Pars: {GShape: null, GScale: null, Velo: 41.43808920070977, Diff: 1045.1522679650832}
     TRGC:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 7.510814647653543, GScale: 74.12598272627045, Velo: null, Diff: null}
+      Pars: {GShape: 4.810185193094252, GScale: 63.6703845907454, Velo: null, Diff: null}
   DLLO:
-    R1:
+    ResAgt:
       Inputs: {FlowLength: 9656.064, InstreamControl: true}
-      Pars: {GShape: null, GScale: null, Velo: 2.7311996636256026, Diff: 1056.3572892454629}
+      Pars: {GShape: null, GScale: null, Velo: 5.54060752432252, Diff: 630.3349696127598}
     TRTR:
       Inputs: {FlowLength: 30899.4048, InstreamControl: false}
-      Pars: {GShape: 55.823705317940046, GScale: 283.9355375760349, Velo: 5.340265765171239,
-        Diff: 828.453686921475}
+      Pars: {GShape: 88.16653665474493, GScale: 62.96067672698538, Velo: 43.156582239696654,
+        Diff: 2514.46199282646}
     DLLO:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 5.45662162110652, GScale: 119.47950048136241, Velo: null, Diff: null}
-  SCOO:
-    SCOO:
+      Pars: {GShape: 3.4108534957466636, GScale: 317.36539207138463, Velo: null, Diff: null}
+  HaggIn:
+    HaggIn:
       Inputs: {FlowLength: 0, InstreamControl: false}
-      Pars: {GShape: 8.351316646832887, GScale: 39.97659195118923, Velo: null, Diff: null}
+      Pars: {GShape: 3.7879252933308765, GScale: 107.55441856168432, Velo: null, Diff: null}
 ABM:
   Inputs:
     DamAgentTypes: [ResDam_AgType]
@@ -88,7 +88,7 @@ ABM:
     Modules: [TRB_ABM_dm.py]
     AgGroup: null
   Pipe_AgType:
-    Barney:
+    PipeAgt:
       Attributes: {}
       Inputs:
         Piority: 0
@@ -99,18 +99,18 @@ ABM:
         a: null
         b: null
   ResDam_AgType:
-    R1:
+    ResAgt:
       Attributes: {}
       Inputs:
         Piority: 0
-        Links: {SCOO: -1, R1: 1}
+        Links: {HaggIn: -1, ResAgt: 1}
         DMClass: ResDM
       Pars:
         ReturnFactor: []
         a: null
         b: null
   IrrDiv_AgType:
-    SHPP:
+    DivAgt:
       Attributes: {}
       Inputs:
         Piority: 1
@@ -119,45 +119,45 @@ ABM:
           WSLO: [ReturnFactor, 0, Plus]
         DMClass: DivDM
       Pars:
-        ReturnFactor: [0.08893395420981587]
-        a: -0.598463661058263
-        b: 0.07390773373345083
+        ReturnFactor: [0.10039519741761915]
+        a: -0.9238800045594113
+        b: 0.08544937101960803
 SystemParsedData:
-  SimSeq: [SCOO, R1, DLLO, TRGC, WSLO]
+  SimSeq: [HaggIn, ResAgt, DLLO, TRGC, WSLO]
   AgSimSeq:
     AgSimMinus:
-      SCOO: {}
-      R1: {}
+      HaggIn: {}
+      ResAgt: {}
       DLLO: {}
       TRGC:
         RiverDivAgents:
-        - [SHPP, TRGC]
+        - [DivAgt, TRGC]
       WSLO: {}
     AgSimPlus:
-      SCOO: {}
-      R1:
+      HaggIn: {}
+      ResAgt:
         DamAgents:
-        - [R1, R1]
+        - [ResAgt, ResAgt]
       DLLO:
         ConveyAgents:
-        - [Barney, TRTR]
+        - [PipeAgt, TRTR]
       TRGC: {}
       WSLO:
         RiverDivAgents:
-        - [SHPP, WSLO]
-  RoutingOutlets: [SCOO, DLLO, TRGC, WSLO]
-  DamAgents: [R1]
-  RiverDivAgents: [SHPP]
+        - [DivAgt, WSLO]
+  RoutingOutlets: [HaggIn, DLLO, TRGC, WSLO]
+  DamAgents: [ResAgt]
+  RiverDivAgents: [DivAgt]
   InsituAgents: []
-  ConveyAgents: [Barney]
+  ConveyAgents: [PipeAgt]
   BackTrackingDict:
     WSLO: [TRGC]
     TRGC: [DLLO]
-    DLLO: [R1]
-    R1: [SCOO]
+    DLLO: [ResAgt]
+    ResAgt: [HaggIn]
   Edges:
   - [TRGC, WSLO]
   - [DLLO, TRGC]
-  - [R1, DLLO]
-  - [SCOO, R1]
+  - [ResAgt, DLLO]
+  - [HaggIn, ResAgt]
   ConveyToNodes: [TRTR]

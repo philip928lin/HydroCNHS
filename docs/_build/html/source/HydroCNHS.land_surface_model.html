@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydroCNHS.land_surface_model package &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> HydroCNHS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick start!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_builder.html">Model builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_build_abm.html">How to build a ABM module?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">HydroCNHS</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HydroCNHS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>HydroCNHS.land_surface_model package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/HydroCNHS.land_surface_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="hydrocnhs-land-surface-model-package">
+<h1>HydroCNHS.land_surface_model package<a class="headerlink" href="#hydrocnhs-land-surface-model-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-HydroCNHS.land_surface_model.abcd">
+<span id="hydrocnhs-land-surface-model-abcd-module"></span><h2>HydroCNHS.land_surface_model.abcd module<a class="headerlink" href="#module-HydroCNHS.land_surface_model.abcd" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="HydroCNHS.land_surface_model.abcd.run_ABCD">
+<span class="sig-prename descclassname"><span class="pre">HydroCNHS.land_surface_model.abcd.</span></span><span class="sig-name descname"><span class="pre">run_ABCD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ABCD_pars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.land_surface_model.abcd.run_ABCD" title="Permalink to this definition"></a></dt>
+<dd><p>ABCD rainfall-runoff model.</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>Area:     [ha] Subbasin area.
+XL:       [cm] Initial saturated soil water content.
+Latitude: [deg]
+SnowS:    [cm] Snow storage.</p>
+</dd>
+<dt>Pars:</dt><dd><p>a: Controls the amount of runoff and recharge during unsaturated soil.
+b: Controls Saturation level of the soils.
+c: Ratio of groundwater recharge to runoff.
+d: Controls groundwater discharge rate.
+Df: [cm/degC] Degree-day coefficient</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>ABCD_pars<span class="classifier">dict</span></dt><dd><p>Parameter dictionary containing 5 parameters: a, b, c, d, Df.</p>
+</dd>
+<dt>inputs<span class="classifier">dict</span></dt><dd><p>Input dictionary containing 4 inputs: Area, Latitude, XL, SnowS.</p>
+</dd>
+<dt>temp<span class="classifier">array</span></dt><dd><p>[degC] Daily mean temperature.</p>
+</dd>
+<dt>prec<span class="classifier">array</span></dt><dd><p>[cm] Daily precipitation.</p>
+</dd>
+<dt>pet<span class="classifier">array</span></dt><dd><p>[cm] Daily potential evaportranspiration.</p>
+</dd>
+<dt>data_length<span class="classifier">int</span></dt><dd><p>Total data length (i.e., simulation period).</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>array</dt><dd><p>[cms] Discharge</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-HydroCNHS.land_surface_model.gwlf">
+<span id="hydrocnhs-land-surface-model-gwlf-module"></span><h2>HydroCNHS.land_surface_model.gwlf module<a class="headerlink" href="#module-HydroCNHS.land_surface_model.gwlf" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="HydroCNHS.land_surface_model.gwlf.run_GWLF">
+<span class="sig-prename descclassname"><span class="pre">HydroCNHS.land_surface_model.gwlf.</span></span><span class="sig-name descname"><span class="pre">run_GWLF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GWLF_pars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.land_surface_model.gwlf.run_GWLF" title="Permalink to this definition"></a></dt>
+<dd><p>GWLF rainfall-runoff model.</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>Area:     [ha] Subbasin area.
+Latitude: [deg]
+S0:       [cm] Shallow saturated soil water content.
+U0:       [cm] Unsaturated soil water content.
+SnowS:    [cm] Snow storage.</p>
+</dd>
+<dt>Pars:</dt><dd><p>CN2:   Curve number.
+IS:    Interception coefficient.
+Res:   Recession coefficient.
+Sep:   Deep seepage coefficient.
+Alpha: Baseflow coefficient.
+Beta:  Percolation coefficient.
+Ur:    [cm] Available/Soil water capacity.
+Kc:    Land cover coefficient.
+Df:    [cm/degC] Degree-day coefficient.</p>
+</dd>
+</dl>
+<p>Note that the simulation period has to be longer than a month.</p>
+<dl class="simple">
+<dt>GWLF_pars<span class="classifier">dict</span></dt><dd><p>Parameter dictionary containing 9 parameters: CN2, IS, Res, Sep, Alpha,
+Beta, Ur, Kc, Df.</p>
+</dd>
+<dt>inputs<span class="classifier">dict</span></dt><dd><p>Input dictionary containing 5 inputs: Area, Latitude, S0, U0, SnowS.</p>
+</dd>
+<dt>temp<span class="classifier">array</span></dt><dd><p>[degC] Daily mean temperature.</p>
+</dd>
+<dt>prec<span class="classifier">array</span></dt><dd><p>[cm] Daily precipitation.</p>
+</dd>
+<dt>pet<span class="classifier">array</span></dt><dd><p>[cm] Daily potential evaportranspiration.</p>
+</dd>
+<dt>start_date: str</dt><dd><p>Start date “yyyy/mm/dd”.</p>
+</dd>
+<dt>data_length<span class="classifier">int</span></dt><dd><p>Total data length (i.e., simulation period).</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>array</dt><dd><p>[cms] Discharge</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-HydroCNHS.land_surface_model.pet_hamon">
+<span id="hydrocnhs-land-surface-model-pet-hamon-module"></span><h2>HydroCNHS.land_surface_model.pet_hamon module<a class="headerlink" href="#module-HydroCNHS.land_surface_model.pet_hamon" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="HydroCNHS.land_surface_model.pet_hamon.cal_pet_Hamon">
+<span class="sig-prename descclassname"><span class="pre">HydroCNHS.land_surface_model.pet_hamon.</span></span><span class="sig-name descname"><span class="pre">cal_pet_Hamon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.land_surface_model.pet_hamon.cal_pet_Hamon" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate potential evapotranspiration (pet) with Hamon (1961) equation.</p>
+<dl class="simple">
+<dt>temp<span class="classifier">array</span></dt><dd><p>[degC] Daily mean temperature.</p>
+</dd>
+<dt>Lat<span class="classifier">float</span></dt><dd><p>[deg] Latitude.</p>
+</dd>
+<dt>start_date<span class="classifier">str</span></dt><dd><p>Start date “yyyy/mm/dd”.</p>
+</dd>
+<dt>dz<span class="classifier">float, optional</span></dt><dd><p>[m] Altitude temperature adjustment, by default None.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>array</dt><dd><p>[cm/day] Potential evapotranspiration</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-HydroCNHS.land_surface_model">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-HydroCNHS.land_surface_model" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

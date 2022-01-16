@@ -7,7 +7,7 @@ HydroCNHS User Manual
 =====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
    
    installation
@@ -15,7 +15,7 @@ HydroCNHS User Manual
    model_builder
    how_to_build_abm
    calibration
-   modules
+   ./source/HydroCNHS
 
 
 Indices and tables
