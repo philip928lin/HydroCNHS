@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/hydrocnhs/badge/?version=latest)](https://hydrocnhs.readthedocs.io/en/latest/?badge=latest)
+
+
 # HydroCNHS
 A Python Package of Hydrological Model for Coupled Natural Human Systems
 
@@ -12,7 +15,7 @@ pip install hydrocnhs
 ```
 
 ## User Manual & Example
-
+![hydrocnhs.readthedocs.io](hydrocnhs.readthedocs.io)
 
 ## How to cite?
 Lin, C. Y., Yang, Y. C. E., & Wi S. (2022). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management. (Pending)
