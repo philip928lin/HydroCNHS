@@ -6,6 +6,7 @@ import os
 import ast
 import itertools
 import logging
+from logging import config
 import traceback
 import numpy as np
 import pandas as pd
@@ -38,7 +39,7 @@ def set_logging_config(log_filename=None):
             if ".log" not in log_filename:
                 log_filename = log_filename + ".log"
             logging_config["handlers"]["file"]["filename"] = log_filename
-    logging.config.dictConfig(logging_config)
+    config.dictConfig(logging_config)
 
 def load_model(model, checked=False, parsed=False, print_summary=True):
     """Load model.yaml or model dictionary.
