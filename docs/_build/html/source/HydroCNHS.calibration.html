@@ -162,10 +162,12 @@ already included in gen_cali_inputs().</p>
 <dl class="simple">
 <dt>df_list<span class="classifier">list</span></dt><dd><p>A list of parameter dataframes. Dataframe index is parameter names.</p>
 </dd>
-<dt>fixed_par_list<span class="classifier">list, optional</span></dt><dd><p>A list contains a list of tuples of fixed parameter location like
-[([“CN2”], [“outlet1”, “outlet2”]), ([“b”], [“outlet1”])], by
-default None. The number of tuples in the list is corresponding to
-the number of dataframes.</p>
+<dt>fixed_par_list<span class="classifier">list, optional</span></dt><dd><p>A list contains a list of tuples of fixed parameter location. For
+example, we want to fix par1 of outlet1 &amp; 2 and all par2 in 
+dataframe 1 and not to fix df2. We can input the following list,
+[[([“par1”], [“outlet1”, “outlet2”]), ([“par2”], [“:”])], []]. 
+fixed_par_list is by default None. The number of lists in the list
+is corresponding to the number of dataframes.</p>
 </dd>
 </dl>
 <dl class="simple">

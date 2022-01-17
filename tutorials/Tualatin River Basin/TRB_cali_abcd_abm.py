@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from copy import deepcopy
 import pickle
-import matplotlib.pyplot as plt
 import HydroCNHS
 import HydroCNHS.calibration as cali
 
@@ -19,16 +18,20 @@ model_dict["Path"]["WD"] = wd
 model_dict["Path"]["Modules"] = os.path.join(prj_path, "ABM_modules")
 
 ##### Gen cali information
+# Convert parameter sections in the model file (i.e., model_dict) to a list of 
+# dataframes (df_list).
 df_list, df_name = HydroCNHS.write_model_to_df(model_dict, key_option=["Pars"])
+# Load the parameter bounds. The order of the list is corresponding to df_list.
 par_bound_df_list = [
     pd.read_csv(os.path.join(bound_path, "abcd_par_bound.csv"), index_col=[0]),
     pd.read_csv(os.path.join(bound_path, "routing_par_bound.csv"), index_col=[0]),
     pd.read_csv(os.path.join(bound_path, "abm_par_bound_dm.csv"), index_col=[0])]
+# Initialize Convertor.
 converter = cali.Convertor()
-converter.gen_cali_inputs(wd, df_list, par_bound_df_list)
+cali_inputs = converter.gen_cali_inputs(wd, df_list, par_bound_df_list)
 formatter = converter.formatter
-cali_inputs = converter.inputs
 
+# Load inputs from pickle file.
 with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
     (temp, prec, pet, obv_D, obv_M, obv_Y) = pickle.load(file)
 
@@ -37,25 +40,27 @@ with open(os.path.join(prj_path, "Inputs", "TRB_inputs.pickle"), "rb") as file:
 # Calibration
 # =============================================================================
 def cal_batch_indicator(period, target, df_obv, df_sim):
-        df_obv = df_obv[period[0]:period[1]]
-        df_sim = df_sim[period[0]:period[1]]
-        Indicator = HydroCNHS.Indicator()
-        df = pd.DataFrame()
-        for item in target:
-            df_i = Indicator.cal_indicator_df(df_obv[item], df_sim[item],
-                                              index_name=item)
-            df = pd.concat([df, df_i], axis=0)
-        df_mean = pd.DataFrame(df.mean(axis=0), columns=["Mean"]).T
-        df = pd.concat([df, df_mean], axis=0)
-        return df
+    """Compute mean indicator over targets"""
+    df_obv = df_obv[period[0]:period[1]]
+    df_sim = df_sim[period[0]:period[1]]
+    Indicator = HydroCNHS.Indicator()
+    df = pd.DataFrame()
+    for item in target:
+        df_i = Indicator.cal_indicator_df(df_obv[item], df_sim[item],
+                                            index_name=item)
+        df = pd.concat([df, df_i], axis=0)
+    df_mean = pd.DataFrame(df.mean(axis=0), columns=["Mean"]).T
+    df = pd.concat([df, df_mean], axis=0)
+    return df
 
 def evaluation(individual, info):
     cali_wd, current_generation, ith_individual, formatter, _ = info
     name = "{}-{}".format(current_generation, ith_individual)
 
     ##### individual -> model
+    # Convert 1D array to a list of dataframes.
     df_list = cali.Convertor.to_df_list(individual, formatter)
-    # ModelDict is from Model Builder (template with -99).
+    # Feed dataframes in df_list to model dictionary.
     model = deepcopy(model_dict)
     for i, df in enumerate(df_list):
         s = df_name[i].split("_")[0]
@@ -63,19 +68,22 @@ def evaluation(individual, info):
 
     ##### Run simuluation
     model = HydroCNHS.Model(model, name)
-    try:
+    try:    # Avoid numerical error.
         Q = model.run(temp, prec, pet)
     except:
         return (-100,)
-    # Get simulation data
+    
+    ##### Get simulation data
+    # Streamflow of routing outlets.
     cali_target = ["DLLO", "WSLO"]
     cali_period = ("1981-1-1", "2005-12-31")
     vali_period = ("2006-1-1", "2013-12-31")
     sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[cali_target]
+    # Agents' outputs stored in the data_collector.
     sim_Q_D["DivAgt"] = model.data_collector.DivAgt["Diversion"]
     sim_Q_D["ResAgt"] = model.data_collector.ResAgt["Release"]
     cali_target += ["DivAgt", "ResAgt"]
-
+    # Resample the daily simulation output to monthly and annually outputs.
     sim_Q_M = sim_Q_D[cali_target].resample("MS").mean()
     sim_Q_Y = sim_Q_D[cali_target].resample("YS").mean()
 
@@ -88,6 +96,7 @@ def evaluation(individual, info):
     df_vali_Q_Y = cal_batch_indicator(vali_period, cali_target, obv_Y, sim_Q_Y)
 
     ##### Save output.txt
+    # Only exercute when ga.run_individual(ga.solution)
     if current_generation == "best":
         with open(os.path.join(cali_wd, "cali_indiv_" + name + ".txt"), 'w') as f:
             f.write("Annual cali/vali result\n")
@@ -130,6 +139,7 @@ config = {'min_or_max': 'max',
          'print_level': 1,
          'plot': True}
 
+# Calibrate with 3 seeds.
 seeds = [5,10,13]
 for seed in seeds:
     rn_gen = HydroCNHS.create_rn_gen(seed)
@@ -138,7 +148,7 @@ for seed in seeds:
     ga.run()
     ga.run_individual(ga.solution)  # Output performance (.txt) of solution.
 
-    ##### Output Calibrated Model.
+    ##### Output the calibrated model.
     individual = ga.solution
     df_list = cali.Convertor.to_df_list(individual, formatter)
     model_best = deepcopy(model_dict)

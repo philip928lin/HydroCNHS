@@ -103,24 +103,299 @@
 </style>
 <section id="calibration">
 <h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline"></a></h1>
+<p>HydroCNHS equips with a genetic algorithm powered by Distributed Evolutionary
+Algorithms in Python (<a class="reference external" href="https://deap.readthedocs.io/en/master/">DEAP</a>), which
+can be used for calibration in parallel. The unique feature about HydroCNHS is
+that both the parameters of the hydrological model and user-defined ABM can be
+calibrated simutaneously as long as those parameters are defined the model file
+(.yaml). Furthermore, users are allowed to assign initial guesses to the
+algorithm. Note that this GA module are not limited to HydroCNHS model.</p>
 <section id="genetic-algorithm-calibration-code-outline">
 <h2>Genetic algorithm calibration code outline<a class="headerlink" href="#genetic-algorithm-calibration-code-outline" title="Permalink to this headline"></a></h2>
+<p>To use this genetic algorithm (GA) module, three things are required.</p>
+<ol class="arabic">
+<li><p>evaluation function</p>
+<p>The evaluation has to follow a certain protocal. Please see the example code
+below.</p>
+</li>
+<li><p>config dictionary</p>
+<p>The configuration dictionary template can be obtained by
+cali.get_config_template().</p>
+</li>
+<li><p>cali_inputs dictionary</p>
+<p>The inputs dictionary template can be obtained by
+cali.get_inputs_template().</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently, GA module only support calibrating real number parameters.</p>
+</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">HydroCNHS</span>
 <span class="kn">import</span> <span class="nn">HydroCNHS.calibration</span> <span class="k">as</span> <span class="nn">cali</span>
 
 <span class="c1"># Assisting functions</span>
-<span class="n">cali</span><span class="o">.</span><span class="n">helper</span><span class="p">()</span>
+<span class="n">cali</span><span class="o">.</span><span class="n">helper</span><span class="p">()</span>               <span class="c1"># Get instructions.</span>
 <span class="n">cali</span><span class="o">.</span><span class="n">get_config_template</span><span class="p">()</span>
 <span class="n">cali</span><span class="o">.</span><span class="n">get_inputs_template</span><span class="p">()</span>
 
+<span class="c1"># Must have individual and info arguments for evaluation function.</span>
 <span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+    <span class="c1"># individual: A 1D array of generated parameter set.</span>
+    <span class="c1"># info: The info tuple contains five items such as the calibration</span>
+    <span class="c1"># working directory (cali_wd), current generation number</span>
+    <span class="c1"># (current_generation), the index of the current individual of the</span>
+    <span class="c1"># generation (ith_individual), formtter for the Converter, and a random</span>
+    <span class="c1"># number generator (random_generator).</span>
+    <span class="c1"># Note the random_generator should be used to generate random number to</span>
+    <span class="c1"># ensure the reproducibility. (Do not use np.random directly.)</span>
     <span class="p">(</span><span class="n">cali_wd</span><span class="p">,</span> <span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">,</span>
     <span class="n">formatter</span><span class="p">,</span> <span class="n">random_generator</span><span class="p">)</span> <span class="o">=</span> <span class="n">info</span>
+
     <span class="c1"># Run model.</span>
     <span class="c1"># Calculate fitness.</span>
     <span class="c1"># E.g.,</span>
     <span class="n">fitness</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">fitness</span><span class="p">,)</span>   <span class="c1"># Has to be a tuple format.</span>
+
+<span class="c1"># GA configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;min_or_max&#39;</span><span class="p">:</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pop_size&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s1">&#39;num_ellite&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;prob_cross&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s1">&#39;prob_mut&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s1">&#39;stochastic&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;max_gen&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s1">&#39;sampling_method&#39;</span><span class="p">:</span> <span class="s1">&#39;LHC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;drop_record&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;paral_cores&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;paral_verbose&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;auto_save&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;print_level&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;plot&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+<span class="c1"># GA inputs (Can be generated by the Converter shown in the next section.)</span>
+<span class="n">cali_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;par_name&quot;</span><span class="p">:</span>    <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;par_bound&quot;</span><span class="p">:</span>   <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]],</span>
+            <span class="s2">&quot;wd&quot;</span><span class="p">:</span>          <span class="s2">&quot;working directory&quot;</span><span class="p">}</span>
+
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="c1"># Create a random number generator for GA.</span>
+<span class="n">rn_gen</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">create_rn_gen</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>  <span class="c1"># Optional</span>
+<span class="c1"># Initialize GA object.</span>
+<span class="n">ga</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">GA_DEAP</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">rn_gen</span><span class="p">)</span>
+<span class="c1"># Set up GA object (or load the previously auto-saved pickle file)</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Cali_example&quot;</span><span class="p">)</span>
+<span class="c1"># Run</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="c1"># Run the evaluation with the given individual (e.g., the solution).</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">run_individual</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>
+<span class="c1"># Show the result summary.</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="converter">
+<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h2>
+<p>Convertor helps user to convert a list of parameter dataframes (can
+contain nan values) into an 1D array (parameters for calibration,
+automatically exclude nan values) that can be used for GA calibration.
+And the formatter created by Convertor can be used to convert 1D array
+back to a list of original dataframes. The inputs dictionary for GA can also be
+generated by Convertor. Besides, we provide option for defining fixed
+parameters, which those parameters will not enter the
+calibration process (exclude from the 1D array).
+Note that the dataframe index is parameter names.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS.calibration</span> <span class="k">as</span> <span class="nn">cali</span>
+
+<span class="c1">### Prepare testing data.</span>
+<span class="n">par_df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Subbasin1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;Subbasin2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]},</span>
+                    <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+<span class="n">par_df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Agent1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span> <span class="s2">&quot;Agent2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">None</span><span class="p">]},</span>
+                    <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Par1&quot;</span><span class="p">,</span> <span class="s2">&quot;Par2&quot;</span><span class="p">,</span> <span class="s2">&quot;Par3&quot;</span><span class="p">])</span>
+
+<span class="n">bound_df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Subbasin1&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">]],</span> <span class="s2">&quot;Subbasin2&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">]]},</span>
+                    <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+<span class="n">bound_df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;Agent1&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">]],</span> <span class="s2">&quot;Agent2&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span><span class="kc">None</span><span class="p">]},</span>
+                    <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Par1&quot;</span><span class="p">,</span> <span class="s2">&quot;Par2&quot;</span><span class="p">,</span> <span class="s2">&quot;Par3&quot;</span><span class="p">])</span>
+
+<span class="n">df_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">par_df1</span><span class="p">,</span> <span class="n">par_df2</span><span class="p">]</span>
+<span class="n">par_bound_df_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bound_df1</span><span class="p">,</span> <span class="n">bound_df2</span><span class="p">]</span>
+
+
+<span class="c1">### Create a object called Converter.</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="p">()</span>
+
+<span class="c1">### Generate GA inputs with fixed a &amp; b parameters for Subbasin1.</span>
+<span class="n">fixed_par_list</span> <span class="o">=</span> <span class="p">[[([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Subbasin1&quot;</span><span class="p">])],[]]</span>
+<span class="n">cali_inputs</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">gen_cali_inputs</span><span class="p">(</span>
+    <span class="s2">&quot;working directory&quot;</span><span class="p">,</span> <span class="n">df_list</span><span class="p">,</span> <span class="n">par_bound_df_list</span><span class="p">,</span> <span class="n">fixed_par_list</span><span class="p">)</span>
+<span class="c1">### Get formatter</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">formatter</span>
+
+<span class="c1">### Show cali_inputs</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">)</span>
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">print(cali_inputs)</span>
+<span class="sd">{&#39;wd&#39;: &#39;working directory&#39;,</span>
+<span class="sd">&#39;par_name&#39;: [&#39;a|Subbasin2&#39;, &#39;b|Subbasin2&#39;, &#39;c|Subbasin1&#39;, &#39;c|Subbasin2&#39;,</span>
+<span class="sd">            &#39;Par1|Agent1&#39;, &#39;Par1|Agent2&#39;, &#39;Par2|Agent1&#39;, &#39;Par2|Agent2&#39;,</span>
+<span class="sd">            &#39;Par3|Agent1&#39;],</span>
+<span class="sd">&#39;par_bound&#39;: [[0, 10], [0, 10], [0, 10], [0, 10], [0, 10], [0, 10], [0, 10],</span>
+<span class="sd">            [0, 10], [0, 10]]}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">### to 1D array</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">to_1D_array</span><span class="p">(</span><span class="n">df_list</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># Out[31]: array([4., 5., 3., 6., 9., 6., 8., 5., 7.])</span>
+<span class="sd"># Note the order of the array corresponds to &quot;par_name&quot; in the cali_inputs.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">### to df_list</span>
+<span class="n">var_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">]</span><span class="o">*</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">var_array</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Out[46]:</span>
+<span class="sd">[   Subbasin1  Subbasin2</span>
+<span class="sd">a     1000.0        5.0</span>
+<span class="sd">b     1000.0        5.0</span>
+<span class="sd">c        5.0        5.0,</span>
+<span class="sd">    Agent1  Agent2</span>
+<span class="sd">Par1     5.0     5.0</span>
+<span class="sd">Par2     5.0     5.0</span>
+<span class="sd">Par3     5.0     NaN]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="trb-calibration-example">
+<h2>TRB calibration example<a class="headerlink" href="#trb-calibration-example" title="Permalink to this headline"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS</span>
+<span class="kn">import</span> <span class="nn">HydroCNHS.calibration</span> <span class="k">as</span> <span class="nn">cali</span>
+
+<span class="c1">##### Path and Load Model Test</span>
+<span class="c1"># Get this file directory.</span>
+<span class="n">prj_path</span><span class="p">,</span> <span class="n">this_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Template_for_calibration&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_dm_gwlf.yaml&quot;</span><span class="p">)</span>
+<span class="n">bound_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;ParBound&quot;</span><span class="p">)</span>
+<span class="n">wd</span> <span class="o">=</span> <span class="n">prj_path</span>
+
+<span class="c1"># Update model paths.</span>
+<span class="n">model_dict</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+<span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;WD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wd</span>
+<span class="n">model_dict</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">][</span><span class="s2">&quot;Modules&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;ABM_modules&quot;</span><span class="p">)</span>
+
+<span class="c1">##### Gen cali information</span>
+<span class="c1"># Convert parameter sections in the model file (i.e., model_dict) to a list of</span>
+<span class="c1"># dataframes (df_list).</span>
+<span class="n">df_list</span><span class="p">,</span> <span class="n">df_name</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">write_model_to_df</span><span class="p">(</span><span class="n">model_dict</span><span class="p">,</span> <span class="n">key_option</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Pars&quot;</span><span class="p">])</span>
+<span class="c1"># Load the parameter bounds. The order of the list is corresponding to df_list.</span>
+<span class="n">par_bound_df_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bound_path</span><span class="p">,</span> <span class="s2">&quot;gwlf_par_bound.csv&quot;</span><span class="p">),</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bound_path</span><span class="p">,</span> <span class="s2">&quot;routing_par_bound.csv&quot;</span><span class="p">),</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bound_path</span><span class="p">,</span> <span class="s2">&quot;abm_par_bound_dm.csv&quot;</span><span class="p">),</span> <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+<span class="c1"># Initialize Convertor.</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="p">()</span>
+<span class="n">cali_inputs</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">gen_cali_inputs</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="n">df_list</span><span class="p">,</span> <span class="n">par_bound_df_list</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">formatter</span>
+
+<span class="c1"># Load inputs from pickle file.</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prj_path</span><span class="p">,</span> <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;TRB_inputs.pickle&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">)</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+<span class="c1">#%%</span>
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Calibration</span>
+<span class="c1"># =============================================================================</span>
+<span class="k">def</span> <span class="nf">cal_batch_indicator</span><span class="p">(</span><span class="n">period</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">df_obv</span><span class="p">,</span> <span class="n">df_sim</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute mean indicator over targets&quot;&quot;&quot;</span>
+    <span class="n">df_obv</span> <span class="o">=</span> <span class="n">df_obv</span><span class="p">[</span><span class="n">period</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">period</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">df_sim</span> <span class="o">=</span> <span class="n">df_sim</span><span class="p">[</span><span class="n">period</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">period</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">Indicator</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Indicator</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">df_i</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">cal_indicator_df</span><span class="p">(</span><span class="n">df_obv</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="n">df_sim</span><span class="p">[</span><span class="n">item</span><span class="p">],</span>
+                                            <span class="n">index_name</span><span class="o">=</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">df_i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">df_mean</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Mean&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">df_mean</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+    <span class="n">cali_wd</span><span class="p">,</span> <span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">info</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">)</span>
+
+    <span class="c1">##### individual -&gt; model</span>
+    <span class="c1"># Convert 1D array to a list of dataframes.</span>
+    <span class="n">df_list</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+    <span class="c1"># Feed dataframes in df_list to model dictionary.</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df_list</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">df_name</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">load_df_to_model_dict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Pars&quot;</span><span class="p">)</span>
+
+    <span class="c1">##### Run simuluation</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span>
+
+    <span class="c1">##### Get simulation data</span>
+    <span class="c1"># Streamflow of routing outlets.</span>
+    <span class="n">cali_target</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DLLO&quot;</span><span class="p">,</span> <span class="s2">&quot;WSLO&quot;</span><span class="p">]</span>
+    <span class="n">cali_period</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;1981-1-1&quot;</span><span class="p">,</span> <span class="s2">&quot;2005-12-31&quot;</span><span class="p">)</span>
+    <span class="n">vali_period</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;2006-1-1&quot;</span><span class="p">,</span> <span class="s2">&quot;2013-12-31&quot;</span><span class="p">)</span>
+    <span class="n">sim_Q_D</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">pd_date_index</span><span class="p">)[</span><span class="n">cali_target</span><span class="p">]</span>
+    <span class="c1"># Agents&#39; outputs stored in the data_collector.</span>
+    <span class="n">sim_Q_D</span><span class="p">[</span><span class="s2">&quot;DivAgt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">data_collector</span><span class="o">.</span><span class="n">DivAgt</span><span class="p">[</span><span class="s2">&quot;Diversion&quot;</span><span class="p">]</span>
+    <span class="n">sim_Q_D</span><span class="p">[</span><span class="s2">&quot;ResAgt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">data_collector</span><span class="o">.</span><span class="n">ResAgt</span><span class="p">[</span><span class="s2">&quot;Release&quot;</span><span class="p">]</span>
+    <span class="n">cali_target</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;DivAgt&quot;</span><span class="p">,</span> <span class="s2">&quot;ResAgt&quot;</span><span class="p">]</span>
+    <span class="c1"># Resample the daily simulation output to monthly and annually outputs.</span>
+    <span class="n">sim_Q_M</span> <span class="o">=</span> <span class="n">sim_Q_D</span><span class="p">[</span><span class="n">cali_target</span><span class="p">]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;MS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">sim_Q_Y</span> <span class="o">=</span> <span class="n">sim_Q_D</span><span class="p">[</span><span class="n">cali_target</span><span class="p">]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;YS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">df_cali_Q_D</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">cali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">sim_Q_D</span><span class="p">)</span>
+    <span class="n">df_cali_Q_M</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">cali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">sim_Q_M</span><span class="p">)</span>
+    <span class="n">df_cali_Q_Y</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">cali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">,</span> <span class="n">sim_Q_Y</span><span class="p">)</span>
+
+    <span class="n">df_vali_Q_D</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">vali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_D</span><span class="p">,</span> <span class="n">sim_Q_D</span><span class="p">)</span>
+    <span class="n">df_vali_Q_M</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">vali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_M</span><span class="p">,</span> <span class="n">sim_Q_M</span><span class="p">)</span>
+    <span class="n">df_vali_Q_Y</span> <span class="o">=</span> <span class="n">cal_batch_indicator</span><span class="p">(</span><span class="n">vali_period</span><span class="p">,</span> <span class="n">cali_target</span><span class="p">,</span> <span class="n">obv_Y</span><span class="p">,</span> <span class="n">sim_Q_Y</span><span class="p">)</span>
+
+    <span class="c1">##### Save output.txt</span>
+    <span class="c1"># Only exercute when ga.run_individual(ga.solution)</span>
+    <span class="k">if</span> <span class="n">current_generation</span> <span class="o">==</span> <span class="s2">&quot;best&quot;</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;cali_indiv_&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Annual cali/vali result</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_cali_Q_Y</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_vali_Q_Y</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Monthly cali/vali result</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_cali_Q_M</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_vali_Q_M</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Daily cali/vali result</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_cali_Q_D</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df_vali_Q_D</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=========================================================</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Sol:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">cali_inputs</span><span class="p">[</span><span class="s2">&quot;par_name&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="n">fitness</span> <span class="o">=</span> <span class="n">df_cali_Q_M</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;Mean&quot;</span><span class="p">,</span> <span class="s2">&quot;KGE&quot;</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">fitness</span><span class="p">,)</span>
+
+<span class="c1"># cali.helper()</span>
+<span class="c1"># cali.get_config_template()</span>
+<span class="c1"># cali.get_inputs_template()</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;min_or_max&#39;</span><span class="p">:</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span>
         <span class="s1">&#39;pop_size&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
@@ -137,26 +412,27 @@
         <span class="s1">&#39;print_level&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s1">&#39;plot&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 
-<span class="n">cali_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;par_name&quot;</span><span class="p">:</span>    <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;par_bound&quot;</span><span class="p">:</span>   <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]],</span>
-            <span class="s2">&quot;wd&quot;</span><span class="p">:</span>          <span class="s2">&quot;working directory&quot;</span><span class="p">}</span>
+<span class="c1"># Calibrate with 3 seeds.</span>
+<span class="n">seeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">13</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">:</span>
+    <span class="n">rn_gen</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">create_rn_gen</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">ga</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">GA_DEAP</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">rn_gen</span><span class="p">)</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Cali_gwlf_abm_KGE_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">ga</span><span class="o">.</span><span class="n">run_individual</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>  <span class="c1"># Output performance (.txt) of solution.</span>
 
-<span class="n">seed</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">rn_gen</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">create_rn_gen</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>  <span class="c1"># Optional</span>
-<span class="n">ga</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">GA_DEAP</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">rn_gen</span><span class="p">)</span>
-<span class="n">ga</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Cali_example&quot;</span><span class="p">)</span>
-<span class="n">ga</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="n">ga</span><span class="o">.</span><span class="n">run_individual</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>  <span class="c1"># Output performance (.txt) of solution.</span>
-<span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+    <span class="c1">##### Output the calibrated model.</span>
+    <span class="n">individual</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">solution</span>
+    <span class="n">df_list</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+    <span class="n">model_best</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df_list</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">df_name</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">load_df_to_model_dict</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Pars&quot;</span><span class="p">)</span>
+    <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">write_model</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;Best_gwlf_abm_KGE.yaml&quot;</span><span class="p">))</span>
+
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
 </pre></div>
 </div>
-</section>
-<section id="converter">
-<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h2>
-</section>
-<section id="trb-calibration-example">
-<h2>TRB calibration example<a class="headerlink" href="#trb-calibration-example" title="Permalink to this headline"></a></h2>
 </section>
 </section>
 
