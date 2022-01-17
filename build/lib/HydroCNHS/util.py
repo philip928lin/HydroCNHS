@@ -6,7 +6,6 @@ import os
 import ast
 import itertools
 import logging
-import logging.config
 import traceback
 import numpy as np
 import pandas as pd
@@ -14,7 +13,7 @@ import yaml
 import ruamel.yaml          # For round trip modification (keep comments)
 from copy import deepcopy
 import importlib.util       # For importing customized module.
-logger = logging.getLogger("HydroCNHS.SC") 
+logger = logging.getLogger("HydroCNHS.sc") 
 
 
 #-----------------------------------------------

@@ -49,11 +49,12 @@ class Model(object):
         self.name = name
         if log_filename is not None:
             set_logging_config(log_filename)
-        
+            
+        # Get logger.
         if name is None:
-            self.logger = logging.getLogger("HydroCNHS") # Get logger 
+            self.logger = logging.getLogger("HydroCNHS")  
         else:
-            self.logger = logging.getLogger("HydroCNHS."+name) # Get logger 
+            self.logger = logging.getLogger("HydroCNHS."+name)
         
         # Parallelization setting 
         self.paral_setting = {"verbose": 0,
@@ -89,23 +90,26 @@ class Model(object):
         self.Q_routed = {}     # [cms] Streamflow for routing outlets.
         self.data_collector = Data_collector()  # For collecting ABM's data.
 
-    def load_weather_data(self, temp, prec, pet=None, lsm_outlets=None):
-        """Load temperature and precipitation data.
+    def load_weather_data(self, temp, prec, pet=None, pet_outlets=None):
+        """Load temperature, precipitation, and otential evapotranpiration data.
 
         Parameters
         ----------
         temp : dict
             [degC] Daily mean temperature time series data (value) for each
-            subbasin named by its outlet.
+            subbasin named by its outlet. E.g., {"subbasin1":[...], 
+            "subbasin2":[...]}
         prec : dict
             [cm] Daily precipitation time series data (value) for each 
-            subbasin named by its outlet.
+            subbasin named by its outlet. E.g., {"subbasin1":[...], 
+            "subbasin2":[...]}
         pet : dict, optional
             [cm] Daily potential evapotranpiration time series data (value) for
-            each subbasin named by its outlet, by default None
-        lsm_outlets : list, optional
+            each subbasin named by its outlet, by default None. E.g., 
+            {"subbasin1":[...], "subbasin2":[...]}
+        pet_outlets : list, optional
             Name list of subbasins' outlets (i.e., self.ws["Outlets"]), by
-            default None
+            default None.
         """
         ws = self.ws
         lsm = self.lsm
@@ -113,7 +117,7 @@ class Model(object):
         if pet is None:
             pet = {}
             # Default: calculate pet with Hamon's method and no dz adjustment.
-            for sb in lsm_outlets:
+            for sb in pet_outlets:
                 pet[sb] = cal_pet_Hamon(temp[sb],
                                         lsm[sb]["Inputs"]["Latitude"],
                                         ws["StartDate"], dz=None)
@@ -137,7 +141,7 @@ class Model(object):
             [cm] Potential evapotranspiration, by
             default None. If none, pet is calculted by Hamon's method.
         assigned_Q : dict, optional
-            [cms] If user want to manually assign Q for certain outlet
+            [cms] If user want to manually assign Q for certain outlets
             {"outlet": array}, by default {}.
         assigned_UH : dict, optional
             If user want to manually assign UH (Lohmann) for certain outlet
@@ -183,8 +187,9 @@ class Model(object):
         # HydroCNHS and store them under the UserModules class. Then, User 
         # object is created for HydroCNHS to apply those user-defined classes.
         # We use eval() to turn string into python variable.
-        # Detailed instruction for designing proper modules for HydroCNHS, 
-        # please check the documentation. Certain protocals have to be followed.
+        # Please check the documentation for detailed instructions for 
+        # designing proper modules for HydroCNHS,. Certain protocals have to be
+        # followed.
         
         self.agents = {}     # Store all agent objects with key = agentname.
         self.DM_classes = {} # Store all DM function Ex {"DMFunc": DMFunc()}
@@ -225,7 +230,7 @@ class Model(object):
                         logger.error(e)
                         raise Error("Fail to load {}.\n".format(dmclass)
                                     +"Make sure the class is well-defined in "
-                                    +"given modules.")
+                                    +"given modules.") from e
             
             # Initialize agent action groups ----------------------------------
             # The agent action groups is different from the DMFunc. Action 
@@ -291,7 +296,7 @@ class Model(object):
                                     "Fail to load {} for {}.".format(ag_type,
                                                                      agG)
                                     +"\nMake sure the class is well-defined "
-                                    +"in given modules.")
+                                    +"in given modules.") from e1
             else:
                 ag_group = []
                 
@@ -337,7 +342,7 @@ class Model(object):
                             raise Error(
                                 "Fail to load {} for {}.".format(ag_type, ag)
                                 +"\nMake sure the class is well-defined in "
-                                +"given modules.")
+                                +"given modules.") from e1
         
         # ----- Land surface simulation ---------------------------------------
         self.Q_LSM = {}
@@ -354,9 +359,9 @@ class Model(object):
                     if sb in assigned_Q:
                         # No in-grid routing.
                         routing[ro][sb]["Pars"]["GShape"] = None  
-                        routing[ro][sb]["Pars"]["GRate"] = None   
+                        routing[ro][sb]["Pars"]["GScale"] = None   
                         logger.info(
-                            "Turn {}'s GShape and GRate to ".format((sb, ro))
+                            "Turn {}'s GShape and GScale to ".format((sb, ro))
                             +"None in the routing setting. There is no "
                             +"in-grid time lag with given observed Q.")
         
@@ -444,7 +449,7 @@ class Model(object):
                                 "Cannot process routing of conveying agents "
                                 +"since {} unit hydrograph is assigned. We will "
                                 +"use the assigned UH for simulation; however, "
-                                +"the results might not be correct.".format(uh))
+                                +"the results might not be accurate.".format(uh))
                             UH_Lohmann_convey = UH_Lohmann[uh]
                         else:
                             UH_convey_List.append(uh)
@@ -553,7 +558,7 @@ class Model(object):
                                     Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 Q_routed[o][t] += delta
-                                # For routing outlet in-grid routing.
+                                # For routing outlet within-subbasin routing.
                                 Q_LSM[o][t] += delta
                                 
                         if insitu_ags_minus is not None:
@@ -562,20 +567,20 @@ class Model(object):
                                     Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 Q_routed[o][t] += delta
-                                # For routing outlet in-grid routing.
+                                # For routing outlet within-subbasin routing.
                                 Q_LSM[o][t] += delta
                                 
                         if river_div_ags_plus is not None:    
                             # e.g., add return flow
                             for ag, o in river_div_ags_plus:
                                 # self.Q_LSM + return flow   
-                                # return flow will join the in-grid routing. 
+                                # return flow will join the within-subbasin routing. 
                                 delta = agents[ag].act(
                                     Q=Q_routed, outlet=o, agent_dict=agents,
                                     current_date=current_date, t=t)
                                 # For returning to other outlets.
                                 Q_routed[o][t] += delta
-                                # For routing outlet in-grid routing.
+                                # For routing outlet within-subbasin routing.
                                 Q_LSM[o][t] += delta
                     
                     elif dam_ags_plus is not None:

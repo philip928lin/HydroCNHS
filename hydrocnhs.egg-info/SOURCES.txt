@@ -82,6 +82,7 @@ docs/_build/html/.doctrees/source/HydroCNHS.calibration.doctree
 docs/_build/html/.doctrees/source/HydroCNHS.doctree
 docs/_build/html/.doctrees/source/HydroCNHS.land_surface_model.doctree
 docs/_build/html/.doctrees/source/modules.doctree
+docs/_build/html/_images/CAWS.png
 docs/_build/html/_images/TRB.png
 docs/_build/html/_sources/HydroCNHS.calibration.rst.txt
 docs/_build/html/_sources/HydroCNHS.land_surface_model.rst.txt
@@ -142,6 +143,7 @@ docs/_build/html/source/HydroCNHS.calibration.html
 docs/_build/html/source/HydroCNHS.html
 docs/_build/html/source/HydroCNHS.land_surface_model.html
 docs/_build/html/source/modules.html
+docs/figs/CAWS.png
 docs/figs/TRB.png
 docs/source/HydroCNHS.calibration.rst
 docs/source/HydroCNHS.land_surface_model.rst
