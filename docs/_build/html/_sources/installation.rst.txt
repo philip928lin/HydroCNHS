@@ -1,6 +1,6 @@
 Installation
 =================
-Users can directly install HydroCNHS by pip.
+Install HydroCNHS by pip.
 
 .. code-block:: python
 
@@ -12,4 +12,4 @@ The other option is to manually install HydroCNHS, where users need to first clo
 
    python setup.py install
 
-Note if users would like to obtain the latest version (beta version), they should download the a package from the `HydroCNHS GitHub respository <https://github.com/philip928lin/HydroCNHS>`_ and install it manually.
+Note if users would like to obtain the latest version (beta version), they can download the a package from the `HydroCNHS GitHub respository <https://github.com/philip928lin/HydroCNHS>`_ and install it manually.

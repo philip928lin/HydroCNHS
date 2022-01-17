@@ -97,6 +97,14 @@
 </style>
 <section id="hydrocnhs-user-manual">
 <h1>HydroCNHS User Manual<a class="headerlink" href="#hydrocnhs-user-manual" title="Permalink to this headline"></a></h1>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="_images/CAWS.png"><img alt="Complex adaptive water system." src="_images/CAWS.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">A generic example of HydroCNHS coupling APIs and water system description.
+Note agents, R1, R2, D1, C1, C2, and I1, are programmed in ABM modules (.py)
+and integrated into HydroCNHS through APIs.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -104,20 +112,15 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick start!</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#run-a-simulation">Run a simulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#daily-weather-time-series">Daily weather time series</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#model-yaml">Model.yaml</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#path">1. Path</a></li>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#watersystem">2. WaterSystem</a></li>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#lsm">3. LSM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#routing">4. Routing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#abm-optional">5. ABM (optional)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html#systemparseddata-auto-generated">6. SystemParsedData (auto-generated)</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#model-yaml">Model.yaml</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#abm-module-s">ABM module(s)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="model_builder.html">Model builder</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how_to_build_abm.html">How to build a ABM module?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to_build_abm.html">How to build a ABM module?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how_to_build_abm.html#decision-making-class-v-s-agent-group">Decision-making class V.S. Agent group</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="calibration.html#genetic-algorithm-calibration-code-outline">Genetic algorithm calibration code outline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="calibration.html#converter">Converter</a></li>
@@ -125,11 +128,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="source/HydroCNHS.html">HydroCNHS package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="source/HydroCNHS.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="source/HydroCNHS.calibration.html">HydroCNHS.calibration package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="source/HydroCNHS.land_surface_model.html">HydroCNHS.land_surface_model package</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="source/HydroCNHS.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="source/HydroCNHS.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="source/HydroCNHS.html#module-HydroCNHS.abm">HydroCNHS.abm module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="source/HydroCNHS.html#module-HydroCNHS.data_collector">HydroCNHS.data_collector module</a></li>

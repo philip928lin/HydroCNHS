@@ -119,11 +119,11 @@
 <figure class="align-center" id="id1">
 <span id="trb"></span><a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 1 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
 Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
 PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
-irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system
-agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
+drainage system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by
@@ -184,11 +184,11 @@ script directly.</p>
 simulation. If potential evapotranspiration is not provided, HydroCNHS will
 automatically calculate it by Hamon method. The weather inputs are in a
 dictionary format shown below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;DAIRY&#39;, &#39;DLLO&#39;, &#39;RCTV&#39;, &#39;SCOO&#39;, &#39;TRGC&#39;, &#39;TRTR&#39;, and &#39;WSLO&#39; are subbasins&#39; names.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># &#39;DAIRY&#39;, &#39;DLLO&#39;, &#39;RCTV&#39;, &#39;HaggIn&#39;, &#39;TRGC&#39;, &#39;TRTR&#39;, and &#39;WSLO&#39; are subbasins&#39; names.</span>
 <span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;DAIRY&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.7</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;DLLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;RCTV&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
-        <span class="s1">&#39;SCOO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.1</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
+        <span class="s1">&#39;HaggIn&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.1</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;TRGC&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.7</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;TRTR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.9</span><span class="p">,</span> <span class="mf">6.9</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;WSLO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.8</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">]}</span>
@@ -299,7 +299,7 @@ material of (Lin et al., 2022).</p>
 <h3>4. Routing<a class="headerlink" href="#routing" title="Permalink to this headline"></a></h3>
 <p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and
 inter-subbasin routing process. We adpot a nested struture to setup the routing
-setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 1</span></a>), as shown below.</p>
+setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 2</span></a>), as shown below.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Routing</span><span class="p">:</span>
         <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
         <span class="c1"># WSLO, TRGC, DLLO, and HaggIn are four routing outlets.</span>
@@ -360,7 +360,8 @@ setting for each routing outlets (<a class="reference internal" href="#trb"><spa
 <section id="abm-optional">
 <h3>5. ABM (optional)<a class="headerlink" href="#abm-optional" title="Permalink to this headline"></a></h3>
 <p>ABM section is a highly customized setting section. Users will assign each
-active agent class to corresponding APIs.</p>
+active agent type class to corresponding APIs. After that, users will define
+agents created by each agent type class in a nested structure.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">ABM</span><span class="p">:</span>
         <span class="nt">Inputs</span><span class="p">:</span>
                 <span class="c1"># Assign user-defined agent classes to corresponding APIs. Here, we</span>
@@ -377,8 +378,8 @@ active agent class to corresponding APIs.</p>
                 <span class="nt">Modules</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">TRB_ABM_dm.py</span><span class="p p-Indicator">]</span>
                 <span class="c1"># Agent group is for agents make decisions and act together.</span>
                 <span class="nt">AgGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
-        <span class="nt">Pipe_AgType</span><span class="p">:</span>
-                <span class="nt">PipeAgt</span><span class="p">:</span>
+        <span class="nt">Pipe_AgType</span><span class="p">:</span>    <span class="c1"># Agent type class&#39;s name.</span>
+                <span class="nt">PipeAgt</span><span class="p">:</span>        <span class="c1"># Agent created by the above agent type class.</span>
                 <span class="nt">Attributes</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
                 <span class="nt">Inputs</span><span class="p">:</span>
                         <span class="nt">Piority</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
@@ -437,8 +438,8 @@ a single function in a ABM module, which users can define a more detailed
 interactions among agents in an agent group. See
 <a class="reference internal" href="how_to_build_abm.html#how-to-build-a-abm-module"><span class="std std-ref">How to build a ABM module?</span></a> for more details.</p>
 <p>Following the “Inputs” setting, we will define agent objects created by certain
-agent classes (defined in ABM modules). For example, we create Barney agent
-using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
+agent classes (defined in ABM modules). For example, we create PipeAgt agent
+using Pipe_AgType class. Under each agent object (e.g., PipeAgt), it has three
 sub-sections: “Attributes”, “Inputs”, and “Pars.”</p>
 <p><strong>a) Inputs</strong> are required information including “Piority”, “Links”, and “DMClass.”</p>
 <ul class="simple">
@@ -482,7 +483,7 @@ from the given outlet).</p>
 <li><p>DMClass:</p></li>
 </ul>
 <p>This is optional. If there is no specific decision-making class to be assigned,
-put “null” instead. Namely, users can code everything in “agent class.” See
+put “null” instead. Namely, users can code everything in “agent type class.” See
 <a class="reference internal" href="how_to_build_abm.html#how-to-build-a-abm-module"><span class="std std-ref">How to build a ABM module?</span></a> for more details.</p>
 <p><strong>b) Pars</strong> collects agents’ parameters for calibration. We
 offer two types of parameter formats:</p>

@@ -12,19 +12,19 @@ Genetic algorithm calibration code outline
 -------------------------------------------
 To use this genetic algorithm (GA) module, three things are required.
 
-1. evaluation function
+1. The evaluation function
    
-   The evaluation has to follow a certain protocal. Please see the example code
-   below.
+   The evaluation function has to follow a certain protocal. Please see the 
+   example code below.
 
-2. config dictionary
+2. GA configuration dictionary
    
-   The configuration dictionary template can be obtained by 
+   GA configuration dictionary template can be obtained by 
    cali.get_config_template().
 
-3. cali_inputs dictionary
+3. Calibration inputs dictionary
    
-   The inputs dictionary template can be obtained by 
+   The calibration inputs dictionary template can be obtained by 
    cali.get_inputs_template().
 
 .. note::
@@ -181,7 +181,7 @@ TRB calibration example
 -----------------------
 
 .. code-block:: python
-    
+
     import os
     import pandas as pd
     from copy import deepcopy

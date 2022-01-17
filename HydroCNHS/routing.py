@@ -39,7 +39,7 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     
     #----- Base Time for within subbasin UH and river/channel
     # routing UH --------------------------------------------------------------
-    # In-grid routing
+    # Within-subbasin routing
     T_IG = 12				# [day] Base time for within subbasin UH 
     # River routing 
     T_RR = 96				# [day] Base time for river routing UH 
@@ -50,7 +50,7 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     Tgr_hr = 48 * 50		# [hr] Base time for Green function values
     #--------------------------------------------------------------------------
     
-    #----- In-grid routing UH (daily) represented by Gamma distribution -------
+    #----- Within-subbasin routing UH (daily) represented by Gamma distribution
     UH_IG = np.zeros(T_IG)
     if instream_control or force_ingrid_off:
         # No time delay for within subbasin routing when the water is released 
@@ -65,7 +65,6 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
         UH_IG[0] = 1
     else:
         shape = routing_pars["GShape"]
-        #Rate = routing_pars["GRate"]
         scale = routing_pars["GScale"]
         if scale <= 0.0001: 
             scale = 0.0001    # Since we cannot divide zero.

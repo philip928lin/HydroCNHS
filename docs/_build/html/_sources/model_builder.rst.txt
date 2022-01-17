@@ -176,12 +176,13 @@ required :ref:`calibration<Calibration>`.
         Modules: []
         AgGroup: null
 
-After filling in the necessary information, we will obtain a model template 
-(see below) ready to be calibrated (i.e., those -99 values).
+After filling in the necessary information (e.g., Inputs and ABM settings, we 
+will obtain a model template (see below) ready to be calibrated (i.e., those 
+-99 values).
 
 .. code-block:: yaml
 
-    Path: {WD: '', Modules: abm_module path}
+    Path: {WD: working directory, Modules: abm_module path}
     WaterSystem:
     StartDate: 1981/1/1
     EndDate: 2013/12/31

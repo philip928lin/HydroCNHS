@@ -13,8 +13,9 @@ The TRB tutorial codes are located at **./HydroCNHS/tutorials/Tualatin River Bas
   The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, 
   Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. 
   PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and 
-  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two drainage system 
-  agents for the runoff-changing scenario.
+  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two 
+  drainage system agents for the runoff-changing scenario.
+  
   
 The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by 
 densely populated area (20%), agricultural area (30%), and forest (50%) 
@@ -34,6 +35,7 @@ Run a simulation
 Assuming we have already calibrated the TRB model, let's take one minute to 
 browse through the following simulation code. Then, you should be able run the 
 script directly.
+
 
 .. code-block:: python
 
@@ -83,11 +85,11 @@ dictionary format shown below.
 
 .. code-block:: python
 
-	# 'DAIRY', 'DLLO', 'RCTV', 'SCOO', 'TRGC', 'TRTR', and 'WSLO' are subbasins' names.
+	# 'DAIRY', 'DLLO', 'RCTV', 'HaggIn', 'TRGC', 'TRTR', and 'WSLO' are subbasins' names.
 	temp = {'DAIRY': [7.7, 7.0, 6.6, 6.3, .......],
 		'DLLO': [7.9, 7.5, 7.1, 6.1, .......],
 		'RCTV': [8.0, 7.8, 7.8, 7.5, .......],
-		'SCOO': [8.1, 7.4, 7.0, 6.2, .......],
+		'HaggIn': [8.1, 7.4, 7.0, 6.2, .......],
 		'TRGC': [5.7, 5.5, 5.1, 4.0, .......],
 		'TRTR': [7.9, 6.9, 6.5, 6.1, .......],
 		'WSLO': [7.8, 7.4, 7.3, 7.3, .......]}
@@ -268,7 +270,8 @@ setting for each routing outlets (:numref:`TRB`), as shown below.
 5. ABM (optional)
 ^^^^^^^^^^^^^^^^^^^
 ABM section is a highly customized setting section. Users will assign each 
-active agent class to corresponding APIs.
+active agent type class to corresponding APIs. After that, users will define 
+agents created by each agent type class in a nested structure.
 
 .. code-block:: yaml
 
@@ -288,8 +291,8 @@ active agent class to corresponding APIs.
 			Modules: [TRB_ABM_dm.py]
 			# Agent group is for agents make decisions and act together.
 			AgGroup: null
-		Pipe_AgType:
-			PipeAgt:
+		Pipe_AgType:	# Agent type class's name.
+			PipeAgt:	# Agent created by the above agent type class.
 			Attributes: {}
 			Inputs:
 				Piority: 0
@@ -349,8 +352,8 @@ interactions among agents in an agent group. See
 :ref:`How to build a ABM module?<How to build a ABM module?>` for more details.
 
 Following the "Inputs" setting, we will define agent objects created by certain
-agent classes (defined in ABM modules). For example, we create Barney agent 
-using Pipe_AgType class. Under each agent object (e.g., Barney), it has three
+agent classes (defined in ABM modules). For example, we create PipeAgt agent 
+using Pipe_AgType class. Under each agent object (e.g., PipeAgt), it has three
 sub-sections: "Attributes", "Inputs", and "Pars." 
 
 **a) Inputs** are required information including "Piority", "Links", and "DMClass." 
@@ -408,7 +411,7 @@ from the given outlet).
 * DMClass:
 
 This is optional. If there is no specific decision-making class to be assigned,
-put "null" instead. Namely, users can code everything in "agent class." See 
+put "null" instead. Namely, users can code everything in "agent type class." See 
 :ref:`How to build a ABM module?<How to build a ABM module?>` for more details.
 
 **b) Pars** collects agents' parameters for calibration. We 

@@ -6,8 +6,18 @@
 HydroCNHS User Manual
 =====================================
 
+.. figure:: ./figs/CAWS.png
+  :align: center
+  :width: 500
+  :alt: Complex adaptive water system. 
+
+  A generic example of HydroCNHS coupling APIs and water system description. 
+  Note agents, R1, R2, D1, C1, C2, and I1, are programmed in ABM modules (.py)
+  and integrated into HydroCNHS through APIs.
+
+
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
    
    installation

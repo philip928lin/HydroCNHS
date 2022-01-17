@@ -4,6 +4,12 @@ How to build a ABM module?
 HydroCNHS is designed to integrate multiple highly customized ABM modules, where users are able to create various agent type classes and decision-making classes. However, few design protocals have to be followed.
 
 Please see the following ABM module design example for the Tualatin River Basin.
+The script contains primary three parts:
+
+1. Import packages and set up logger.
+2. ABM global setting.
+3. Create agent type classes and decision-making classes.
+
 
 .. code-block:: python
 
@@ -389,3 +395,31 @@ Please see the following ABM module design example for the Tualatin River Basin.
     observed, we code the simple runoff changing calculation in the Drain_AgType()
     directly.
     """
+
+
+Decision-making class V.S. Agent group
+---------------------------------------
+* Decision-making class:
+  
+  Decision-making class should be used when multiple agent type class share a 
+  similar decision-making process. By seperating those calculations into a 
+  decision-making class, we could make the code concise and easier to maintain. 
+
+* Agent group:
+
+  The agent group should be used when multiple agents make decision 
+  simuteneously (not piority-based). For example, diversion agt_a, agt_b, and 
+  agt_c make the diversion requests together, where they share the water 
+  shortage together. To program this example, instead of define a **diversion 
+  agent class** to create three instances for agt_a, agt_b, and agt_c, 
+  repectively, users are required to define a **diversion agent group class**, 
+  which HydroCNHS will only create one instance from this agent group class to 
+  represent agt_a, agt_b, and agt_c. Namely, diversion agent group class will 
+  return different actions depending on outlet infomation, which is required 
+  users to code such statement explicitly. Note that the **config** sent to the 
+  agent group class is a dictionary of all members' configurations. E.g., 
+  config = {"agt_a": agt_a's config, "agt_b": agt_b's config, 
+  "agt_c": agt_c's config}. This config also apply to the 
+  **group decision-making class** if there is any.
+
+

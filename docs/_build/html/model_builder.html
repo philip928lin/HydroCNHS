@@ -126,7 +126,7 @@ River Basin (TRB).</p>
 <figure class="align-center" id="id1">
 <span id="trb"></span><a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
 <figcaption>
-<p><span class="caption-number">Fig. 2 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
 Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
 PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
 irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
@@ -260,9 +260,10 @@ required <a class="reference internal" href="calibration.html#calibration"><span
     <span class="nt">AgGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">null</span>
 </pre></div>
 </div>
-<p>After filling in the necessary information, we will obtain a model template
-(see below) ready to be calibrated (i.e., those -99 values).</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">WD</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p p-Indicator">,</span><span class="nt"> Modules</span><span class="p">:</span> <span class="nv">abm_module path</span><span class="p p-Indicator">}</span>
+<p>After filling in the necessary information (e.g., Inputs and ABM settings, we
+will obtain a model template (see below) ready to be calibrated (i.e., those
+-99 values).</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">WD</span><span class="p">:</span> <span class="nv">working directory</span><span class="p p-Indicator">,</span><span class="nt"> Modules</span><span class="p">:</span> <span class="nv">abm_module path</span><span class="p p-Indicator">}</span>
 <span class="nt">WaterSystem</span><span class="p">:</span>
 <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
 <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>

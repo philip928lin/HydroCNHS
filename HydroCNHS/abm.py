@@ -30,6 +30,9 @@ class Base():
 
 def read_factor(ag_config, outlet):
     """Read factor from agent's ag_config at a given outlet.
+    
+    The function will automatically parse the list-like value assignment. e.g., 
+    [ReturnFactor, 0, Plus].
 
     Parameters
     ----------

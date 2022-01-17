@@ -33,5 +33,5 @@ def get_inputs_template():
             "wd":          "working directory"} 
     print("\nNote:\n Converter() can assist users",
           "to get inputs and formattor that can convert individual",
-          "(1D array) back to Dataframe.")
+          "(1D array) back to a list of dataframes.")
     return inputs
