@@ -7,3 +7,4 @@ ruamel.yaml
 scipy
 sklearn
 tqdm
+pyyaml

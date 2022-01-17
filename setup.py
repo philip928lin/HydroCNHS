@@ -18,7 +18,7 @@ setup(name='hydrocnhs',
       license='GPL-3.0 License',
       packages=['HydroCNHS'],
       install_requires = ["ruamel.yaml", "tqdm", "numpy", "pandas", "joblib",
-                          "scipy", "matplotlib", "sklearn", "deap"],
+                          "scipy", "matplotlib", "sklearn", "deap","pyyaml"],
       classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Framework :: IPython",
