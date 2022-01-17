@@ -25,7 +25,7 @@ HydroCNHS User Manual
    model_builder
    how_to_build_abm
    calibration
-   ./source/HydroCNHS
+   ./source/modules
 
 
 Indices and tables

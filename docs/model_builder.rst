@@ -31,7 +31,6 @@ Then, we follow the print out instructions to create a model template.
 Here, we demonstrate how to create a coupled model template for the Tualatin 
 River Basin (TRB).
 
-.. _TRB:
 .. figure:: ./figs/TRB.png
   :align: center
   :width: 500
