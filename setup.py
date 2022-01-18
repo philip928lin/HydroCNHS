@@ -8,7 +8,7 @@ HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
 setup(name='hydrocnhs',
-      version='0.0.1',
+      version='0.0.2',
       description='A Python Package of Hydrological Model for Coupled Natural Human Systems.',
       long_description=README,
       long_description_content_type="text/markdown",
