@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(name='hydrocnhs',
       version='0.0.2',
-      description='A Python Package of Hydrological Model for Coupled Natural Human Systems.',
+      description='A Python Package of Hydrological Model for Coupled Natural–Human Systems.',
       long_description=README,
       long_description_content_type="text/markdown",
       url='https://github.com/philip928lin/HydroCNHS',
