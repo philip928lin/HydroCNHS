@@ -13,6 +13,11 @@ Modeling Coupled Natural–Human Systems (CNHS) to inform comprehensive water re
 ```
 pip install hydrocnhs
 ```
+If you fail to install hydrocnhs due to deap package, please downgrade setuptool to 57 by
+```
+pip install setuptools==57
+```
+Now install hydrochns again.
 
 ## User Manual & Example
 Click [here](https://hydrocnhs.readthedocs.io/en/latest/?badge=latest)!
