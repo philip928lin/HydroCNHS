@@ -149,6 +149,8 @@
 <dt class="sig sig-object py" id="HydroCNHS.abm.read_factor">
 <span class="sig-prename descclassname"><span class="pre">HydroCNHS.abm.</span></span><span class="sig-name descname"><span class="pre">read_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ag_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.abm.read_factor" title="Permalink to this definition"></a></dt>
 <dd><p>Read factor from agent’s ag_config at a given outlet.</p>
+<p>The function will automatically parse the list-like value assignment. e.g., 
+[ReturnFactor, 0, Plus].</p>
 <dl class="simple">
 <dt>ag_config<span class="classifier">dict</span></dt><dd><p>Agent’s configuration.</p>
 </dd>
@@ -227,20 +229,23 @@ by default True</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="HydroCNHS.hydrocnhs.Model.load_weather_data">
-<span class="sig-name descname"><span class="pre">load_weather_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lsm_outlets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.hydrocnhs.Model.load_weather_data" title="Permalink to this definition"></a></dt>
-<dd><p>Load temperature and precipitation data.</p>
+<span class="sig-name descname"><span class="pre">load_weather_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet_outlets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.hydrocnhs.Model.load_weather_data" title="Permalink to this definition"></a></dt>
+<dd><p>Load temperature, precipitation, and otential evapotranpiration data.</p>
 <dl class="simple">
 <dt>temp<span class="classifier">dict</span></dt><dd><p>[degC] Daily mean temperature time series data (value) for each
-subbasin named by its outlet.</p>
+subbasin named by its outlet. E.g., {“subbasin1”:[…], 
+“subbasin2”:[…]}</p>
 </dd>
 <dt>prec<span class="classifier">dict</span></dt><dd><p>[cm] Daily precipitation time series data (value) for each 
-subbasin named by its outlet.</p>
+subbasin named by its outlet. E.g., {“subbasin1”:[…], 
+“subbasin2”:[…]}</p>
 </dd>
 <dt>pet<span class="classifier">dict, optional</span></dt><dd><p>[cm] Daily potential evapotranpiration time series data (value) for
-each subbasin named by its outlet, by default None</p>
+each subbasin named by its outlet, by default None. E.g., 
+{“subbasin1”:[…], “subbasin2”:[…]}</p>
 </dd>
-<dt>lsm_outlets<span class="classifier">list, optional</span></dt><dd><p>Name list of subbasins’ outlets (i.e., self.ws[“Outlets”]), by
-default None</p>
+<dt>pet_outlets<span class="classifier">list, optional</span></dt><dd><p>Name list of subbasins’ outlets (i.e., self.ws[“Outlets”]), by
+default None.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -257,7 +262,7 @@ default None</p>
 <dt>pet<span class="classifier">dict, optional</span></dt><dd><p>[cm] Potential evapotranspiration, by
 default None. If none, pet is calculted by Hamon’s method.</p>
 </dd>
-<dt>assigned_Q<span class="classifier">dict, optional</span></dt><dd><p>[cms] If user want to manually assign Q for certain outlet
+<dt>assigned_Q<span class="classifier">dict, optional</span></dt><dd><p>[cms] If user want to manually assign Q for certain outlets
 {“outlet”: array}, by default {}.</p>
 </dd>
 <dt>assigned_UH<span class="classifier">dict, optional</span></dt><dd><p>If user want to manually assign UH (Lohmann) for certain outlet
