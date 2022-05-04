@@ -5,7 +5,7 @@ from setuptools import setup
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+README = (HERE / "README.md", "r", encoding='utf8').read_text()
 
 setup(name='hydrocnhs',
       version='0.0.2',

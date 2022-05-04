@@ -100,6 +100,11 @@ def write_model(model_dict, filename, org_model=None):
         Output filename (e.g. model.yaml).
     org_model : str, optional
         Original model name (e.g. org_model.yaml), by default None.
+        
+    Note
+    ----------
+    Common error :
+        1. value type is numpy.float64 => convert it to float.
     """
     if org_model is not None:   # Contain comments in the original model file.
         # Defaults to round-trip if no parameters given

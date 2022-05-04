@@ -182,10 +182,11 @@ class ModelBuilder(object):
         
         # Turn of within-subbasin routing if upstream outlets of other routing 
         # are routing_outlet (this newly added one).
-        for ro in list(self.Model["Routing"].keys()):
+        routing_outlets = list(self.Model["Routing"].keys())
+        for ro in routing_outlets:
             if ro != "Model":
                 for o in list(self.Model["Routing"][ro].keys()):
-                    if ro != routing_outlet and o == routing_outlet:
+                    if o in routing_outlets and o != ro:
                         self.Model["Routing"][ro][o]["Pars"]["GShape"] = None
                         self.Model["Routing"][ro][o]["Pars"]["GScale"] = None
                     
