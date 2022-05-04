@@ -6,7 +6,7 @@ Install HydroCNHS by pip.
 
    pip install hydrocnhs
 
-If you fail to install hydrocnhs due to deap package, please downgrade setuptools to 57 by
+If you fail to install hydrocnhs due to DEAP package, please downgrade setuptools to 57 by
 
 .. code-block:: python
 
@@ -14,16 +14,9 @@ If you fail to install hydrocnhs due to deap package, please downgrade setuptool
 
 Now install hydrochns again.
 
-Or, you can install the newest version from github by:
+if users would like to obtain the latest version (beta version), you can install the latest version from `HydroCNHS GitHub respository <https://github.com/philip928lin/HydroCNHS>`_ by:
 
 .. code-block:: python
 
-   pip install git+https://github.com/philip928lin/HydroCNHS@master
+   pip install git+https://github.com/philip928lin/HydroCNHS.git
 
-The other option is to manually install HydroCNHS, where users need to first clone or download the package from the `HydroCNHS GitHub respository <https://github.com/philip928lin/HydroCNHS>`_. Next, unzip the downloaded file. Next, open a terminal or the conda prompt and move to the directory containing setup.py. Then, users can install the package by the following command.
-
-.. code-block:: python
-
-   python setup.py install
-
-Note if users would like to obtain the latest version (beta version), they can download the a package from the `HydroCNHS GitHub respository <https://github.com/philip928lin/HydroCNHS>`_ and install it manually.
