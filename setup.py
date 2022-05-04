@@ -7,7 +7,7 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 #README = (HERE / "README.md", "r", encoding='utf8').read_text()
 with open("README.md", "r", encoding='utf8') as fh:
-  README = fh.read_text()
+  README = fh.read()
   
     
 setup(name='hydrocnhs',
