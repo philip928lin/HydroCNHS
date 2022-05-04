@@ -5,8 +5,11 @@ from setuptools import setup
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md", "r", encoding='utf8').read_text()
-
+#README = (HERE / "README.md", "r", encoding='utf8').read_text()
+with open("README.md", "r", encoding='utf8') as fh:
+  README = fh.read_text()
+  
+    
 setup(name='hydrocnhs',
       version='0.0.2',
       description='A Python Package of Hydrological Model for Coupled Natural–Human Systems.',
@@ -18,7 +21,7 @@ setup(name='hydrocnhs',
       license='GPL-3.0 License',
       packages=['HydroCNHS'],
       install_requires = ["ruamel.yaml", "tqdm", "numpy", "pandas", "joblib",
-                          "scipy", "matplotlib", "sklearn", "deap","pyyaml"],
+                          "scipy", "matplotlib", "sklearn","pyyaml"],
       classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Framework :: IPython",
