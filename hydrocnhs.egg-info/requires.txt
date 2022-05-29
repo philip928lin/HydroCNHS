@@ -6,5 +6,5 @@ joblib
 scipy
 matplotlib
 sklearn
-deap
 pyyaml
+deap

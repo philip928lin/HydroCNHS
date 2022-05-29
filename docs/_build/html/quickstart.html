@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick start! &mdash; HydroCNHS  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Quick start! &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -38,7 +35,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start!</a><ul>
@@ -86,20 +83,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="quick-start">
-<h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
+  <div class="section" id="quick-start">
+<h1>Quick start!<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
 <p>Let’s start with running a simulation using the Tualatin River Basin (TRB) example!</p>
 <p>The TRB tutorial codes are located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong></p>
-<figure class="align-center" id="id1">
+<div class="figure align-center" id="id1">
 <span id="trb"></span><a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
-<figcaption>
-<p><span class="caption-number">Fig. 2 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
 Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
 PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
 irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
-drainage system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
-</figcaption>
-</figure>
+drainage system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
 <p>The TRB, consisting of 1844.07 km2 in northwest Oregon, US, is covered by
 densely populated area (20%), agricultural area (30%), and forest (50%)
 (Tualatin River Watershed Council, 2021). Its agriculture heavily relies on
@@ -111,8 +106,8 @@ summer period, water is transferred from the Barney reservoir (outside of the
 TRB) through a trans-basin aqueduct (PipeAgt) to augment the low flow for
 ecological purposes.</p>
 <p>The full background of the TRB can be found in Lin et al., (2022).</p>
-<section id="run-a-simulation">
-<h2>Run a simulation<a class="headerlink" href="#run-a-simulation" title="Permalink to this headline"></a></h2>
+<div class="section" id="run-a-simulation">
+<h2>Run a simulation<a class="headerlink" href="#run-a-simulation" title="Permalink to this headline">¶</a></h2>
 <p>Assuming we have already calibrated the TRB model, let’s take one minute to
 browse through the following simulation code. Then, you should be able run the
 script directly.</p>
@@ -151,9 +146,9 @@ script directly.</p>
 <li><p>User-provided ABM module(s) (e.g., TRB_ABM_dm.py). This is not required for pure hydrological model, non-coupled model.</p></li>
 </ol>
 <p>Now, we are going to introduce these three items in a more detail.</p>
-</section>
-<section id="daily-weather-time-series">
-<h2>Daily weather time series<a class="headerlink" href="#daily-weather-time-series" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="daily-weather-time-series">
+<h2>Daily weather time series<a class="headerlink" href="#daily-weather-time-series" title="Permalink to this headline">¶</a></h2>
 <p>Temperture and precipitation are two required weather inputs for the
 simulation. If potential evapotranspiration is not provided, HydroCNHS will
 automatically calculate it by Hamon method. The weather inputs are in a
@@ -171,14 +166,14 @@ dictionary format shown below.</p>
 </div>
 <p>The dictionary will contain weather time series (i.e., a list) for each
 subbasin. The length of each time series has to be identical.</p>
-</section>
-<section id="model-yaml">
-<h2>Model.yaml<a class="headerlink" href="#model-yaml" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="model-yaml">
+<h2>Model.yaml<a class="headerlink" href="#model-yaml" title="Permalink to this headline">¶</a></h2>
 <p>The model file (.yaml) contains settings for hydrological model (e.g.,
 rainfall-runoff and routing) and ABM model (e.g., how to coupled).
 The model file has six sections:</p>
-<section id="path">
-<h3>1. Path<a class="headerlink" href="#path" title="Permalink to this headline"></a></h3>
+<div class="section" id="path">
+<h3>1. Path<a class="headerlink" href="#path" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Path for working directory (outputing log file) and user-provided ABM</span>
 <span class="c1"># modules (optional).</span>
 <span class="nt">Path</span><span class="p">:</span> <span class="p p-Indicator">{</span>
@@ -186,9 +181,9 @@ The model file has six sections:</p>
 <span class="nt">  Modules</span><span class="p">:</span> <span class="s">&#39;ABM</span><span class="nv"> </span><span class="s">module</span><span class="nv"> </span><span class="s">path&#39;</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-</section>
-<section id="watersystem">
-<h3>2. WaterSystem<a class="headerlink" href="#watersystem" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="watersystem">
+<h3>2. WaterSystem<a class="headerlink" href="#watersystem" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">WaterSystem</span><span class="p">:</span>
         <span class="nt">StartDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1981/1/1</span>
         <span class="nt">EndDate</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2013/12/31</span>
@@ -201,9 +196,9 @@ The model file has six sections:</p>
 </pre></div>
 </div>
 <p>DataLength can be automatically calculated if EndDate is provided, vice versa.</p>
-</section>
-<section id="lsm">
-<h3>3. LSM<a class="headerlink" href="#lsm" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="lsm">
+<h3>3. LSM<a class="headerlink" href="#lsm" title="Permalink to this headline">¶</a></h3>
 <p>HydroCNHS provides user two rainfall-runoff simulation options, General
 Water Loading Function (GWLF; 9 parameters) and ABCD (5 parameters). Their
 settings are shown below.</p>
@@ -268,9 +263,9 @@ material of (Lin et al., 2022).</p>
                 <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span> <span class="nv">0.777</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span> <span class="nv">307.23</span><span class="p p-Indicator">,</span><span class="nt"> c</span><span class="p">:</span> <span class="nv">0.453</span><span class="p p-Indicator">,</span><span class="nt"> d</span><span class="p">:</span> <span class="nv">0.638</span><span class="p p-Indicator">,</span><span class="nt"> Df</span><span class="p">:</span> <span class="nv">0.159</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-</section>
-<section id="routing">
-<h3>4. Routing<a class="headerlink" href="#routing" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="routing">
+<h3>4. Routing<a class="headerlink" href="#routing" title="Permalink to this headline">¶</a></h3>
 <p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and
 inter-subbasin routing process. We adpot a nested struture to setup the routing
 setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 2</span></a>), as shown below.</p>
@@ -330,9 +325,9 @@ setting for each routing outlets (<a class="reference internal" href="#trb"><spa
                         <span class="nt">Pars</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nt">GShape</span><span class="p">:</span> <span class="nv">49.412</span><span class="p p-Indicator">,</span><span class="nt"> GScale</span><span class="p">:</span> <span class="nv">1.774</span><span class="p p-Indicator">,</span><span class="nt"> Velo</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">,</span><span class="nt"> Diff</span><span class="p">:</span> <span class="nv">null</span><span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-</section>
-<section id="abm-optional">
-<h3>5. ABM (optional)<a class="headerlink" href="#abm-optional" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="abm-optional">
+<h3>5. ABM (optional)<a class="headerlink" href="#abm-optional" title="Permalink to this headline">¶</a></h3>
 <p>ABM section is a highly customized setting section. Users will assign each
 active agent type class to corresponding APIs. After that, users will define
 agents created by each agent type class in a nested structure.</p>
@@ -467,9 +462,9 @@ offer two types of parameter formats:</p>
 </ol>
 <p><strong>c) Attributes</strong> is a space for users to store any other information for their
 agents’ calculation that is not belong to “Pars” or “Inputs.”</p>
-</section>
-<section id="systemparseddata-auto-generated">
-<h3>6. SystemParsedData (auto-generated)<a class="headerlink" href="#systemparseddata-auto-generated" title="Permalink to this headline"></a></h3>
+</div>
+<div class="section" id="systemparseddata-auto-generated">
+<h3>6. SystemParsedData (auto-generated)<a class="headerlink" href="#systemparseddata-auto-generated" title="Permalink to this headline">¶</a></h3>
 <p>This section will be automatically generated by HydroCNHS. The model file don’t
 need to include this section.</p>
 <div class="admonition note">
@@ -477,10 +472,10 @@ need to include this section.</p>
 <p><a class="reference internal" href="model_builder.html#model-builder"><span class="std std-ref">ModelBuilder</span></a> can help you to create an initial model
 template! Check it out!</p>
 </div>
-</section>
-</section>
-<section id="abm-module-s">
-<h2>ABM module(s)<a class="headerlink" href="#abm-module-s" title="Permalink to this headline"></a></h2>
+</div>
+</div>
+<div class="section" id="abm-module-s">
+<h2>ABM module(s)<a class="headerlink" href="#abm-module-s" title="Permalink to this headline">¶</a></h2>
 <p>Agent-based model (ABM) is an user-provided human model. HydroCNHS support
 multiple ABM modules to be used at a single simulation. In the ABM module,
 users have 100% of freedom to design agent class (e.g., irrigation diversion
@@ -493,8 +488,8 @@ instructions.</p>
 <p>If you only need a hydrological model and do not require any human
 components, then you can skip this ABM part!</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

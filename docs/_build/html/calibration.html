@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calibration &mdash; HydroCNHS  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Calibration &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -37,7 +34,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick start!</a></li>
@@ -76,8 +73,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="calibration">
-<h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline"></a></h1>
+  <div class="section" id="calibration">
+<h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">¶</a></h1>
 <p>HydroCNHS equips with a genetic algorithm powered by Distributed Evolutionary
 Algorithms in Python (<a class="reference external" href="https://deap.readthedocs.io/en/master/">DEAP</a>), which
 can be used for calibration in parallel. The unique feature about HydroCNHS is
@@ -85,8 +82,8 @@ that both the parameters of the hydrological model and user-defined ABM can be
 calibrated simutaneously as long as those parameters are defined the model file
 (.yaml). Furthermore, users are allowed to assign initial guesses to the
 algorithm. Note that this GA module are not limited to HydroCNHS model.</p>
-<section id="genetic-algorithm-calibration-code-outline">
-<h2>Genetic algorithm calibration code outline<a class="headerlink" href="#genetic-algorithm-calibration-code-outline" title="Permalink to this headline"></a></h2>
+<div class="section" id="genetic-algorithm-calibration-code-outline">
+<h2>Genetic algorithm calibration code outline<a class="headerlink" href="#genetic-algorithm-calibration-code-outline" title="Permalink to this headline">¶</a></h2>
 <p>To use this genetic algorithm (GA) module, three things are required.</p>
 <ol class="arabic">
 <li><p>The evaluation function</p>
@@ -170,9 +167,9 @@ cali.get_inputs_template().</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="converter">
-<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="converter">
+<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline">¶</a></h2>
 <p>Convertor helps user to convert a list of parameter dataframes (can
 contain nan values) into an 1D array (parameters for calibration,
 automatically exclude nan values) that can be used for GA calibration.
@@ -247,9 +244,9 @@ Note that the dataframe index is parameter names.</p>
 <span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
-</section>
-<section id="trb-calibration-example">
-<h2>TRB calibration example<a class="headerlink" href="#trb-calibration-example" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="trb-calibration-example">
+<h2>TRB calibration example<a class="headerlink" href="#trb-calibration-example" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
@@ -408,8 +405,8 @@ Note that the dataframe index is parameter names.</p>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

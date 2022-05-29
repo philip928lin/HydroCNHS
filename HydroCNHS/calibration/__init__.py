@@ -14,7 +14,7 @@ def get_config_template():
         "pop_size":            100,    
         "num_ellite":          1,     
         "prob_cross":          0.5,  
-        "prob_mut":            0.1,   
+        "prob_mut":            0.15,   
         "stochastic":          False,  
         "max_gen":             100,    
         "sampling_method":     "LHC",  
@@ -28,10 +28,11 @@ def get_config_template():
     return config
 
 def get_inputs_template():
-    inputs = {"par_name":    ["a","b","c"],     
-            "par_bound":   [[1,2],[1,2],[1,2]],      
-            "wd":          "working directory"} 
+    inputs = {
+        "par_name":    ["a","b","c"],     
+        "par_bound":   [[1,2],[1,2],[1,2]],      
+        "wd":          "working directory"
+        } 
     print("\nNote:\n Converter() can assist users",
-          "to get inputs and formattor that can convert individual",
-          "(1D array) back to a list of dataframes.")
+          "to generate calibration inputs.")
     return inputs

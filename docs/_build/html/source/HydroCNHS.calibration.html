@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HydroCNHS.calibration package &mdash; HydroCNHS  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>HydroCNHS.calibration package &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="HydroCNHS.land_surface_model package" href="HydroCNHS.land_surface_model.html" />
+    <link rel="next" title="HydroCNHS.rainfall_runoff_model package" href="HydroCNHS.rainfall_runoff_model.html" />
     <link rel="prev" title="HydroCNHS package" href="HydroCNHS.html" /> 
 </head>
 
@@ -37,7 +34,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick start!</a></li>
@@ -53,11 +50,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-HydroCNHS.calibration">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.land_surface_model.html">HydroCNHS.land_surface_model package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html">HydroCNHS.rainfall_runoff_model package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#module-HydroCNHS.abm">HydroCNHS.abm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#module-HydroCNHS.abm_script">HydroCNHS.abm_script module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#module-HydroCNHS.data_collector">HydroCNHS.data_collector module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#module-HydroCNHS.hydrocnhs">HydroCNHS.hydrocnhs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HydroCNHS.html#module-HydroCNHS.indicators">HydroCNHS.indicators module</a></li>
@@ -95,20 +93,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="hydrocnhs-calibration-package">
-<h1>HydroCNHS.calibration package<a class="headerlink" href="#hydrocnhs-calibration-package" title="Permalink to this headline"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
-</section>
-<section id="module-HydroCNHS.calibration.convertor">
-<span id="hydrocnhs-calibration-convertor-module"></span><h2>HydroCNHS.calibration.convertor module<a class="headerlink" href="#module-HydroCNHS.calibration.convertor" title="Permalink to this headline"></a></h2>
+  <div class="section" id="hydrocnhs-calibration-package">
+<h1>HydroCNHS.calibration package<a class="headerlink" href="#hydrocnhs-calibration-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-HydroCNHS.calibration.convertor">
+<span id="hydrocnhs-calibration-convertor-module"></span><h2>HydroCNHS.calibration.convertor module<a class="headerlink" href="#module-HydroCNHS.calibration.convertor" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.convertor.Convertor">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.convertor.</span></span><span class="sig-name descname"><span class="pre">Convertor</span></span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.convertor.Convertor">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.convertor.</span></code><code class="sig-name descname"><span class="pre">Convertor</span></code><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.convertor.Convertor.gen_cali_inputs">
-<span class="sig-name descname"><span class="pre">gen_cali_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par_bound_df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_par_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.gen_cali_inputs" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.convertor.Convertor.gen_cali_inputs">
+<code class="sig-name descname"><span class="pre">gen_cali_inputs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par_bound_df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_par_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.gen_cali_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate inputs dictionary required for calibration.</p>
 <dl class="simple">
 <dt>wd<span class="classifier">str</span></dt><dd><p>Working directory.</p>
@@ -130,8 +128,8 @@ the number of dataframes.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.convertor.Convertor.gen_formatter">
-<span class="sig-name descname"><span class="pre">gen_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_par_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.gen_formatter" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.convertor.Convertor.gen_formatter">
+<code class="sig-name descname"><span class="pre">gen_formatter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_par_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.gen_formatter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate formatter for given list of dataframe objects. This is 
 already included in gen_cali_inputs().</p>
 <dl class="simple">
@@ -146,14 +144,14 @@ is corresponding to the number of dataframes.</p>
 </dd>
 </dl>
 <dl class="simple">
-<dt>dict</dt><dd><p>formattor.</p>
+<dt>dict</dt><dd><p>formatter.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.convertor.Convertor.to_1D_array">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_1D_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.to_1D_array" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.convertor.Convertor.to_1D_array">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">to_1D_array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.to_1D_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a list of dataframes to a 1D array.</p>
 <dl class="simple">
 <dt>df_list<span class="classifier">list</span></dt><dd><p>A list of parameter dataframes. Dataframe index is parameter names.</p>
@@ -169,8 +167,8 @@ stored in attributes of the Convertor object.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.convertor.Convertor.to_df_list">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_df_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.to_df_list" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.convertor.Convertor.to_df_list">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">to_df_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.convertor.Convertor.to_df_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert 1D array back to a list of dataframes.</p>
 <dl class="simple">
 <dt>var_array<span class="classifier">array</span></dt><dd><p>1D array.</p>
@@ -187,31 +185,31 @@ stored in attributes of the Convertor object.</p>
 
 </dd></dl>
 
-</section>
-<section id="module-HydroCNHS.calibration.ga_deap">
-<span id="hydrocnhs-calibration-ga-deap-module"></span><h2>HydroCNHS.calibration.ga_deap module<a class="headerlink" href="#module-HydroCNHS.calibration.ga_deap" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="module-HydroCNHS.calibration.ga_deap">
+<span id="hydrocnhs-calibration-ga-deap-module"></span><h2>HydroCNHS.calibration.ga_deap module<a class="headerlink" href="#module-HydroCNHS.calibration.ga_deap" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">GA_DEAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evaluation_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">GA_DEAP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evaluation_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.auto_save">
-<span class="sig-name descname"><span class="pre">auto_save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.auto_save" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.auto_save">
+<code class="sig-name descname"><span class="pre">auto_save</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.auto_save" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.find_best_and_record">
-<span class="sig-name descname"><span class="pre">find_best_and_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.find_best_and_record" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.find_best_and_record">
+<code class="sig-name descname"><span class="pre">find_best_and_record</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.find_best_and_record" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.gen_rn_gens">
-<span class="sig-name descname"><span class="pre">gen_rn_gens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.gen_rn_gens" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.gen_rn_gens">
+<code class="sig-name descname"><span class="pre">gen_rn_gens</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.gen_rn_gens" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GA_auto_save_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.load" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.load">
+<code class="sig-name descname"><span class="pre">load</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GA_auto_save_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load save pickle file (i.e., continue previous run).</p>
 <dl class="simple">
 <dt>GA_auto_save_file<span class="classifier">str</span></dt><dd><p>Filename.</p>
@@ -223,8 +221,8 @@ a longer searching, by default None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">guess_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.run" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.run">
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">guess_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run calibration.</p>
 <dl class="simple">
 <dt>guess_pop<span class="classifier">2darray, optional</span></dt><dd><p>Assigned initial guesses, by default None. guess_pop has the size =
@@ -234,8 +232,8 @@ a longer searching, by default None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.run_individual">
-<span class="sig-name descname"><span class="pre">run_individual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.run_individual" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.run_individual">
+<code class="sig-name descname"><span class="pre">run_individual</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'best'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.run_individual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the evaluation for a given individual.</p>
 <p>Warning! run_individual() does not generantee the same rn_gen will be
 assign to the evaluation, but the same one will be used for
@@ -250,8 +248,8 @@ run_individual()</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.GA_DEAP.set">
-<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Calibration'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.set" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.GA_DEAP.set">
+<code class="sig-name descname"><span class="pre">set</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formatter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Calibration'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.GA_DEAP.set" title="Permalink to this definition">¶</a></dt>
 <dd><p>Setup the GA calibration.</p>
 <dl class="simple">
 <dt>inputs<span class="classifier">dict</span></dt><dd><p>Calibration input dictionary generated by Convertor. Or, get the 
@@ -270,24 +268,24 @@ get_config_template().</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.cxUniform">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">cxUniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indpb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.cxUniform" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.cxUniform">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">cxUniform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ind1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indpb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.cxUniform" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.descale">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">descale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.descale" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.descale">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">descale</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.descale" title="Permalink to this definition">¶</a></dt>
 <dd><p>individual is 1d ndarray.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.gen_init_pop">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">gen_init_pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">creator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LHC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.gen_init_pop" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.gen_init_pop">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">gen_init_pop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">creator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'LHC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.gen_init_pop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.logger">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Logger</span> <span class="pre">HydroCNHS.GA</span> <span class="pre">(INFO)&gt;</span></em><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.logger" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.logger">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">logger</span></code><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Logger</span> <span class="pre">HydroCNHS.GA</span> <span class="pre">(INFO)&gt;</span></em><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.logger" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>inputs = {“par_name”:    [“a”,”b”,”c”],</dt><dd><p>“par_bound”:   [[0,1],[0,1],[0,1]],
 “wd”:          r””}</p>
@@ -311,63 +309,63 @@ get_config_template().</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.mut_middle">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">mut_middle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob_mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.mut_middle" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.mut_middle">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">mut_middle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob_mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.mut_middle" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.mut_uniform">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">mut_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob_mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.mut_uniform" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.mut_uniform">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">mut_uniform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob_mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.mut_uniform" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.sample_by_LHC">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">sample_by_LHC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.sample_by_LHC" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.sample_by_LHC">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">sample_by_LHC</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.sample_by_LHC" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.sample_by_MC">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">sample_by_MC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.sample_by_MC" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.sample_by_MC">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">sample_by_MC</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.sample_by_MC" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.scale">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.scale" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.scale">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">scale</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_bound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.scale" title="Permalink to this definition">¶</a></dt>
 <dd><p>individual is 1d ndarray.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.ga_deap.selRoulette">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></span><span class="sig-name descname"><span class="pre">selRoulette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individuals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fitness'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.selRoulette" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.ga_deap.selRoulette">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.ga_deap.</span></code><code class="sig-name descname"><span class="pre">selRoulette</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individuals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen_gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fitness'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.ga_deap.selRoulette" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</section>
-<section id="module-HydroCNHS.calibration">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-HydroCNHS.calibration" title="Permalink to this headline"></a></h2>
+</div>
+<div class="section" id="module-HydroCNHS.calibration">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-HydroCNHS.calibration" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.get_config_template">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></span><span class="sig-name descname"><span class="pre">get_config_template</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.get_config_template" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.get_inputs_template">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></span><span class="sig-name descname"><span class="pre">get_inputs_template</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.get_inputs_template" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.get_config_template">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></code><code class="sig-name descname"><span class="pre">get_config_template</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.get_config_template" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="HydroCNHS.calibration.helper">
-<span class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></span><span class="sig-name descname"><span class="pre">helper</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.helper" title="Permalink to this definition"></a></dt>
+<dt id="HydroCNHS.calibration.get_inputs_template">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></code><code class="sig-name descname"><span class="pre">get_inputs_template</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.get_inputs_template" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</section>
-</section>
+<dl class="py function">
+<dt id="HydroCNHS.calibration.helper">
+<code class="sig-prename descclassname"><span class="pre">HydroCNHS.calibration.</span></code><code class="sig-name descname"><span class="pre">helper</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.calibration.helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="HydroCNHS.html" class="btn btn-neutral float-left" title="HydroCNHS package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="HydroCNHS.land_surface_model.html" class="btn btn-neutral float-right" title="HydroCNHS.land_surface_model package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="HydroCNHS.rainfall_runoff_model.html" class="btn btn-neutral float-right" title="HydroCNHS.rainfall_runoff_model package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

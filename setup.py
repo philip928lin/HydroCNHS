@@ -11,7 +11,7 @@ with open("README.md", "r", encoding='utf8') as fh:
   
     
 setup(name='hydrocnhs',
-      version='0.0.2',
+      version='0.0.3',
       description='A Python Package of Hydrological Model for Coupled Natural–Human Systems.',
       long_description=README,
       long_description_content_type="text/markdown",

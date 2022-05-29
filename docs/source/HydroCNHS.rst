@@ -8,7 +8,7 @@ Subpackages
    :maxdepth: 4
 
    HydroCNHS.calibration
-   HydroCNHS.land_surface_model
+   HydroCNHS.rainfall_runoff_model
 
 Submodules
 ----------
@@ -17,6 +17,14 @@ HydroCNHS.abm module
 --------------------
 
 .. automodule:: HydroCNHS.abm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+HydroCNHS.abm\_script module
+----------------------------
+
+.. automodule:: HydroCNHS.abm_script
    :members:
    :undoc-members:
    :show-inheritance:

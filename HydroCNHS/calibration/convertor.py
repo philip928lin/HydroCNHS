@@ -38,7 +38,7 @@ class Convertor(object):
         Returns
         -------
         dict
-            formattor.
+            formatter.
         """
         
         for i in range(len(df_list)):

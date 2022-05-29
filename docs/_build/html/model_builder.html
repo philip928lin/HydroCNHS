@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Model builder &mdash; HydroCNHS  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Model builder &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -37,7 +34,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick start!</a></li>
@@ -71,8 +68,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="model-builder">
-<h1>Model builder<a class="headerlink" href="#model-builder" title="Permalink to this headline"></a></h1>
+  <div class="section" id="model-builder">
+<h1>Model builder<a class="headerlink" href="#model-builder" title="Permalink to this headline">¶</a></h1>
 <p>The ModelBuilder() of model builder module can quickly help users to establish
 the outline of a model (.yaml). Namely, ModelBuilder can create a template
 model for <a class="reference internal" href="calibration.html#calibration"><span class="std std-ref">calibration</span></a>. First, we initialize a ModelBuilder
@@ -98,16 +95,14 @@ object as shown in the following.</p>
 <p>Then, we follow the print out instructions to create a model template.</p>
 <p>Here, we demonstrate how to create a coupled model template for the Tualatin
 River Basin (TRB).</p>
-<figure class="align-center" id="id1">
+<div class="figure align-center" id="id1">
 <a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
-<figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
 Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
 PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
 irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
-drainage-system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
-</figcaption>
-</figure>
+drainage-system agents for the runoff-changing scenario.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Setup a water system simulation information</span>
 <span class="n">mb</span><span class="o">.</span><span class="n">set_water_system</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1981/1/1&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2013/12/31&quot;</span><span class="p">)</span>
 
@@ -354,7 +349,7 @@ will obtain a model template (see below) ready to be calibrated (i.e., those
         <span class="nt">b</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-99</span>
 </pre></div>
 </div>
-</section>
+</div>
 
 
            </div>
