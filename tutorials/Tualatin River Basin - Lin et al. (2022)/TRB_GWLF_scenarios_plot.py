@@ -25,6 +25,8 @@ prec_M = pd.read_csv(os.path.join(wd,"Data","Pet_cm.csv"), index_col=["Date"],
 folder = "Cali_gwlf_abm_KGE_5"
 filename = os.path.join(wd, folder, "Calibrated_TRB_GWLF.yaml")
 model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
 
 # Urbanization scenario
 model_urban = deepcopy(model)
@@ -61,7 +63,10 @@ HydroCNHS.write_model(model_fixed_div, os.path.join(wd, folder, "Calibrated_TRB_
 #%%
 ##### Urbanization scenario
 filename = os.path.join(wd, folder, "Calibrated_TRB_GWLF.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]
@@ -69,7 +74,10 @@ sim_Q_D["DivAgt"] = model.dc.DivAgt["Diversion"]
 sim_Q_Y = sim_Q_D[["WSLO","DLLO","ResAgt","DivAgt"]].resample("YS").mean()
 
 filename = os.path.join(wd, folder, "Calibrated_TRB_GWLF_urban.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]
@@ -90,7 +98,10 @@ ax.set_xlabel("Year")
 #%%
 ##### Fixed diversion scenario
 filename = os.path.join(wd, folder, "Calibrated_TRB_GWLF.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]
@@ -101,7 +112,10 @@ mask = [i.month in [6,7,8,9] for i in sim_Q_M.index]
 sim_Y = sim_Q_M.loc[mask,:].resample("YS").mean()
 
 filename = os.path.join(wd, folder, "Calibrated_TRB_GWLF_fixedDiv.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]

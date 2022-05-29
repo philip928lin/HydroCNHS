@@ -46,3 +46,15 @@ def read_factor(ag_config, outlet):
     if isinstance(factor, list):
         factor = ag_config["Pars"][factor[0]][factor[1]]
     return factor
+
+
+#%%
+class agent():
+    def __inti__(self):
+        # Property
+        self.dc = None
+        self.agents = None
+        self.current_outlet = None
+        self.current_date = None
+        self.t = None
+        

@@ -2,4 +2,4 @@ include HydroCNHS/*.yaml
 recursive-include docs *
 recursive-include tutorials *
 include HydroCNHS/calibration/*.py
-include HydroCNHS/land_surface_model/*.py
+include HydroCNHS/rainfall_runoff_model/*.py

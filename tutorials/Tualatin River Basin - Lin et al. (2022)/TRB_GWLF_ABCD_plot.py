@@ -19,7 +19,10 @@ obv_M = pd.read_csv(os.path.join(wd,"Data","Cali_M_cms.csv"),
                     index_col=["Date"], parse_dates=["Date"])
 
 filename = os.path.join(wd, "Cali_gwlf_abm_KGE_5", "Calibrated_TRB_GWLF.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]
@@ -27,7 +30,10 @@ sim_Q_D["DivAgt"] = model.dc.DivAgt["Diversion"]
 sim_Q_M_gwlf = sim_Q_D[["WSLO","DLLO","ResAgt","DivAgt"]].resample("MS").mean()
 
 filename = os.path.join(wd, "Cali_abcd_abm_KGE_10", "Calibrated_TRB_ABCD.yaml")
-model = HydroCNHS.Model(filename)
+model = HydroCNHS.load_model(filename)
+model["Path"]["WD"] = wd
+model["Path"]["Modules"] = wd
+model = HydroCNHS.Model(model)
 Q = model.run(temp, prec, pet)
 sim_Q_D = pd.DataFrame(Q, index=model.pd_date_index)[["WSLO","DLLO"]]
 sim_Q_D["ResAgt"] = model.dc.ResAgt["Release"]

@@ -129,7 +129,7 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     UH_direct = np.trim_zeros(UH_direct, 'b')
     return UH_direct
 
-def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
+def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_runoff, t):
     """Calculate a single time step routing for a given routing_outlet at time t.
 
     Parameters
@@ -142,7 +142,7 @@ def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
         A dictionary containing pre-formed UHs.
     Q : dict
         A dictionary containing newest routed flows.
-    Q_LSM : dict
+    Q_runoff : dict
         A dictionary containing newest unrouted flows without.
     t : int
         Index of current time step [day].
@@ -161,9 +161,9 @@ def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_LSM, t):
         # t+1 is length, t is index.
         UH = UH_Lohmann[(sb, ro)][0 : min(t + 1, l) ]
         if ro == sb:
-            # Q[ro] is routed Q. We need to use unrouted Q (Q_LSM) to run the
+            # Q[ro] is routed Q. We need to use unrouted Q (Q_runoff) to run the
             # routing.
-            Q_reverse = np.flip(Q_LSM[sb][ max(t-(l-1), 0) : t+1])
+            Q_reverse = np.flip(Q_runoff[sb][ max(t-(l-1), 0) : t+1])
         else:
             Q_reverse = np.flip(Q[sb][ max(t-(l-1), 0) : t+1])
         Qresult += np.sum(UH * Q_reverse)

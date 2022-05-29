@@ -1,6 +1,4 @@
-Path: {WD: 'C:\Users\ResearchPC\Documents\GitHub\HydroCNHS2\tutorials\Tualatin River
-    Basin - Lin et al. (2022)', Modules: 'C:\Users\ResearchPC\Documents\GitHub\HydroCNHS2\tutorials\Tualatin
-    River Basin - Lin et al. (2022)'}
+Path: {WD: '', Modules: ''}
 WaterSystem:
   StartDate: 1981/1/1
   EndDate: 2013/12/31

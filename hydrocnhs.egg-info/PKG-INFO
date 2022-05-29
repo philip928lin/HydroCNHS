@@ -6,6 +6,7 @@ Home-page: https://github.com/philip928lin/HydroCNHS
 Author: Chung-Yi Lin
 Author-email: philip928lin@gmail.com
 License: GPL-3.0 License
+Platform: UNKNOWN
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 Classifier: Framework :: IPython
 Classifier: Intended Audience :: Developers
@@ -49,4 +50,6 @@ Click [here](https://hydrocnhs.readthedocs.io/en/latest/?badge=latest)!
 
 ## How to cite?
 Lin, C. Y., Yang, Y. C. E., & Wi S. (2022). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management. (Pending)
+
+
 

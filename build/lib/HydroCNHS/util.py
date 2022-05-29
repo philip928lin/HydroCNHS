@@ -1,4 +1,4 @@
-# Untility functions' module
+# Utility functions' module
 # by Chung-Yi Lin @ Lehigh University (philip928lin@gmail.com) 
 # Last update at 2022/1/16.
 
@@ -97,9 +97,14 @@ def write_model(model_dict, filename, org_model=None):
     model_dict : dict
         Model dictionary.
     filename : str
-        Output filename (e.g. model.yaml).
+        Model configuration filename (e.g. model.yaml).
     org_model : str, optional
         Original model name (e.g. org_model.yaml), by default None.
+        
+    Note
+    ----------
+    Common error :
+        1. value type is numpy.float64 => convert it to float.
     """
     if org_model is not None:   # Contain comments in the original model file.
         # Defaults to round-trip if no parameters given
@@ -117,7 +122,7 @@ def write_model(model_dict, filename, org_model=None):
     logger.info("Model is saved at {}.".format(filename))
 
 def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
-    """Write model (dictionary) to dataframes.
+    """Write model dictionary to dataframes given key options.
     
     This function will convert model dictionary to dataframes according to 
     user's specified sections (key_option).
@@ -155,39 +160,40 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
                 res_dict.update(dict_list[d])
         return res_dict
     
-    allowed_output_sections = ["LSM", "Routing", "ABM"]
+    allowed_output_sections = ["RainfallRunoff", "Routing", "ABM"]
     section_list = [i for i in allowed_output_sections if i in model_dict]
     df_name = []; output_df_list = [] 
     for s in section_list:
-        if s == "LSM" and key_option != ["Attributes"]:
-            df_name.append(prefix + "LSM_" + model_dict[s]["Model"])
+        if s == "RainfallRunoff" and key_option != ["Attributes"]:
+            df_name.append(prefix + "Runoff_"
+                           + model_dict["WaterSystem"]["RainfallRunoff"])
             df = pd.DataFrame()
             for sub in model_dict[s]:
-                if sub != "Model":
-                    dict_list = [model_dict[s][sub].get(i) for i in key_option]
-                    merged_dict = merge_dicts(dict_list)
-                    converted_dict = convert_dict_to_df(merged_dict, sub)
-                    df = pd.concat([df, converted_dict], axis=1)
+                dict_list = [model_dict[s][sub].get(i) for i in key_option]
+                merged_dict = merge_dicts(dict_list)
+                converted_dict = convert_dict_to_df(merged_dict, sub)
+                df = pd.concat([df, converted_dict], axis=1)
             output_df_list.append(df)   
         elif s == "Routing" and key_option != ["Attributes"]:
-            df_name.append(prefix + "Routing_" + model_dict[s]["Model"])
+            df_name.append(prefix + "Routing_" 
+                           + model_dict["WaterSystem"]["Routing"])
             df = pd.DataFrame()
             for ro in model_dict[s]:
-                if ro != "Model":
-                    for o in model_dict[s][ro]:
-                        dict_list = [model_dict[s][ro][o].get(i) \
-                                    for i in key_option]
-                        merged_dict = merge_dicts(dict_list)
-                        converted_dict = convert_dict_to_df(merged_dict, (o, ro))
-                        df = pd.concat([df, converted_dict], axis=1)
+                for o in model_dict[s][ro]:
+                    dict_list = [model_dict[s][ro][o].get(i) \
+                                for i in key_option]
+                    merged_dict = merge_dicts(dict_list)
+                    converted_dict = convert_dict_to_df(merged_dict, (o, ro))
+                    df = pd.concat([df, converted_dict], axis=1)
             output_df_list.append(df)   
         elif s == "ABM":
             df_name.append(prefix + "ABM")
             df = pd.DataFrame()
-            AgTypes = model_dict[s]["Inputs"]["DamAgentTypes"]+ \
-                      model_dict[s]["Inputs"]["RiverDivAgentTypes"]+ \
-                      model_dict[s]["Inputs"]["InsituAgentTypes"]+ \
-                      model_dict[s]["Inputs"]["ConveyAgentTypes"]
+            abm_setting = model_dict["WaterSystem"]["ABM"]
+            AgTypes = abm_setting["DamAPI"]+ \
+                      abm_setting["RiverDivAPI"]+ \
+                      abm_setting["InsituAPI"]+ \
+                      abm_setting["ConveyingAPI"]
             for agtype in AgTypes:
                 for ag in model_dict[s][agtype]:
                     dict_list = [model_dict[s][agtype][ag].get(i) \
@@ -198,6 +204,48 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
             output_df_list.append(df) 
     return output_df_list, df_name
 
+def gen_default_bounds(model_dict, key_option=["Pars"]):
+    """Generate default parameter bounds in the format of a list of
+    DataFrames.
+
+    Parameters
+    ----------
+    model_dict : dict
+        Model dictionary.
+    key_option : list, optional
+        Output sections (e.g., Pars, Inputs, Attributes), by default ["Pars"].
+
+    Returns
+    -------
+    tuple
+        A list of parameter bound DataFrames, A list of DataFrame names.
+    """
+    df_list, df_name = write_model_to_df(model_dict, key_option, prefix="")
+    
+    # Default parameter bounds.
+    gwlf_bounds = {"CN2": [25, 100], "IS": [0, 0.5], "Res": [0.001, 0.5],
+                   "Sep": [0, 0.5], "Alpha": [0,1], "Beta": [0,1],
+                   "Ur": [1, 15], "Df": [0, 1], "Kc": [0.5, 1.5]}
+    abcd_bounds = {"a": [0, 1], "b": [0, 400], "c": [0, 1], "d": [0, 1],
+                   "Df": [0, 1]}
+    routing = {"GShape": [1, 100], "GScale": [0.01, 150],
+               "Velo": [0.5, 55], "Diff": [200, 4000]}
+    for df, name in zip(df_list, df_name):
+        if "Runoff_GWLF" in name:
+            for k, v in gwlf_bounds.items():
+                df.loc[k, :] = str(v)  
+        elif "Runoff_ABCD" in name:
+            for k, v in abcd_bounds.items():
+                df.loc[k, :] = str(v)
+        elif "Routing_Lohmann" in name:
+            for k, v in routing.items():
+                df.loc[k, df.loc[k, :].isna() == False] = str(v)
+        else:
+            for k in list(df.index):
+                df.loc[k, df.loc[k, :].isna() == False] = str([0,1])
+    return df_list, df_name
+            
+    
 def write_model_to_csv(folder_path, model_dict, key_option=["Pars"],
                        prefix=""):
     """Write model (dictionary) to csv files.
@@ -216,7 +264,7 @@ def write_model_to_csv(folder_path, model_dict, key_option=["Pars"],
     Returns
     -------
     list
-        List of filenames.
+        A list of filenames.
     """
     output_df_list, df_name = write_model_to_df(model_dict, key_option, prefix)
     df_name = [i+".csv" for i in df_name]
@@ -238,7 +286,7 @@ def load_df_to_model_dict(model_dict, df, section, key):
     df : DataFrame
         Dataframe.
     section : str
-        LSM or Routing or ABM.
+        RainfallRunoff or Routing or ABM.
     key : str
         nputs or Pars or Attributes.
         
@@ -256,7 +304,7 @@ def load_df_to_model_dict(model_dict, df, section, key):
             except:
                 return i    
         
-        def toNativePyType(val):
+        def to_native_py_type(val):
             # Make sure the value is Native Python Type, which can be safely
             # dump to yaml.
             if "numpy" in str(type(val)):
@@ -297,20 +345,20 @@ def load_df_to_model_dict(model_dict, df, section, key):
                         df.loc[[par+"."+str(k) for k in range(Ind_dup[par])],
                                [i]].to_numpy().flatten()
                         )
-                    temp[par] = [toNativePyType(val) for val in temp[par]]
+                    temp[par] = [to_native_py_type(val) for val in temp[par]]
                     # Ensure W, Theta, LR ... lists won't contain None.
                     temp[par] = [val for val in temp[par] if val is not None] 
                 else:
-                    temp[par] = toNativePyType(df.loc[par, [i]].values[0])
+                    temp[par] = to_native_py_type(df.loc[par, [i]].values[0])
             Dict[i] = temp
         return Dict
     df_dict = parse_df_to_dict(df)          # df to Dict
     
     #Replace the original modelDict accordingly.
-    if section == "LSM":
-        LSM = model_dict["LSM"]
+    if section == "Runoff":
+        runoff = model_dict["RainfallRunoff"]
         for sub in df_dict:
-            LSM[sub][key] = df_dict[sub]
+            runoff[sub][key] = df_dict[sub]
     elif section == "Routing":
         Routing = model_dict["Routing"]
         for roo in df_dict:
@@ -346,12 +394,19 @@ def load_customized_module_to_class(Class, module_name, path):
     for name in getattr(module, "__all__", public):
         setattr(Class, name, namespace[name])
     # globals().update(module.__dict__)   # Load all classes to globel.
+
+def list_callable_public_object(obj):
+    name_list = [name for name in dir(obj)
+                  if (callable(getattr(obj, name)) and name[:1] != "_")]
+    return name_list
+    
+
 #-----------------------------------------------
 
 #-----------------------------------------
 #---------- Auxiliary Functions ----------
 
-def dict_to_string(dictionary, indentor="  "):
+def dict_to_string(dictionary, indentor="  ", level=1):
     """Ture a dictionary into a printable string.
 
     Parameters
@@ -369,7 +424,7 @@ def dict_to_string(dictionary, indentor="  "):
     def dict_to_string_list(dictionary, indentor="  ", count=0, string=[]):
         for key, value in dictionary.items(): 
             string.append(indentor * count + str(key))
-            if isinstance(value, dict):
+            if isinstance(value, dict) and count <= level:
                 string = dict_to_string_list(value, indentor, count+1, string)
             else:
                 string.append(indentor * (count+1) + str(value))
@@ -413,8 +468,9 @@ def check_model(model_dict):
     # Need to make sure simulation period is longer than a month (GWLF part)
     # Name of keys (Agent and subbasin name) cannot be dulicated.
     # Name of keys (Agent and subbasin name) cannot have "." 
+    
     Pass = check_WS(model_dict)
-    Pass = check_LSM(model_dict)
+    Pass = check_RainfallRunoff(model_dict)
     
     if (model_dict.get("Routing") is not None
         and model_dict.get("ABM") is not None):
@@ -441,8 +497,8 @@ def check_WS(model_dict):
     ws = model_dict["WaterSystem"]
     
     #--- Check keys
-    ideal_keys = ["NumSubbasins", "NumGauges", "NumAgents", "Outlets",
-                 "GaugedOutlets"]
+    # "StartDate", "EndDate", "DataLength" are checked below
+    ideal_keys = ["NumSubbasins", "Outlets", "RainfallRunoff", "Routing", "ABM"]
     ws_items = list(ws.keys())
     if all(item in ws_items for item in ideal_keys) is False:
         logger.error(
@@ -467,57 +523,48 @@ def check_WS(model_dict):
         Pass = False
     
     outlets = ws["Outlets"]
-    gauged_outlets = ws["GaugedOutlets"]
     if len(outlets) != ws["NumSubbasins"]:
         logger.error("Outlets is inconsist to NumSubbasins.")
         Pass = False
-    if len(gauged_outlets) != ws["NumGauges"]:
-        logger.error("GaugedOutlets is inconsist to NumGauges.")
-        Pass = False
-    # We did not check the NumAgents.
         
     if len(outlets) != len(set(outlets)):
         logger.error("Duplicates exist in Outlets.")
         Pass = False
         
     if any("." in o for o in outlets):
-        logger.error("\".\" is not allowed in outlet's name.")
+        logger.error("\".\" is not allowed in the outlet name.")
         Pass = False
     
-    if all(item in outlets for item in gauged_outlets) is False:
-        logger.error("GaugedOutlets {} are not defined in Outlets.".format(
-            set(gauged_outlets)-set(outlets)))
+    #--- Check selected RainfallRunoff model.
+    runoff_model = ws["RainfallRunoff"]
+    runoff_options = ["GWLF", "ABCD", "Other"]
+    if runoff_model not in runoff_options:
+        logger.error(
+            "Invalid rainfall-runoff model {}. Acceptable options: {}".format(
+                runoff_model, runoff_options)
+            )
         Pass = False
-    
     return Pass
 
-def check_LSM(model_dict):
-    lsm = model_dict["LSM"]
+def check_RainfallRunoff(model_dict):
+    runoff = model_dict["RainfallRunoff"]
     Pass = True
     #--- Check keys
     sb_list = model_dict["WaterSystem"]["Outlets"]
-    ideal_keys = set(sb_list + ["Model"])
-    lsm_keys = set(model_dict["LSM"])
-    if lsm_keys != ideal_keys:
-        logger.error("Inconsist LSM keys {}\nto {}".format(lsm_keys, ideal_keys))
+    ideal_keys = set(sb_list)
+    runoff_keys = set(runoff)
+    if runoff_keys != ideal_keys:
+        logger.error("Inconsist RainfallRunoff keys {}\nto {}".format(
+            runoff_keys, ideal_keys))
         Pass = False
-        
-    #--- Check selected LSM model.
-    lsm_model = lsm["Model"]
-    lsm_options = ["GWLF", "ABCD"]
-    if lsm_model not in lsm_options:
-        logger.error(
-            "Invlid LSM model {}. Acceptable options: {}".format(lsm_model,
-                                                                 lsm_options)
-            )
-        Pass = False
-    
+
     #--- Check subbasins
     ideal_keys2 = set(["Inputs", "Pars"])
     for sb in sb_list:
-        sb_keys = set(model_dict["LSM"][sb])
+        sb_keys = set(runoff[sb])
         if sb_keys != ideal_keys2:
-            logger.error("Inconsist LSM keys {}\nto {}".format(sb_keys, ideal_keys))
+            logger.error("Inconsist RainfallRunoff keys {}\nto {}".format(
+                sb_keys, ideal_keys))
             Pass = False
     return Pass
 
@@ -528,11 +575,12 @@ def check_agent_in_routing(model_dict):
     Pass = True
     routing = model_dict["Routing"]
     abm = model_dict["ABM"]
+    ws = model_dict["WaterSystem"]
     #--- Check In-stream agents' Links and collect instream_Ag_inflows:  
-    # DamAgentTypes is eligble in the routing setting. 
-    # DamAgentTypes' agents will completely split the water system into half.
+    # DamAPI is eligble in the routing setting. 
+    # DamAPI' agents will completely split the water system into half.
     instream_ag_inflows = []        
-    instream_ag_types = abm["Inputs"]["DamAgentTypes"]
+    instream_ag_types = ws["ABM"]["DamAPI"]
     for ISagType in instream_ag_types:
         for ag in abm[ISagType]:
             links = abm[ISagType][ag]["Inputs"]["Links"]
@@ -552,7 +600,6 @@ def check_agent_in_routing(model_dict):
 
     #--- Check InStreamAgents' inflow outlets are in RoutingOutlets.
     routing_outlets = list(routing.keys())
-    routing_outlets.remove('Model')  
     for vro in instream_ag_inflows:
         if vro not in routing_outlets:
             logger.error("[Check model failed] Cannot find in-stream agent's "
@@ -579,11 +626,11 @@ def check_agent_in_routing(model_dict):
                                     )
                                 Pass = False
                             
-    #--- RiverDivAgentTypes will not add a new routing outlet (agent itself) 
-    # like DamAgentTypes do to split the system into half but their diverting
+    #--- RiverDivAPI will not add a new routing outlet (agent itself) 
+    # like DamAPI do to split the system into half but their diverting
     # outlet must be in routing outlets.
     river_div_ag_inflows = []
-    for river_div_type in abm["Inputs"]["RiverDivAgentTypes"]:
+    for river_div_type in ws["ABM"]["RiverDivAPI"]:
         for ag in abm[river_div_type]:
             links = abm[river_div_type][ag]["Inputs"]["Links"]
             def get_div(x):
@@ -662,7 +709,7 @@ def parse_sim_seq(model_dict, print_summary=True):
     model_dict["SystemParsedData"]["DamAgents"] = None
     model_dict["SystemParsedData"]["RiverDivAgents"] = None
     model_dict["SystemParsedData"]["InsituAgents"] = None
-    model_dict["SystemParsedData"]["ConveyAgents"] = None
+    model_dict["SystemParsedData"]["ConveyingAgents"] = None
     model_dict["SystemParsedData"]["BackTrackingDict"] = None
     model_dict["SystemParsedData"]["Edges"] = None
     # Store info for constructing routing UH for conveyed water of those node.
@@ -671,19 +718,21 @@ def parse_sim_seq(model_dict, print_summary=True):
     #----- Collect in-stream agents
     ## In-stream agents here means those agents will re-define the streamflow
     # completely. Namely, only DamAgents.
-    ## RiverDivAgentTypes, in our definition, only modify the streamflow.
+    ## RiverDivAPI, in our definition, only modify the streamflow.
     
-    if model_dict.get("ABM") is not None:
+    if (model_dict.get("ABM") is not None 
+        and model_dict["WaterSystem"]["ABM"] is not None):
+        ws_abm = model_dict["WaterSystem"]["ABM"]
         abm = model_dict["ABM"]
-        for ag_types in ["DamAgentTypes", "RiverDivAgentTypes",
-                         "InsituAgentTypes", "ConveyAgentTypes"]:    
+        for ag_types in ["DamAPI", "RiverDivAPI",
+                         "InsituAPI", "ConveyingAPI"]:    
             agents = []
-            for ag_type in abm["Inputs"][ag_types]:
+            for ag_type in ws_abm[ag_types]:
                 for end in abm[ag_type]:
-                    # "RiverDivAgentTypes" since we can multiple ag divert from
+                    # "RiverDivAPI" since we can multiple ag divert from
                     # the same gauge. We modify streamflow directly.
                     agents.append(end)
-            model_dict["SystemParsedData"][ag_types[:-5] + "s"] = agents    
+            model_dict["SystemParsedData"][ag_types[:-3] + "Agents"] = agents    
     instream_agents = model_dict["SystemParsedData"]["DamAgents"]
     if instream_agents is None:
         instream_agents = []
@@ -697,7 +746,6 @@ def parse_sim_seq(model_dict, print_summary=True):
     back_tracking_dict = {}
     routing = model_dict["Routing"]
     routing_outlets = list(routing.keys())
-    routing_outlets.remove('Model')  
     for end in routing_outlets:
         for start in routing[end]:
             if start == end:
@@ -713,8 +761,10 @@ def parse_sim_seq(model_dict, print_summary=True):
                         back_tracking_dict[end].append(start)
     
     # Add in-stream agents connectinons if ABM sections exists.     
-    if model_dict.get("ABM") is not None:
-        instream_ag_types = abm["Inputs"]["DamAgentTypes"]
+    if (model_dict.get("ABM") is not None 
+        and model_dict["WaterSystem"]["ABM"] is not None):
+        ws_abm = model_dict["WaterSystem"]["ABM"]
+        instream_ag_types = ws_abm["DamAPI"]
         for ag_type in instream_ag_types:
             for end in abm[ag_type]:
                 links = abm[ag_type][end]["Inputs"]["Links"]
@@ -747,7 +797,7 @@ def parse_sim_seq(model_dict, print_summary=True):
             set(back_tracking_dict.keys()) - set([i[0] for i in edges])
             )   
         sim_seq = form_sim_seq(node_list, back_tracking_dict)
-        group_nodes = model_dict["WaterSystem"].get("GroupNodes")
+        group_nodes = model_dict["WaterSystem"].get("NodeGroups")
         if group_nodes is not None:
             for group in group_nodes:
                 sim_seq = update_sim_seq_with_group(sim_seq, group,
@@ -760,17 +810,19 @@ def parse_sim_seq(model_dict, print_summary=True):
     
     #----- Step2: Form AgSim dictionary -----
     # Aggregate to only SimSeq's node. 
-    if model_dict.get("ABM") is not None:
-        dam_ag_types = abm["Inputs"]["DamAgentTypes"]
-        river_ag_types = abm["Inputs"]["RiverDivAgentTypes"]
-        insitu_ag_types = abm["Inputs"]["InsituAgentTypes"]
-        convey_ag_types = abm["Inputs"]["ConveyAgentTypes"]
+    if (model_dict.get("ABM") is not None 
+        and model_dict["WaterSystem"]["ABM"] is not None):
+        ws_abm = model_dict["WaterSystem"]["ABM"]
+        dam_ag_types = ws_abm["DamAPI"]
+        river_ag_types = ws_abm["RiverDivAPI"]
+        insitu_ag_types = ws_abm["InsituAPI"]
+        convey_ag_types = ws_abm["ConveyingAPI"]
         # Ordered routing_outlets
         routing_outlets = model_dict["SystemParsedData"]["RoutingOutlets"] 
         
-        # AgGroup: AgGroup = {"AgType":{"Name": []}}
-        ag_group = model_dict["ABM"]["Inputs"].get("AgGroup")
-        if ag_group is None: ag_group = []
+        # Institutions: Institutions = {"AgType":{"Name": []}}
+        institutions = ws_abm.get("Institutions")
+        if institutions is None: institutions = []
         
         def search_routing_outlet(agQ):
             """Find in which routing outlet first need agQ to adjust original
@@ -790,31 +842,31 @@ def parse_sim_seq(model_dict, print_summary=True):
             if dict.get(key) is None:
                 dict[key] = []
                 
-        ag_sim_seq = {}              ; piority = {}
-        ag_sim_seq["AgSimMinus"] = {}; piority["AgSimMinus"] = {}
-        ag_sim_seq["AgSimPlus"] = {} ; piority["AgSimPlus"] = {}
+        ag_sim_seq = {}              ; priority = {}
+        ag_sim_seq["AgSimMinus"] = {}; priority["AgSimMinus"] = {}
+        ag_sim_seq["AgSimPlus"] = {} ; priority["AgSimPlus"] = {}
         for ss in sim_seq:
-            ag_sim_seq["AgSimMinus"][ss] = {}; piority["AgSimMinus"][ss] = {}
-            ag_sim_seq["AgSimPlus"][ss] = {} ; piority["AgSimPlus"][ss] = {}
+            ag_sim_seq["AgSimMinus"][ss] = {}; priority["AgSimMinus"][ss] = {}
+            ag_sim_seq["AgSimPlus"][ss] = {} ; priority["AgSimPlus"][ss] = {}
         
         for ag_type in dam_ag_types:
-            if ag_type in ag_group:
-                ag_list = ag_group[ag_type].keys()     # Use the group name
+            if ag_type in institutions:
+                ag_list = institutions[ag_type].keys()     # Use the group name
             else:
                 ag_list = abm[ag_type].keys()
             # Note that in-stream agent (ag) will be in SimSeq
             for ag in ag_list:
                 create_empty_list(ag_sim_seq["AgSimPlus"][ag], "DamAgents")
-                create_empty_list(piority["AgSimPlus"][ag], "DamAgents")
+                create_empty_list(priority["AgSimPlus"][ag], "DamAgents")
                 # No AgSimMinus is needed since in-stream agents replace
                 # original streamflow.
                 ag_sim_seq["AgSimPlus"][ag]["DamAgents"].append((ag,ag))
-                # In-stream agent always has piority 0.
-                piority["AgSimPlus"][ag]["DamAgents"].append(0)
+                # In-stream agent always has priority 0.
+                priority["AgSimPlus"][ag]["DamAgents"].append(0)
         
         for ag_type in river_ag_types:
-            if ag_type in ag_group:
-                ag_list = ag_group[ag_type].keys()     # Use the group name
+            if ag_type in institutions:
+                ag_list = institutions[ag_type].keys()     # Use the group name
                 group = True
             else:
                 ag_list = abm[ag_type].keys()
@@ -822,7 +874,7 @@ def parse_sim_seq(model_dict, print_summary=True):
             for ag in ag_list:
                 if group:
                     # Use the setting of the first member in the group
-                    member = ag_group[ag_type][ag][0]
+                    member = institutions[ag_type][ag][0]
                 else:
                     member = ag
                 links = abm[ag_type][member]["Inputs"]["Links"]
@@ -853,11 +905,11 @@ def parse_sim_seq(model_dict, print_summary=True):
                     ro = search_routing_outlet(p)
                     create_empty_list(ag_sim_seq["AgSimPlus"][ro],
                                       "RiverDivAgents")
-                    create_empty_list(piority["AgSimPlus"][ro],
+                    create_empty_list(priority["AgSimPlus"][ro],
                                       "RiverDivAgents")
                     ag_sim_seq["AgSimPlus"][ro]["RiverDivAgents"].append((ag,p))
-                    piority["AgSimPlus"][ro]["RiverDivAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                    priority["AgSimPlus"][ro]["RiverDivAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                 for m in minus:
                     # RiverDivAgents diverted outlets should belong to one
@@ -866,16 +918,16 @@ def parse_sim_seq(model_dict, print_summary=True):
                     ro = m
                     create_empty_list(ag_sim_seq["AgSimMinus"][ro],
                                       "RiverDivAgents")
-                    create_empty_list(piority["AgSimMinus"][ro],
+                    create_empty_list(priority["AgSimMinus"][ro],
                                       "RiverDivAgents")
                     ag_sim_seq["AgSimMinus"][ro]["RiverDivAgents"].append((ag,m))
-                    piority["AgSimMinus"][ro]["RiverDivAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                    priority["AgSimMinus"][ro]["RiverDivAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                     
         for ag_type in convey_ag_types:
-            if ag_type in ag_group:
-                ag_list = ag_group[ag_type].keys()     # Use the group name
+            if ag_type in institutions:
+                ag_list = institutions[ag_type].keys()     # Use the group name
                 group = True
             else:
                 ag_list = abm[ag_type].keys()
@@ -883,7 +935,7 @@ def parse_sim_seq(model_dict, print_summary=True):
             for ag in ag_list:
                 if group:
                     # Use the setting of the first member in the group
-                    member = ag_group[ag_type][ag][0]
+                    member = institutions[ag_type][ag][0]
                 else:
                     member = ag
                 links = abm[ag_type][member]["Inputs"]["Links"]
@@ -900,24 +952,24 @@ def parse_sim_seq(model_dict, print_summary=True):
                     # need to find the associate routing outlet in the SimSeq.
                     ro = search_routing_outlet(p)
                     create_empty_list(ag_sim_seq["AgSimPlus"][ro],
-                                      "ConveyAgents")
-                    create_empty_list(piority["AgSimPlus"][ro],
-                                      "ConveyAgents")
-                    ag_sim_seq["AgSimPlus"][ro]["ConveyAgents"].append((ag,p))
-                    piority["AgSimPlus"][ro]["ConveyAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                                      "ConveyingAgents")
+                    create_empty_list(priority["AgSimPlus"][ro],
+                                      "ConveyingAgents")
+                    ag_sim_seq["AgSimPlus"][ro]["ConveyingAgents"].append((ag,p))
+                    priority["AgSimPlus"][ro]["ConveyingAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                 for m in minus:
-                    # ConveyAgents convey from a routing outlet.
+                    # ConveyingAgents convey from a routing outlet.
                     # ro = search_routing_outlet(m)  
                     ro = m
                     create_empty_list(ag_sim_seq["AgSimMinus"][ro],
-                                      "ConveyAgents")
-                    create_empty_list(piority["AgSimMinus"][ro],
-                                      "ConveyAgents")
-                    ag_sim_seq["AgSimMinus"][ro]["ConveyAgents"].append((ag,m))
-                    piority["AgSimMinus"][ro]["ConveyAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                                      "ConveyingAgents")
+                    create_empty_list(priority["AgSimMinus"][ro],
+                                      "ConveyingAgents")
+                    ag_sim_seq["AgSimMinus"][ro]["ConveyingAgents"].append((ag,m))
+                    priority["AgSimMinus"][ro]["ConveyingAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                     
         for ag_type in insitu_ag_types:
@@ -926,8 +978,8 @@ def parse_sim_seq(model_dict, print_summary=True):
             # Runoff of the max(sub-basin - InsituDiv, 0)
             # Note that it divert from runoff of a single sub-basin not river
             # and no return flow option.
-            if ag_type in ag_group:
-                ag_list = ag_group[ag_type].keys()     # Use the group name
+            if ag_type in institutions:
+                ag_list = institutions[ag_type].keys()     # Use the group name
                 group = True
             else:
                 ag_list = abm[ag_type].keys()
@@ -935,7 +987,7 @@ def parse_sim_seq(model_dict, print_summary=True):
             for ag in ag_list:
                 if group:
                     # Use the setting of the first member in the group
-                    member = ag_group[ag_type][ag][0]
+                    member = institutions[ag_type][ag][0]
                 else:
                     member = ag
                 links = abm[ag_type][member]["Inputs"]["Links"]
@@ -954,22 +1006,22 @@ def parse_sim_seq(model_dict, print_summary=True):
                     ro = search_routing_outlet(p)
                     create_empty_list(ag_sim_seq["AgSimPlus"][ro],
                                       "InsituAgents")
-                    create_empty_list(piority["AgSimPlus"][ro],
+                    create_empty_list(priority["AgSimPlus"][ro],
                                       "InsituAgents")
                     ag_sim_seq["AgSimPlus"][ro]["InsituAgents"].append((ag,p))
-                    piority["AgSimPlus"][ro]["InsituAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                    priority["AgSimPlus"][ro]["InsituAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                 for m in minus:
                     ro = search_routing_outlet(m)  
                     create_empty_list(ag_sim_seq["AgSimMinus"][ro],
                                     "InsituAgents")
-                    create_empty_list(piority["AgSimMinus"][ro],
+                    create_empty_list(priority["AgSimMinus"][ro],
                                     "InsituAgents")
                     ag_sim_seq["AgSimMinus"][ro]["InsituAgents"].append(
                         (ag,m))
-                    piority["AgSimMinus"][ro]["InsituAgents"].append(
-                        abm[ag_type][member]["Inputs"]["Piority"]
+                    priority["AgSimMinus"][ro]["InsituAgents"].append(
+                        abm[ag_type][member]["Inputs"]["Priority"]
                         )
                     
         # Sort agents based on their piorities               
@@ -977,7 +1029,7 @@ def parse_sim_seq(model_dict, print_summary=True):
             for ag_types in ag_sim_seq[pm]:
                 for ro in ag_sim_seq[pm][ag_types]:
                     agents = ag_sim_seq[pm][ag_types][ro]
-                    piorities = piority[pm][ag_types][ro]
+                    piorities = priority[pm][ag_types][ro]
                     agents = [ag for _,ag in sorted(zip(piorities, agents))]
                     # Remove duplicated ags.
                     ag_sim_seq[pm][ag_types][ro] = list(set(agents))    
@@ -986,7 +1038,7 @@ def parse_sim_seq(model_dict, print_summary=True):
         #----------------------------------------
     if print_summary:
         summary_dict = {}
-        for i in ["SimSeq","RoutingOutlets","DamAgents", "ConveyAgents",
+        for i in ["SimSeq","RoutingOutlets","DamAgents", "ConveyingAgents",
                 "RiverDivAgents","InsituAgents","AgSimSeq"]:
             summary_dict[i] = model_dict["SystemParsedData"][i]
         parsed_model_summary = dict_to_string(summary_dict, indentor="  ")

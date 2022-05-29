@@ -107,12 +107,12 @@ def evaluation(individual, info):
     return (fitness,)
 
 config = {'min_or_max': 'max',
-         'pop_size': 4,
+         'pop_size': 100,
          'num_ellite': 1,
          'prob_cross': 0.5,
          'prob_mut': 0.15,
          'stochastic': False,
-         'max_gen': 3,
+         'max_gen': 100,
          'sampling_method': 'LHC',
          'drop_record': False,
          'paral_cores': -1,

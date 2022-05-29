@@ -16,6 +16,10 @@ HydroCNHS/visual.py
 HydroCNHS/calibration/__init__.py
 HydroCNHS/calibration/convertor.py
 HydroCNHS/calibration/ga_deap.py
+HydroCNHS/rainfall_runoff_model/__init__.py
+HydroCNHS/rainfall_runoff_model/abcd.py
+HydroCNHS/rainfall_runoff_model/gwlf.py
+HydroCNHS/rainfall_runoff_model/pet_hamon.py
 docs/Makefile
 docs/calibration.rst
 docs/conf.py
@@ -176,3 +180,4 @@ tutorials/Tualatin River Basin - Lin et al. (2022)/Data/Cali_M_cms.csv
 tutorials/Tualatin River Basin - Lin et al. (2022)/Data/Pet_cm.csv
 tutorials/Tualatin River Basin - Lin et al. (2022)/Data/Prec_cm.csv
 tutorials/Tualatin River Basin - Lin et al. (2022)/Data/Temp_degC.csv
+tutorials/Tualatin River Basin - Lin et al. (2022)/__pycache__/TRB_ABM_complete.cpython-310.pyc

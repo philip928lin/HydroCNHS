@@ -1,4 +1,4 @@
-Path: {WD: 'C:\Users\Philip\Desktop\Tualatin River Basin\Hydro_example', Modules: ''}
+Path: {WD: 'C:\...\Hydro_example', Modules: ''}
 WaterSystem:
   StartDate: 1981/1/1
   EndDate: 2013/12/31
