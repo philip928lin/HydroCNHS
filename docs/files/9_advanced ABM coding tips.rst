@@ -8,11 +8,11 @@ Enhancing computational speed
 
 Avoid extensive calls to DataFrame
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Reading data to a DataFrame (e.g., df.loc[,]) tends to be slow. We suggest users use NumPy array, list, or dictionary for calculations or data storage.
+Reading data to a DataFrame (e.g., *df.loc[,]*) tends to be slow. We suggest users use NumPy array, list, or dictionary for calculations or data storage.
 
 Avoid repeated loading of external data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If there is common data among multiple agent-type classes, we suggest loading the data once to a global variable at the top of the ABM module and using the variable across classes. This might save some time from repeated loading of external data inside each class (e.g., at def __init__(self)).
+If there is common data among multiple agent-type classes, we suggest loading the data once to a global variable at the top of the ABM module and using the variable across classes. This might save some time from repeated loading of external data inside each class (e.g., at *def __init__(self)*).
 
 Avoid extensive deepcopy
 ^^^^^^^^^^^^^^^^^^^^^^^^

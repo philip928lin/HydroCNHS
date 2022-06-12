@@ -73,49 +73,6 @@
   <div class="section" id="hydrocnhs-user-manual">
 <h1>HydroCNHS User Manual<a class="headerlink" href="#hydrocnhs-user-manual" title="Permalink to this headline">¶</a></h1>
 <p><strong>The Hydrological model for Coupled Natural-Human Systems (HydroCNHS)</strong> is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS.</p>
-<div class="section" id="supporting-apis-for-incorporating-human-agent-components">
-<h2>Supporting APIs for incorporating human/agent components<a class="headerlink" href="#supporting-apis-for-incorporating-human-agent-components" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-center">
-<a class="reference internal image-reference" href="_images/fig3_hydrocnhs.png"><img alt="Logo" src="_images/fig3_hydrocnhs.png" style="width: 500px;" /></a>
-</div>
-<div class="section" id="dam-api">
-<h3>Dam API<a class="headerlink" href="#dam-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that completely redefine downstream flow, e.g., instream objects like reservoirs. The downstream flow is governed by a reservoir’s operational rules and operators’ decisions.</p>
-</div>
-<div class="section" id="riverdiv-api">
-<h3>RiverDiv API<a class="headerlink" href="#riverdiv-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that divert water from the river (with return water to the downstream subbasins), e.g., off-stream irrigation water diversions governed by farmers or regional district managers’ diversion behaviors.</p>
-</div>
-<div class="section" id="conveying-api">
-<h3>Conveying API<a class="headerlink" href="#conveying-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that convey water beyond basin boundaries and gravitational limitations, e.g., trans-basin aqueducts that convey water from one basin to another and pump stations that convey water from downstream to upstream.</p>
-</div>
-<div class="section" id="insitu-api">
-<h3>InSitu API<a class="headerlink" href="#insitu-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that locally alter the runoff in a subbasin, e.g., drainage systems, urbanization, and water diversion from wells or local streams (within-subbasin).</p>
-<p>Those human/agent actions can be modeled with various complexities according to users’ ABM design. Actions can simply be an inputted daily time series or governed by complex endogenous behavior rules (i.e., decision-making rules). Institutional decisions (a group of agents making decisions together with institutional rules) are allowed in HydroCNHS. Users require to have some level of object-oriented programing concept to design an ABM module (<em>.py</em>).</p>
-</div>
-</div>
-<div class="section" id="when-should-you-use-hydrocnhs">
-<h2>When should you use HydroCNHS?<a class="headerlink" href="#when-should-you-use-hydrocnhs" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Want to build a hydrological model with auto-parameter-tuning (calibration) features.</p></li>
-<li><p>Want to add human components into a hydrological model under a unified framework without worrying about routing logic.</p></li>
-<li><p>Want to calibrate the entire integrated model (hydrological + ABM modules) with customized agents’ parameters.</p></li>
-<li><p>Want to design human behaviors with a high degree of freedom, including coupling with external software.</p></li>
-<li><p>Want to conduct extensive numerical experiments to test various human behavioral designs (i.e., integrating and testing many ABM modules).</p></li>
-</ol>
-</div>
-<div class="section" id="feature-highlights">
-<h2>Feature highlights<a class="headerlink" href="#feature-highlights" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Built-in genetic algorithm calibration module that can utilize parallel computing power.</p></li>
-<li><p>A unified framework allowing calibration of the entire integrated model (hydrological + ABM models), where parameters in the ABM module (i.e., human model) are customizable.</p></li>
-<li><p>Automatic integration and simulation through four APIs.</p></li>
-<li><p>Built-in data collector module that can collect data from the hydrological and user-defined ABM modules.</p></li>
-<li><p>Built-in model builder module to assist users in creating the HydroCNHS model and generating ABM module (<em>.py</em>) templates.</p></li>
-<li><p>Built-in indicator calculation and visualization tools for simple result analysis.</p></li>
-</ul>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -181,6 +138,11 @@
 </ul>
 </div>
 </div>
+<div class="section" id="how-to-cite">
+<h1>How to cite?<a class="headerlink" href="#how-to-cite" title="Permalink to this headline">¶</a></h1>
+<p>Lin, C. Y., Yang, Y. C. E., &amp; Wi S. (2022, under review). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management.</p>
+<p>## Related studies
+Lin, C. Y., &amp; Yang, Y. E. <a href="#id1"><span class="problematic" id="id2">`The effects of model complexity on model output uncertainty in co-evolved coupled natural-human systems&lt;https://doi.org/10.1029/2021EF002403&gt;`_</span></a>. Earth’s Future, e2021EF002403.</p>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>

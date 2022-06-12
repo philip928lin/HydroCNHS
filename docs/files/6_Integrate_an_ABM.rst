@@ -267,7 +267,7 @@ Agent type class (AgtType):
             decision = None
             return decision
 
-To keep the manual concise, we provide a complete ABM module for the TRB example at *./tutorials/HydroABM_example/TRB_ABM_complete.py*. Theoretical details can be found in Lin et al. (2022), and more coding tips are available at "Advanced ABM coding tips."
+To keep the manual concise, we provide a complete ABM module for the TRB example at *./tutorials/HydroABM_example/TRB_ABM_complete.py*. Theoretical details can be found in Lin et al. (2022), and more coding tips are available at :ref:`Advanced ABM coding tips`.
 
 Step 4: Run a calibration 
 -------------------------

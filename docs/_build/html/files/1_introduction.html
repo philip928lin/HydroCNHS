@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HydroCNHS &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Introduction &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
@@ -14,9 +14,7 @@
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Installation" href="2_installation.html" />
-    <link rel="prev" title="HydroCNHS User Manual" href="../index.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,24 +33,15 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">HydroCNHS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#supporting-apis-for-incorporating-human-agent-components">Supporting APIs for incorporating human/agent components</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#dam-api">Dam API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#riverdiv-api">RiverDiv API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#conveying-api">Conveying API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#insitu-api">InSitu API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#when-should-you-use-hydrocnhs">When should you use HydroCNHS?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#feature-highlights">Feature highlights</a></li>
-</ul>
-</li>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick start!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model_builder.html">Model builder</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../how_to_build_abm.html">How to build a ABM module?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_build_a_hydrological_model.html">Build a hydrological model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../source/HydroCNHS.html">HydroCNHS package</a></li>
 </ul>
 
@@ -70,7 +59,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>HydroCNHS</li>
+      <li>Introduction</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/files/1_introduction.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,29 +69,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="hydrocnhs">
-<h1>HydroCNHS<a class="headerlink" href="#hydrocnhs" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <p>The Hydrological model for Coupled Natural-Human Systems (HydroCNHS) is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS.</p>
-<div class="section" id="supporting-apis-for-incorporating-human-agent-components">
-<h2>Supporting APIs for incorporating human/agent components<a class="headerlink" href="#supporting-apis-for-incorporating-human-agent-components" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="dam-api">
-<h3>Dam API<a class="headerlink" href="#dam-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that completely redefine downstream flow, e.g., instream objects like reservoirs. The downstream flow is governed by a reservoir’s operational rules and operators’ decisions.</p>
-</div>
-<div class="section" id="riverdiv-api">
-<h3>RiverDiv API<a class="headerlink" href="#riverdiv-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that divert water from the river (with return water to the downstream subbasins), e.g., off-stream irrigation water diversions governed by farmers or regional district managers’ diversion behaviors.</p>
-</div>
-<div class="section" id="conveying-api">
-<h3>Conveying API<a class="headerlink" href="#conveying-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that convey water beyond basin boundaries and gravitational limitations, e.g., trans-basin aqueducts that convey water from one basin to another and pump stations that convey water from downstream to upstream.</p>
-</div>
-<div class="section" id="insitu-api">
-<h3>InSitu API<a class="headerlink" href="#insitu-api" title="Permalink to this headline">¶</a></h3>
-<p>Link to human actions that locally alter the runoff in a subbasin, e.g., drainage systems, urbanization, and water diversion from wells or local streams (within-subbasin).</p>
-<p>Those human/agent actions can be modeled with various complexities according to users’ ABM design. Actions can simply be an inputted daily time series or governed by complex endogenous behavior rules (i.e., decision-making rules). Institutional decisions (a group of agents making decisions together with institutional rules) are allowed in HydroCNHS. Users require to have some level of object-oriented programing concept to design an ABM module (<em>.py</em>).</p>
-</div>
-</div>
 <div class="section" id="when-should-you-use-hydrocnhs">
 <h2>When should you use HydroCNHS?<a class="headerlink" href="#when-should-you-use-hydrocnhs" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
@@ -124,15 +93,35 @@
 <li><p>Built-in indicator calculation and visualization tools for simple result analysis.</p></li>
 </ul>
 </div>
+<div class="section" id="supporting-apis-for-incorporating-human-agent-components">
+<h2>Supporting APIs for incorporating human/agent components<a class="headerlink" href="#supporting-apis-for-incorporating-human-agent-components" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/fig3_hydrocnhs.png"><img alt="Logo" src="../_images/fig3_hydrocnhs.png" style="width: 500px;" /></a>
+</div>
+<div class="section" id="dam-api">
+<h3>Dam API<a class="headerlink" href="#dam-api" title="Permalink to this headline">¶</a></h3>
+<p>Link to human actions that completely redefine downstream flow, e.g., instream objects like reservoirs. The downstream flow is governed by a reservoir’s operational rules and operators’ decisions.</p>
+</div>
+<div class="section" id="riverdiv-api">
+<h3>RiverDiv API<a class="headerlink" href="#riverdiv-api" title="Permalink to this headline">¶</a></h3>
+<p>Link to human actions that divert water from the river (with return water to the downstream subbasins), e.g., off-stream irrigation water diversions governed by farmers or regional district managers’ diversion behaviors.</p>
+</div>
+<div class="section" id="conveying-api">
+<h3>Conveying API<a class="headerlink" href="#conveying-api" title="Permalink to this headline">¶</a></h3>
+<p>Link to human actions that convey water beyond basin boundaries and gravitational limitations, e.g., trans-basin aqueducts that convey water from one basin to another and pump stations that convey water from downstream to upstream.</p>
+</div>
+<div class="section" id="insitu-api">
+<h3>InSitu API<a class="headerlink" href="#insitu-api" title="Permalink to this headline">¶</a></h3>
+<p>Link to human actions that locally alter the runoff in a subbasin, e.g., drainage systems, urbanization, and water diversion from wells or local streams (within-subbasin).</p>
+<p>Those human/agent actions can be modeled with various complexities according to users’ ABM design. Actions can simply be an inputted daily time series or governed by complex endogenous behavior rules (i.e., decision-making rules). Institutional decisions (a group of agents making decisions together with institutional rules) are allowed in HydroCNHS. Users require to have some level of object-oriented programing concept to design an ABM module (<em>.py</em>).</p>
+</div>
+</div>
 </div>
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="HydroCNHS User Manual" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="2_installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

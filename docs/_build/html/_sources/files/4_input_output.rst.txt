@@ -12,7 +12,7 @@ HydroCNHS has the following three main inputs:
 Outputs
 -------
 
-The outputs of HydroCNHS are stored in a data collector object, an attribute of HydroCNHS (e.g., *model.dc*). The main output is the daily streamflow at routing outlets. However, this data collector object will also contain other user-specified agent outputs as long as users use this data collector object in their ABM modules. See “Integrate an ABM” and “Data collector” for more information.
+The outputs of HydroCNHS are stored in a data collector object, an attribute of HydroCNHS (e.g., *model.dc*). The main output is the daily streamflow at routing outlets. However, this data collector object will also contain other user-specified agent outputs as long as users use this data collector object in their ABM modules. See :ref:`Integrate an ABM` and `Data collector`_ for more information.
 
 Daily climate data
 ------------------
