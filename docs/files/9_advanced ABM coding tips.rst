@@ -8,7 +8,7 @@ Enhancing computational speed
 
 Avoid extensive calls to DataFrame
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Reading data to a DataFrame (e.g., *df.loc[,]*) tends to be slow. We suggest users use NumPy array, list, or dictionary for calculations or data storage.
+Reading data to a DataFrame (e.g., *df.loc[ , ]*) tends to be slow. We suggest users use NumPy array, list, or dictionary for calculations or data storage.
 
 Avoid repeated loading of external data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

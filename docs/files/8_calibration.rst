@@ -54,7 +54,7 @@ A calibration input dictionary contains three keys, including par_name, par_boun
 .. code-block:: python
 
     # Calibration inputs
-cali.get_inputs_template() # print an input template.
+    cali.get_inputs_template() # print an input template.
 
     inputs = {'par_name': ['x1', 'x2'],
               'par_bound': [[-5, 5], [-5, 5]],
