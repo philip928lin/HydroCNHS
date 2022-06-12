@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="HydroCNHS.calibration package" href="HydroCNHS.calibration.html" />
-    <link rel="prev" title="Calibration" href="../calibration.html" /> 
+    <link rel="prev" title="Advanced ABM coding tips" href="../files/9_advanced%20ABM%20coding%20tips.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,18 +36,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick start!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../model_builder.html">Model builder</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../how_to_build_abm.html">How to build a ABM module?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/3_101_classroom.html">101 classroom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/5_build_a_hydrological_model.html">Build a hydrological model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">HydroCNHS package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.calibration.html">HydroCNHS.calibration package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html">HydroCNHS.rainfall_runoff_model package</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS.abm">HydroCNHS.abm module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS.abm_script">HydroCNHS.abm_script module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS.data_collector">HydroCNHS.data_collector module</a></li>
@@ -58,6 +55,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS.util">HydroCNHS.util module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS.visual">HydroCNHS.visual module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-HydroCNHS">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.calibration.html">HydroCNHS.calibration package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html">HydroCNHS.rainfall_runoff_model package</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -88,31 +90,6 @@
              
   <div class="section" id="hydrocnhs-package">
 <h1>HydroCNHS package<a class="headerlink" href="#hydrocnhs-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="HydroCNHS.calibration.html">HydroCNHS.calibration package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration.convertor">HydroCNHS.calibration.convertor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration.ga_deap">HydroCNHS.calibration.ga_deap module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html">HydroCNHS.rainfall_runoff_model package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.abcd">HydroCNHS.rainfall_runoff_model.abcd module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.gwlf">HydroCNHS.rainfall_runoff_model.gwlf module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.pet_hamon">HydroCNHS.rainfall_runoff_model.pet_hamon module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-HydroCNHS.abm">
 <span id="hydrocnhs-abm-module"></span><h2>HydroCNHS.abm module<a class="headerlink" href="#module-HydroCNHS.abm" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -1066,13 +1043,35 @@ user’s specified sections (key_option).</p>
 <div class="section" id="module-HydroCNHS">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-HydroCNHS" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="HydroCNHS.calibration.html">HydroCNHS.calibration package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration.convertor">HydroCNHS.calibration.convertor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration.ga_deap">HydroCNHS.calibration.ga_deap module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.calibration.html#module-HydroCNHS.calibration">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html">HydroCNHS.rainfall_runoff_model package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.abcd">HydroCNHS.rainfall_runoff_model.abcd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.gwlf">HydroCNHS.rainfall_runoff_model.gwlf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model.pet_hamon">HydroCNHS.rainfall_runoff_model.pet_hamon module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydroCNHS.rainfall_runoff_model.html#module-HydroCNHS.rainfall_runoff_model">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 </div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../calibration.html" class="btn btn-neutral float-left" title="Calibration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../files/9_advanced%20ABM%20coding%20tips.html" class="btn btn-neutral float-left" title="Advanced ABM coding tips" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="HydroCNHS.calibration.html" class="btn btn-neutral float-right" title="HydroCNHS.calibration package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

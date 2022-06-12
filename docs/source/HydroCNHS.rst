@@ -1,18 +1,6 @@
 HydroCNHS package
 =================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   HydroCNHS.calibration
-   HydroCNHS.rainfall_runoff_model
-
-Submodules
-----------
-
 HydroCNHS.abm module
 --------------------
 
@@ -92,3 +80,13 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   HydroCNHS.calibration
+   HydroCNHS.rainfall_runoff_model
+

@@ -1,5 +1,6 @@
-Path: {WD: <working directory>,
-  Modules:      <directory to the folder containing ABM modules>}
+Path: 
+  WD:       <working directory>
+  Modules:  <directory to the folder containing ABM modules>
 
 WaterSystem:
   StartDate:    <simulation start date, e.g., 1981/1/1>

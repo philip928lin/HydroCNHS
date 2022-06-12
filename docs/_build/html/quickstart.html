@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Model builder" href="model_builder.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="prev" title="101 classroom" href="files/3_101_classroom.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -37,7 +37,9 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/1_introduction.html">HydroCNHS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/3_101_classroom.html">101 classroom</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick start!</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#run-a-simulation">Run a simulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#daily-weather-time-series">Daily weather time series</a></li>
@@ -89,7 +91,7 @@
 <p>The TRB tutorial codes are located at <strong>./HydroCNHS/tutorials/Tualatin River Basin/</strong></p>
 <div class="figure align-center" id="id1">
 <span id="trb"></span><a class="reference internal image-reference" href="_images/TRB.png"><img alt="The Tualatin River Basin system diagram." src="_images/TRB.png" style="width: 500px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
 Hagg<sub>In</sub>, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
 PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
 irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
@@ -268,7 +270,7 @@ material of (Lin et al., 2022).</p>
 <h3>4. Routing<a class="headerlink" href="#routing" title="Permalink to this headline">¶</a></h3>
 <p>HydroCNHS adopts Lohmann routing model to simulate within-subbasin routing and
 inter-subbasin routing process. We adpot a nested struture to setup the routing
-setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 2</span></a>), as shown below.</p>
+setting for each routing outlets (<a class="reference internal" href="#trb"><span class="std std-numref">Fig. 5</span></a>), as shown below.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Routing</span><span class="p">:</span>
         <span class="nt">Model</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Lohmann</span>
         <span class="c1"># WSLO, TRGC, DLLO, and HaggIn are four routing outlets.</span>
@@ -495,7 +497,7 @@ components, then you can skip this ABM part!</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="files/3_101_classroom.html" class="btn btn-neutral float-left" title="101 classroom" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="model_builder.html" class="btn btn-neutral float-right" title="Model builder" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

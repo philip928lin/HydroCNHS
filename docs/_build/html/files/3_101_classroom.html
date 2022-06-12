@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>101 classroom &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Input/Output" href="4_input_output.html" />
+    <link rel="prev" title="Installation" href="2_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> HydroCNHS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">101 classroom</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#watershed-basin">Watershed/Basin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subbasin">Subbasin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#semi-distributed-hydrological-model">Semi-distributed hydrological model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rainfall-runoff-process-modeling">Rainfall-runoff process modeling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#routing-routing-outlets">Routing &amp; Routing outlets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-water-system-in-node-link-structure">A water system in node-link structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-outlet-with-no-human-components-fig2a">Single outlet with no human components (<code class="xref std std-numref docutils literal notranslate"><span class="pre">fig2</span></code>a)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-routing-outlets-fig2b">Multiple routing outlets (<code class="xref std std-numref docutils literal notranslate"><span class="pre">fig2</span></code>b)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#routing-with-human-components-using-dam-api-fig2c">Routing with human components using Dam API (<code class="xref std std-numref docutils literal notranslate"><span class="pre">fig2</span></code>c)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#design-a-water-system-with-the-supporting-apis">Design a water system with the supporting APIs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/HydroCNHS.html">HydroCNHS package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HydroCNHS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>101 classroom</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/3_101_classroom.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="classroom">
+<h1>101 classroom<a class="headerlink" href="#classroom" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="watershed-basin">
+<h2>Watershed/Basin<a class="headerlink" href="#watershed-basin" title="Permalink to this headline">¶</a></h2>
+<p>A land area that drains water to a particular water body like lakes, rivers, and oceans. Ridges, mountains, and hills usually define the boundary of a watershed/basin.</p>
+</div>
+<div class="section" id="subbasin">
+<h2>Subbasin<a class="headerlink" href="#subbasin" title="Permalink to this headline">¶</a></h2>
+<p>Subbasin is a sub-drainage land unit inside a watershed. HydroCNHS uses subbasins as the base unit for hydrological modeling. Each subbasin has a corresponding outlet. It is similar to the concept of the hydrologic response unit used in the SWAT model. However, users can freely determine the subbasins’ resolution to balance the computational cost and required resolution of the output information.</p>
+</div>
+<div class="section" id="semi-distributed-hydrological-model">
+<h2>Semi-distributed hydrological model<a class="headerlink" href="#semi-distributed-hydrological-model" title="Permalink to this headline">¶</a></h2>
+<p>HydroCNHS is a semi-distributed hydrological model with resolution/complexity between a lumped hydrological model and a distributed hydrological model, as shown in <a class="reference internal" href="#fig1"><span class="std std-numref">Fig. 1</span></a>. A lumped model describes the water balance of the entire watershed as a water bucket (<a class="reference internal" href="#fig1"><span class="std std-numref">Fig. 1</span></a>a). A distributed model simulates water responses in each grid and routes them to the downstream outlets (<a class="reference internal" href="#fig1"><span class="std std-numref">Fig. 1</span></a>c). A semi-distributed hydrological model is a hybrid approach for the two mentioned methods. The streamflow at a downstream outlet is calculated by routing the subbasins’ (not grid) runoffs simulated by lumped models (<a class="reference internal" href="#fig1"><span class="std std-numref">Fig. 1</span></a>b).</p>
+<div class="figure align-center" id="id1">
+<span id="fig1"></span><a class="reference internal image-reference" href="../_images/fig1_modeling_schema.png"><img alt="Comparison of three hydrological modeling schema." src="../_images/fig1_modeling_schema.png" style="width: 700px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Comparison of three hydrological modeling schema: a) Lumped model, b) Semi-distributed model, and c) Distributed model.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="rainfall-runoff-process-modeling">
+<h2>Rainfall-runoff process modeling<a class="headerlink" href="#rainfall-runoff-process-modeling" title="Permalink to this headline">¶</a></h2>
+<p>The rainfall-runoff process is a series of mechanisms describing how a raindrop or snowfall becomes a runoff. This process often includes evapotranspiration, interception, infiltration, snow melting, and groundwater recession. HydroCNHS supports two process-based modeling options: (1) the General Water Loading Function (GWLF; Haith et al., 1987) with nine parameters and (2) the ABCD model (Thomas, 1981) with five parameters. Detailed calculations can be found in the supplementary material in Lin et al. (2022). Users can also pre-calculate subbasins’ runoffs using their preferred rainfall-runoff models and input them into HydroCNHS.</p>
+</div>
+<div class="section" id="routing-routing-outlets">
+<h2>Routing &amp; Routing outlets<a class="headerlink" href="#routing-routing-outlets" title="Permalink to this headline">¶</a></h2>
+<p>Routing captures the delay in water movement from upstream to downstream. HydroCNHS adopts the Lohmann routing model (Lohmann et al., 1998) and the unit hydrograph parameterization described in Wi et al. (2015), with the former tracing the runoff from subbasins through the river channel (i.e., inter-subbasin routing) and the latter accounting for the within-subbasin routing process (<a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>a). A gamma distribution is adopted to represent the unit hydrograph of within-subbasin routing.</p>
+<p>In HydroCNHS, we define routing outlets as those subbasin outlets with routed streamflow information. In other words, for subbasin outlets that are not defined as routing outlets, HydroCNHS will not route the streamflow, and only the runoff information is stored. However, we do not encourage users to define too many routing outlets if the streamflow information is not necessary at those outlets. Minimizing the number of routing outlets will reduce the model complexity and usually lead to a better model performance.</p>
+</div>
+<div class="section" id="a-water-system-in-node-link-structure">
+<h2>A water system in node-link structure<a class="headerlink" href="#a-water-system-in-node-link-structure" title="Permalink to this headline">¶</a></h2>
+<p>HydroCNHS represents a water system in a node-link structure. Therefore, users must learn how to abstract a water system with a node-link representation and understand the routing logic behind a given node-link structure used by HydroCNHS. We introduce three typical cases, shown in <a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>.</p>
+<div class="figure align-center" id="id2">
+<span id="fig2"></span><a class="reference internal image-reference" href="../_images/fig2_routing_schema.png"><img alt="Routing schema using in HydroCNHS." src="../_images/fig2_routing_schema.png" style="width: 700px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">Routing schema using in HydroCNHS. a) single routing outlet, b) multiple routing outlets, and c) with a reservoir agent.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<div class="section" id="single-outlet-with-no-human-components-fig2a">
+<h3>Single outlet with no human components (<a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>a)<a class="headerlink" href="#single-outlet-with-no-human-components-fig2a" title="Permalink to this headline">¶</a></h3>
+<p>In <a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>a, we are only interested in the streamflow at the basin outlet, assigned as the only routing outlet. In this case, HydroCNHS will route each runoff generated in each subbasin to the basin outlet (white dot). Namely, each subbasin contains both within-subbasin (represented by a unit hydrologic response curve) and inter-subbasin routing.</p>
+</div>
+<div class="section" id="multiple-routing-outlets-fig2b">
+<h3>Multiple routing outlets (<a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>b)<a class="headerlink" href="#multiple-routing-outlets-fig2b" title="Permalink to this headline">¶</a></h3>
+<p>In <a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>b, we are interested in the streamflow at multiple (in here two) outlets. In this case, calibration is possible if streamflow data is available for the two outlets. In Figure 2b, the three most upstream outlets (black dots) are routed to the upstream routing outlet and will NOT be routed again for the downstream routing outlet. Instead, the routed streamflow at the upstream routing outlet will be further routed to the downstream outlet with only river routing (i.e., only inter-subbasin and no within-subbasin routing).</p>
+</div>
+<div class="section" id="routing-with-human-components-using-dam-api-fig2c">
+<h3>Routing with human components using Dam API (<a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>c)<a class="headerlink" href="#routing-with-human-components-using-dam-api-fig2c" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#fig2"><span class="std std-numref">Fig. 2</span></a>c introduces human components (e.g., a reservoir; ResAgt) integrated with Dam API to the node-link structure. A reservoir  is considered an in-stream object that completely redefines the downstream flow according to its water releasing rules. Therefore, such an in-stream object (e.g., a reservoir) is defined as a pseudo routing outlet used for the downstream routing. Note that the upstream node of a reservoir has to be a routing outlet to simulate the inflow. Or, we can view that ResAgt takes water from its upstream routing outlet and release water based on the reservoir’s operational rules. More details about other APIs are presented in the following section.</p>
+</div>
+</div>
+<div class="section" id="design-a-water-system-with-the-supporting-apis">
+<h2>Design a water system with the supporting APIs<a class="headerlink" href="#design-a-water-system-with-the-supporting-apis" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id3">
+<span id="fig3"></span><a class="reference internal image-reference" href="../_images/fig3_hydrocnhs.png"><img alt="A generic example of HydroCNHS coupling APIs and water system description." src="../_images/fig3_hydrocnhs.png" style="width: 500px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">A generic example of HydroCNHS coupling APIs and water system description.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>The four APIs in the HydroCNHS (<a class="reference internal" href="#fig3"><span class="std std-numref">Fig. 3</span></a>) are (1) Dam API, (2) RiverDiv API, (3) Conveying API, and (4) InSitu API.</p>
+<p><strong>Dam API</strong> is designed for integrating in-stream agents like reservoirs (e.g., R1 and R2 in <a class="reference internal" href="#fig3"><span class="std std-numref">Fig. 3</span></a>) that could significantly alter the streamflow regime. Agents with Dam API will be considered pseudo routing outlets (no routing is needed) involved in the routing scheme. Namely, streamflow is directly defined by agents’ water releases decision.</p>
+<p><strong>RiverDiv API</strong> is created for agents that divert water from rivers and may have return flows to other outlets, e.g., diversion agent D1 diverts water from N3 and returns water to N1 in <a class="reference internal" href="#fig3"><span class="std std-numref">Fig. 3</span></a>. This API ensures the diverted outlet is routed before agents’ diversions. At the outlet receiving return flow, the subbasin runoff and returned flow join and enter the within-subbasin routing process since return flows often have no explicit return location.</p>
+<p><strong>Conveying API</strong> is designed for transferring water to another outlet from a routing outlet where the routing process has already been executed. The transferred water has no within-subbasin routing (no within-subbasin delay like runoff). Therefore, they will be routed separately from the subbasin’s runoffs. If an agent wants to convey water from the downstream outlet to the upstream outlet (e.g., pump stations), the water will be delivered with delays (e.g., C2 diverts water from N3 first and delivers it to S2 at a later time step).</p>
+<p><strong>InSitu API</strong> is developed for agents that directly affect runoffs via “within subbasin activities” (e.g., I1 in <a class="reference internal" href="#fig3"><span class="std std-numref">Fig. 3</span></a>). For example, those runoff changes may come from land-use changes due to urbanization or exploiting groundwater through wells. Such adjustments will be made before any routing process at each time step.</p>
+<p>We summarize the supported connections of each API in <a class="reference internal" href="#table1"><span class="std std-numref">Table 1</span></a>.</p>
+<span id="table1"></span><table class="docutils align-center" id="id4" style="width: 100%">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">The supported connections of each API.</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 23%" />
+<col style="width: 11%" />
+<col style="width: 23%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head" rowspan="2"><p>APIs</p></th>
+<th class="head" colspan="2"><p>Minus (divert/take) from</p></th>
+<th class="head" colspan="2"><p>Plus (return/release) to</p></th>
+</tr>
+<tr class="row-even"><th class="head"><p>Routing outlets</p></th>
+<th class="head"><p>Outlets</p></th>
+<th class="head"><p>Routing outlets</p></th>
+<th class="head"><p>Outlets</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-odd"><td><p>Dam API<sup>*</sup></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>X</strong></p></td>
+<td><p>–</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p>RiverDiv API</p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>X</strong></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>V</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Conveying API</p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>X</strong></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>V</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>InSitu API<sup>**</sup></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>V</strong></p></td>
+<td><p><strong>V</strong></p></td>
+</tr>
+<tr class="row-odd"><td colspan="5"><div class="line-block">
+<div class="line"><sup>*</sup>Human components using Dam API will serve as a pseudo
+routing outlet for the downstream routing.</div>
+<div class="line"><sup>**</sup>InSitu API only works on a single outlet (i.e., subbasin).</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="2_installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="4_input_output.html" class="btn btn-neutral float-right" title="Input/Output" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
