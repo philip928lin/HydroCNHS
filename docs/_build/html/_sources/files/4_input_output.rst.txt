@@ -12,7 +12,7 @@ HydroCNHS has the following three main inputs:
 Outputs
 -------
 
-The outputs of HydroCNHS are stored in a data collector object, an attribute of HydroCNHS (e.g., *model.dc*). The main output is the daily streamflow at routing outlets. However, this data collector object will also contain other user-specified agent outputs as long as users use this data collector object in their ABM modules. See :ref:`Integrate an ABM` and `Data collector`_ for more information.
+The outputs of HydroCNHS are stored in a data collector object, an attribute of HydroCNHS (e.g., *model.dc*). The main output is the daily streamflow at routing outlets. However, this data collector object will also contain other user-specified agent outputs as long as users use this data collector object in their ABM modules. See :ref:`Integrate an ABM` and :ref:`Data collector` for more information.
 
 Daily climate data
 ------------------
@@ -170,4 +170,4 @@ A model configuration file is a YAML file that contains settings for the entire 
 ABM modules
 -----------
 
-ABM modules are customized python scripts in which human components are designed through programming agent type classes and decision-making classes. HydroCNHS will load those user-specified classes and use them to initialize agents. More details are provided in the “Integrate an ABM” section.
+ABM modules are customized python scripts in which human components are designed through programming agent type classes and decision-making classes. HydroCNHS will load those user-specified classes and use them to initialize agents. More details are provided in the :ref:`Integrate an ABM` section.

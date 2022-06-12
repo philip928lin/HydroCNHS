@@ -189,7 +189,7 @@ Step 2: Complete a model configuration file
 After the model configuration file (*.yaml*) is created, users should open the file to complete and correct any missing or misinterpreted values. For this example, again, we will keep the default values.
 
 Step 3: Program ABM module (*.py*)
---------------------------------
+------------------------------------
 
 In the generated ABM module (*.py*), users can find mainly two types of classes, including agent type classes (AgtType) and decision-making classes (DMClass/Institutional DMClass). Agent type classes are used to define agents' actions and store up-to-date information (e.g., current date and current time step) in agents' attributes. Decision-making classes are used to program a specific decision-making process. Decision-making classes can be further separated into DMClass and Institutional DMClass. 
 
