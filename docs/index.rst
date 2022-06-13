@@ -26,7 +26,8 @@ How to cite?
 ==================
 Lin, C. Y., Yang, Y. C. E., & Wi S. (2022, under review). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management.
 
-## Related studies
+Related studies
+==================
 Lin, C. Y., & Yang, Y. E. (2022). `The effects of model complexity on model output uncertainty in co-evolved coupled natural-human systems <https://doi.org/10.1029/2021EF002403>`_. Earth's Future, e2021EF002403.
 
 Indices and tables

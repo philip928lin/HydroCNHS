@@ -128,17 +128,14 @@
 <h3>Calibration input dictionary<a class="headerlink" href="#calibration-input-dictionary" title="Permalink to this headline">¶</a></h3>
 <p>A calibration input dictionary contains three keys, including par_name, par_bound, and wd. par_name is a list of the parameter names, par_bound is a list of parameter bounds, and wd is the working directory for the calibration experiment. The calibration input dictionary for this example is shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calibration inputs</span>
+<span class="n">cali</span><span class="o">.</span><span class="n">get_inputs_template</span><span class="p">()</span> <span class="c1"># print an input template.</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;par_name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="s1">&#39;x2&#39;</span><span class="p">],</span>
+          <span class="s1">&#39;par_bound&#39;</span><span class="p">:</span> <span class="p">[[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">]],</span>
+          <span class="s1">&#39;wd&#39;</span><span class="p">:</span> <span class="s1">&#39;working directory&#39;</span><span class="p">}</span>
+<span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;wd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prj_path</span>
 </pre></div>
 </div>
-<p>cali.get_inputs_template() # print an input template.</p>
-<blockquote>
-<div><dl class="simple">
-<dt>inputs = {‘par_name’: [‘x1’, ‘x2’],</dt><dd><p>‘par_bound’: [[-5, 5], [-5, 5]],
-‘wd’: ‘working directory’}</p>
-</dd>
-</dl>
-<p>inputs[“wd”] = prj_path</p>
-</div></blockquote>
 <p>Note that users can use a converter to generate the calibration input dictionary automatically.</p>
 </div>
 <div class="section" id="ga-configuration-dictionary">
