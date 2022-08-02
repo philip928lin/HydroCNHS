@@ -55,7 +55,8 @@ First, initiate a model builder object with a working directory (your working fo
 Second, set up the water system with the simulation period (i.e., start date and end date).
 
 .. code-block:: python
-
+    wd = prj_path
+    mb = HydroCNHS.ModelBuilder(wd)
     mb.set_water_system(start_date="1981/1/1", end_date="2013/12/31")
 
 Third, we can add subbasins (i.e., outlet_list) into the model. We adopt the GWLF model as the rainfall-runoff model (i.e., runoff_model). We also assign the corresponding subbasins' areas (i.e., area_list) and latitude (i.e., lat_list) using the information from :numref:`table4`. Note that area_list and lat_list are optional arguments. Users can manually enter that information to the model configuration file (*.yaml*). 

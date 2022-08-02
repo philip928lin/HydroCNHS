@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Build a hydrological model &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>Build a hydrological model &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="6_Integrate_an_ABM.html" />
+    <link rel="next" title="Integrate an ABM" href="6_Integrate_an_ABM.html" />
     <link rel="prev" title="Input/Output" href="4_input_output.html" /> 
 </head>
 
@@ -35,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
@@ -47,6 +50,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#step-4-run-a-simulation">Step 4: Run a simulation</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../source/HydroCNHS.html">HydroCNHS package</a></li>
 </ul>
 
@@ -74,20 +81,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="build-a-hydrological-model">
-<h1>Build a hydrological model<a class="headerlink" href="#build-a-hydrological-model" title="Permalink to this headline">¶</a></h1>
+  <section id="build-a-hydrological-model">
+<h1>Build a hydrological model<a class="headerlink" href="#build-a-hydrological-model" title="Permalink to this headline"></a></h1>
 <p>To get familiar with the HydroCNHS model construction process, let’s start with a hydrological model without human components. We will go through the following steps:
 1.      Create a model configuration file (<em>.yaml</em>) using a model builder.
 2.      Complete a model configuration file (<em>.yaml</em>)
 3.      Run a calibration
 4.      Run a simulation
 We will adopt the following delineated watershed (<a class="reference internal" href="#fig4"><span class="std std-numref">Fig. 4</span></a>) as a demonstration, in which we want to build a semi-distributed hydrological model to simulate the streamflow at the basin outlet, WSLO. The corresponding subbasins’ information is provided in <a class="reference internal" href="#table4"><span class="std std-numref">Table 4</span></a>.</p>
-<div class="figure align-center" id="id1">
+<figure class="align-center" id="id1">
 <span id="fig4"></span><a class="reference internal image-reference" href="../_images/fig4_example_watershed.png"><img alt="Example watershed." src="../_images/fig4_example_watershed.png" style="width: 300px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Example watershed.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Example watershed.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <span id="table4"></span><table class="docutils align-center" id="id2" style="width: 100%">
-<caption><span class="caption-number">Table 4 </span><span class="caption-text">Subbasins’ information.</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">Subbasins’ information.</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 22%" />
 <col style="width: 26%" />
@@ -134,8 +143,8 @@ We will adopt the following delineated watershed (<a class="reference internal" 
 </tr>
 </tbody>
 </table>
-<div class="section" id="step-1-create-a-model-configuration-file">
-<h2>Step 1: Create a model configuration file<a class="headerlink" href="#step-1-create-a-model-configuration-file" title="Permalink to this headline">¶</a></h2>
+<section id="step-1-create-a-model-configuration-file">
+<h2>Step 1: Create a model configuration file<a class="headerlink" href="#step-1-create-a-model-configuration-file" title="Permalink to this headline"></a></h2>
 <p>HydroCNHS comes with a model builder to help users create an initial model configuration file.</p>
 <p>First, initiate a model builder object with a working directory (your working folder directory).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -144,9 +153,6 @@ We will adopt the following delineated watershed (<a class="reference internal" 
 </pre></div>
 </div>
 <p>Second, set up the water system with the simulation period (i.e., start date and end date).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mb</span><span class="o">.</span><span class="n">set_water_system</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1981/1/1&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2013/12/31&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
 <p>Third, we can add subbasins (i.e., outlet_list) into the model. We adopt the GWLF model as the rainfall-runoff model (i.e., runoff_model). We also assign the corresponding subbasins’ areas (i.e., area_list) and latitude (i.e., lat_list) using the information from <a class="reference internal" href="#table4"><span class="std std-numref">Table 4</span></a>. Note that area_list and lat_list are optional arguments. Users can manually enter that information to the model configuration file (<em>.yaml</em>).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">outlet_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Hagg&#39;</span><span class="p">,</span> <span class="s1">&#39;DLLO&#39;</span><span class="p">,</span> <span class="s1">&#39;TRGC&#39;</span><span class="p">,</span> <span class="s1">&#39;DAIRY&#39;</span><span class="p">,</span> <span class="s1">&#39;RCTV&#39;</span><span class="p">,</span> <span class="s1">&#39;WSLO&#39;</span><span class="p">]</span>
 <span class="n">area_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">10034.2408</span><span class="p">,</span> <span class="mf">22568.2404</span><span class="p">,</span> <span class="mf">24044.6363</span><span class="p">,</span> <span class="mf">59822.7546</span><span class="p">,</span> <span class="mf">19682.6046</span><span class="p">,</span>
@@ -172,13 +178,13 @@ We will adopt the following delineated watershed (<a class="reference internal" 
 </pre></div>
 </div>
 <p>Now, we should have the initial model configuration file (i.e., <em>HydroModel.yaml</em>) in the corresponding folder.</p>
-</div>
-<div class="section" id="step-2-complete-a-model-configuration-file">
-<h2>Step 2: Complete a model configuration file<a class="headerlink" href="#step-2-complete-a-model-configuration-file" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="step-2-complete-a-model-configuration-file">
+<h2>Step 2: Complete a model configuration file<a class="headerlink" href="#step-2-complete-a-model-configuration-file" title="Permalink to this headline"></a></h2>
 <p>Before using the created <em>HydroModel.yaml</em> for the later experiment, we need to open it and ensure the information is correct. The “Inputs” in LSM and Routing sections should be all populated. Some default values may be used (e.g., <span class="math notranslate nohighlight">\(S0\)</span>, <span class="math notranslate nohighlight">\(U0\)</span>, and <span class="math notranslate nohighlight">\(SnowS\)</span>). They should be updated according to users’ needs. For this example, we don’t need to modify anything. You might notice that all the parameters have <strong>a value of -99</strong>. This is the default value in HydroCNHS, meaning that those values need to be calibrated if not provided by users.</p>
-</div>
-<div class="section" id="step-3-run-a-calibration">
-<h2>Step 3: Run a calibration<a class="headerlink" href="#step-3-run-a-calibration" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="step-3-run-a-calibration">
+<h2>Step 3: Run a calibration<a class="headerlink" href="#step-3-run-a-calibration" title="Permalink to this headline"></a></h2>
 <p>First, we load the climate data, observed flow data at WSLO, and the model configuration file. Here, we have calculated the evapotranspiration using the Hamon method. Therefore, we load it as the inputs as well.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -282,9 +288,9 @@ We will adopt the following delineated watershed (<a class="reference internal" 
 <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">write_model</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;Best_HydroModel_gwlf_KGE.yaml&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="step-4-run-a-simulation">
-<h2>Step 4: Run a simulation<a class="headerlink" href="#step-4-run-a-simulation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="step-4-run-a-simulation">
+<h2>Step 4: Run a simulation<a class="headerlink" href="#step-4-run-a-simulation" title="Permalink to this headline"></a></h2>
 <p>After obtaining a calibrated model, users can now use it for any simulation-based experiment (e.g., streamflow uncertainty under climate change). The calibrated model configuration file (e.g., <em>Best_HydroModel_gwlf_KGE.yaml</em>) can be directly loaded into HydroCNHS to run a simulation.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Run a simulation.</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="s2">&quot;Cali_HydroModel_gwlf_KGE&quot;</span><span class="p">,</span>
@@ -301,15 +307,15 @@ We will adopt the following delineated watershed (<a class="reference internal" 
 </div>
 <p>The complete script can be found at <em>./tutorials/Hydro_example/Main_HydroModel.py</em>.</p>
 <p>The following section will further introduce how to incorporate user-defined ABM modules into the model.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="4_input_output.html" class="btn btn-neutral float-left" title="Input/Output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="6_Integrate_an_ABM.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="6_Integrate_an_ABM.html" class="btn btn-neutral float-right" title="Integrate an ABM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Input/Output &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>Input/Output &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
@@ -79,29 +82,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="input-output">
-<h1>Input/Output<a class="headerlink" href="#input-output" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="inputs">
-<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h2>
+  <section id="input-output">
+<h1>Input/Output<a class="headerlink" href="#input-output" title="Permalink to this headline"></a></h1>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline"></a></h2>
 <p>HydroCNHS has the following three main inputs:
 (1) Daily climate data including precipitation, temperature, and (optional) potential evapotranspiration (python <em>dictionary object</em>),
 (2) A model configuration file (<em>.yaml</em>; settings for the HydroCNHS and ABM models), and
 (3) ABM modules (<em>.py</em>; customized human models).</p>
-</div>
-<div class="section" id="outputs">
-<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline"></a></h2>
 <p>The outputs of HydroCNHS are stored in a data collector object, an attribute of HydroCNHS (e.g., <em>model.dc</em>). The main output is the daily streamflow at routing outlets. However, this data collector object will also contain other user-specified agent outputs as long as users use this data collector object in their ABM modules. See <a class="reference internal" href="6_Integrate_an_ABM.html#integrate-an-abm"><span class="std std-ref">Integrate an ABM</span></a> and <a class="reference internal" href="7_data_collector.html#data-collector"><span class="std std-ref">Data collector</span></a> for more information.</p>
-</div>
-<div class="section" id="daily-climate-data">
-<h2>Daily climate data<a class="headerlink" href="#daily-climate-data" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="daily-climate-data">
+<h2>Daily climate data<a class="headerlink" href="#daily-climate-data" title="Permalink to this headline"></a></h2>
 <p>Temperature (temp; degC) and precipitation (prec; cm) are two required weather inputs for a simulation. Potential evapotranspiration (pet; cm) can be automatically calculated by HydroCNHS using the Hamon method. However, we encourage users to pre-calculate pet and provide it to HydroCNHS as an input to avoid repeated calculation, especially when running calibration. The daily climate inputs are in a python dictionary format, in which the subbasin outlet name is the key, and a daily time series (<em>list</em>) is the value, as shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;subbasin1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.7</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="o">.......</span><span class="p">],</span>
         <span class="s1">&#39;subbasin2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">8.5</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.3</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="o">.......</span><span class="p">]}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="model-configuration-file">
-<h2>Model configuration file<a class="headerlink" href="#model-configuration-file" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="model-configuration-file">
+<h2>Model configuration file<a class="headerlink" href="#model-configuration-file" title="Permalink to this headline"></a></h2>
 <p>A model configuration file is a YAML file that contains settings for the entire water system. The main sections in a model configuration file include Path, WaterSystem, LSM, Routing, and ABM. Please see the following description for each setting. Parameter and inputs definitions for rainfall-runoff and routing models are summarized in <a class="reference internal" href="#table2"><span class="std std-numref">Table 2</span></a> and <a class="reference internal" href="#table3"><span class="std std-numref">Table 3</span></a>, respectively. HydroCNHS has an embedded model builder. Therefore, users do not need to manually create the model configuration file (see the example in the following section).</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">Path</span><span class="p">:</span>
   <span class="nt">WD</span><span class="p">:</span>       <span class="l l-Scalar l-Scalar-Plain">&lt;working directory&gt;</span>
@@ -157,7 +160,7 @@
 </pre></div>
 </div>
 <span id="table2"></span><table class="docutils align-center" id="id1" style="width: 100%">
-<caption><span class="caption-number">Table 2 </span><span class="caption-text">Hydrological model parameters and suggested bounds.</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 2 </span><span class="caption-text">Hydrological model parameters and suggested bounds.</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 9%" />
 <col style="width: 40%" />
@@ -278,7 +281,7 @@ Venant equation</p></td>
 </tbody>
 </table>
 <span id="table3"></span><table class="docutils align-center" id="id2" style="width: 100%">
-<caption><span class="caption-number">Table 3 </span><span class="caption-text">Hydrological model inputs and default values.</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 3 </span><span class="caption-text">Hydrological model inputs and default values.</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 9%" />
 <col style="width: 39%" />
@@ -342,7 +345,7 @@ Venant equation</p></td>
 <td><p><span class="math notranslate nohighlight">\(SnowS\)</span></p></td>
 <td><p>5</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="3"><div class="line-block">
+<tr class="row-odd"><td rowspan="2"><div class="line-block">
 <div class="line">Lohmann</div>
 <div class="line">routing</div>
 </div>
@@ -352,24 +355,19 @@ Venant equation</p></td>
 <td><p><span class="math notranslate nohighlight">\(FlowLength\)</span></p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-even"><td><p>Flow length between two outlets</p></td>
-<td><p>m</p></td>
-<td><p><span class="math notranslate nohighlight">\(FlowLength\)</span></p></td>
-<td><p>–</p></td>
-</tr>
-<tr class="row-odd"><td><p>An instream control object, e.g., a reservoir</p></td>
+<tr class="row-even"><td><p>An instream control object, e.g., a reservoir</p></td>
 <td><p>–</p></td>
 <td><p><span class="math notranslate nohighlight">\(InstreamControl\)</span></p></td>
 <td><p>False</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="abm-modules">
-<h2>ABM modules<a class="headerlink" href="#abm-modules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="abm-modules">
+<h2>ABM modules<a class="headerlink" href="#abm-modules" title="Permalink to this headline"></a></h2>
 <p>ABM modules are customized python scripts in which human components are designed through programming agent type classes and decision-making classes. HydroCNHS will load those user-specified classes and use them to initialize agents. More details are provided in the <a class="reference internal" href="6_Integrate_an_ABM.html#integrate-an-abm"><span class="std std-ref">Integrate an ABM</span></a> section.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

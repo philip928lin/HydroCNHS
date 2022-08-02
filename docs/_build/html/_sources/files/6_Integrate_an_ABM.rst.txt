@@ -12,7 +12,7 @@ We adopt the Tualatin River Basin (TRB; :numref:`fig5`\; :numref:`table5`) as th
 .. _fig5:
 .. figure:: ../figs/fig5_TRB_node_link.png
   :align: center
-  :width: 400
+  :width: 600
   :alt: The node-link structure of the Tualatin River Basin with human components.
 
   The node-link structure of the Tualatin River Basin with human components.

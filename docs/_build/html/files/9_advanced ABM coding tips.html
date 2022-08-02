@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced ABM coding tips &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>Advanced ABM coding tips &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -34,7 +37,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
@@ -81,30 +84,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="advanced-abm-coding-tips">
-<h1>Advanced ABM coding tips<a class="headerlink" href="#advanced-abm-coding-tips" title="Permalink to this headline">¶</a></h1>
+  <section id="advanced-abm-coding-tips">
+<h1>Advanced ABM coding tips<a class="headerlink" href="#advanced-abm-coding-tips" title="Permalink to this headline"></a></h1>
 <p>In this section, we provide some coding tips for ABM module designs.</p>
-<div class="section" id="enhancing-computational-speed">
-<h2>Enhancing computational speed<a class="headerlink" href="#enhancing-computational-speed" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="avoid-extensive-calls-to-dataframe">
-<h3>Avoid extensive calls to DataFrame<a class="headerlink" href="#avoid-extensive-calls-to-dataframe" title="Permalink to this headline">¶</a></h3>
+<section id="enhancing-computational-speed">
+<h2>Enhancing computational speed<a class="headerlink" href="#enhancing-computational-speed" title="Permalink to this headline"></a></h2>
+<section id="avoid-extensive-calls-to-dataframe">
+<h3>Avoid extensive calls to DataFrame<a class="headerlink" href="#avoid-extensive-calls-to-dataframe" title="Permalink to this headline"></a></h3>
 <p>Reading data to a DataFrame (e.g., <em>df.loc[ , ]</em>) tends to be slow. We suggest users use NumPy array, list, or dictionary for calculations or data storage.</p>
-</div>
-<div class="section" id="avoid-repeated-loading-of-external-data">
-<h3>Avoid repeated loading of external data<a class="headerlink" href="#avoid-repeated-loading-of-external-data" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="avoid-repeated-loading-of-external-data">
+<h3>Avoid repeated loading of external data<a class="headerlink" href="#avoid-repeated-loading-of-external-data" title="Permalink to this headline"></a></h3>
 <p>If there is common data among multiple agent-type classes, we suggest loading the data once to a global variable at the top of the ABM module and using the variable across classes. This might save some time from repeated loading of external data inside each class (e.g., at <em>def __init__(self)</em>).</p>
-</div>
-<div class="section" id="avoid-extensive-deepcopy">
-<h3>Avoid extensive deepcopy<a class="headerlink" href="#avoid-extensive-deepcopy" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="avoid-extensive-deepcopy">
+<h3>Avoid extensive deepcopy<a class="headerlink" href="#avoid-extensive-deepcopy" title="Permalink to this headline"></a></h3>
 <p>deepcopy is a function to create a copy with a different storage address (not just copy a pointer that points to the same storage address). Therefore, it will take a longer time to complete the task. We suggest using deepcopy only when it is necessary.</p>
-</div>
-<div class="section" id="avoid-storing-redundant-data-in-a-data-collector">
-<h3>Avoid storing redundant data in a data collector<a class="headerlink" href="#avoid-storing-redundant-data-in-a-data-collector" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="avoid-storing-redundant-data-in-a-data-collector">
+<h3>Avoid storing redundant data in a data collector<a class="headerlink" href="#avoid-storing-redundant-data-in-a-data-collector" title="Permalink to this headline"></a></h3>
 <p>A data collector is a data container object to store model outputs. We encourage users to utilize it to store agents’ results; however, users will need to consider the storage capacity of their computing devices, especially with a considerable number of agents. Overusing the computer storage might also slow down the computational speed.</p>
-</div>
-</div>
-<div class="section" id="logging">
-<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline"></a></h2>
 <p>Logging is a python package to organize model output messages. We encourage users to adopt it in their ABM module design. This will help you to integrate your agent output messages into HydroCNHS.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;ABM&quot;</span><span class="p">)</span>
@@ -112,8 +115,8 @@
 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="o">&lt;</span><span class="n">error</span> <span class="n">message</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

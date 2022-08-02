@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Integrate an ABM &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>Integrate an ABM &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -34,7 +37,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
@@ -88,8 +91,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="integrate-an-abm">
-<h1>Integrate an ABM<a class="headerlink" href="#integrate-an-abm" title="Permalink to this headline">¶</a></h1>
+  <section id="integrate-an-abm">
+<h1>Integrate an ABM<a class="headerlink" href="#integrate-an-abm" title="Permalink to this headline"></a></h1>
 <p>After getting familiar with HydroCNHS from the hydrological model example in the previous section, we want to build a water system with human components (i.e., ABM). We will go through a similar process in the last example and focus on adding the human components.
 1.      Create a model configuration file (<em>.yaml</em>) using a model builder.
 2.      Complete a model configuration file (<em>.yaml</em>)
@@ -97,12 +100,14 @@
 4.      Run a calibration
 5.      Run a simulation
 We adopt the Tualatin River Basin (TRB; <a class="reference internal" href="#fig5"><span class="std std-numref">Fig. 5</span></a>; <a class="reference internal" href="#table5"><span class="std std-numref">Table 5</span></a>) as the tutorial example. The corresponding subbasins’ information is shown in <a class="reference internal" href="#table5"><span class="std std-numref">Table 5</span></a>. In this example, we consider three human components (<a class="reference internal" href="#table6"><span class="std std-numref">Table 6</span></a>), including (1) a reservoir (<em>ResAgt</em>), (2) an irrigation diversion (<em>DivAgt</em>), and (3) a trans-basin water transfer (<em>PipeAgt</em>), to demonstrate the HydroCNHS’s functionalities. Also, we model each human agent with different levels of behavioral complexities to provide users with a sense of how an agent can be modeled (<a class="reference internal" href="#table6"><span class="std std-numref">Table 6</span></a>). We will calibrate the model using the streamflow at DLLO and WSLO, reservoir releases from ResAgt, and water diversions from DivAgt on a monthly scale. More details about TRB can be found in Lin et al. (2022). Here, we focus on the coding part.</p>
-<div class="figure align-center" id="id1">
-<span id="fig5"></span><a class="reference internal image-reference" href="../_images/fig5_TRB_node_link.png"><img alt="The node-link structure of the Tualatin River Basin with human components." src="../_images/fig5_TRB_node_link.png" style="width: 400px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">The node-link structure of the Tualatin River Basin with human components.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
+<figure class="align-center" id="id1">
+<span id="fig5"></span><a class="reference internal image-reference" href="../_images/fig5_TRB_node_link.png"><img alt="The node-link structure of the Tualatin River Basin with human components." src="../_images/fig5_TRB_node_link.png" style="width: 600px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">The node-link structure of the Tualatin River Basin with human components.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <span id="table5"></span><table class="docutils align-center" id="id2" style="width: 100%">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">Subbasins’ information for the Tualatin River Basin.</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">Subbasins’ information for the Tualatin River Basin.</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 22%" />
 <col style="width: 26%" />
@@ -171,7 +176,7 @@ considered a pseudo routing outlet.</p></td>
 </tbody>
 </table>
 <span id="table6"></span><table class="docutils align-center" id="id3" style="width: 100%">
-<caption><span class="caption-number">Table 6 </span><span class="caption-text">Summary of human components’ setting.</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">Summary of human components’ setting.</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 22%" />
 <col style="width: 17%" />
@@ -222,8 +227,8 @@ behavioral rules</p></td>
 </tr>
 </tbody>
 </table>
-<div class="section" id="step-1-create-a-model-configuration-file">
-<h2>Step 1: Create a model configuration file<a class="headerlink" href="#step-1-create-a-model-configuration-file" title="Permalink to this headline">¶</a></h2>
+<section id="step-1-create-a-model-configuration-file">
+<h2>Step 1: Create a model configuration file<a class="headerlink" href="#step-1-create-a-model-configuration-file" title="Permalink to this headline"></a></h2>
 <p>Creating a node-link structure of a modeled water system is a vital step before using HydroCNHS. Subbasin outlets are determined based on the major tributaries in the TRB. However, the subbasin outlet, TRTR, is given because we have an inlet there for trans-basin water transfer. For the routing outlet assignment, DLLO and WSLO are selected because the streamflow at these two is part of the calibration targets, TRGC is also chosen since an agent integrated using RiverDiv API can only divert water from a routing outlet, and HaggIn is picked because it is the inflow of ResAgt (i.e., ResAgt takes water from HaggIn).</p>
 <p>With a node-link structure of the TRB water system, we can follow the same process shown in the “Build a hydrological model” to initialize a model builder, set up the water system with the simulation period, add subbasins, and add four routing outlets. Note that ResAgt is considered a pseudo routing outlet that needs to be assigned to one of the upstream outlets of a routing outlet.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -267,15 +272,15 @@ behavioral rules</p></td>
                     <span class="n">flow_length_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
-<div class="section" id="initialize-abm-setting">
-<h3>Initialize ABM setting<a class="headerlink" href="#initialize-abm-setting" title="Permalink to this headline">¶</a></h3>
+<section id="initialize-abm-setting">
+<h3>Initialize ABM setting<a class="headerlink" href="#initialize-abm-setting" title="Permalink to this headline"></a></h3>
 <p>To add human components, we need to first initialize the ABM setting block by assigning an ABM module folder’s directory and planned ABM module filename. If they are not given, default values will be applied, namely, working directory and “ABM_module.py, “respectively. abm_module_name will be used as the filename for the ABM module template if users choose to generate one using the model builder.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mb</span><span class="o">.</span><span class="n">set_ABM</span><span class="p">(</span><span class="n">abm_module_folder_path</span><span class="o">=</span><span class="n">wd</span><span class="p">,</span> <span class="n">abm_module_name</span><span class="o">=</span><span class="s2">&quot;TRB_ABM.py&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="add-agents">
-<h3>Add agents<a class="headerlink" href="#add-agents" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="add-agents">
+<h3>Add agents<a class="headerlink" href="#add-agents" title="Permalink to this headline"></a></h3>
 <p>Next, we add human components (i.e., agents) to the model builder.
 We first <strong>add a reservoir agent (ResAgt)</strong>, in which its corresponding agent type class, agent name, api, link dictionary, and decision-making class can be assigned at this stage. Although not all information has to be provided now (i.e., it can be manually added to the model configuration file later), we encourage users to provide complete details here.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mb</span><span class="o">.</span><span class="n">add_agent</span><span class="p">(</span><span class="n">agt_type_class</span><span class="o">=</span><span class="s2">&quot;Reservoir_AgtType&quot;</span><span class="p">,</span> <span class="n">agt_name</span><span class="o">=</span><span class="s2">&quot;ResAgt&quot;</span><span class="p">,</span>
@@ -301,9 +306,9 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
              <span class="n">dm_class</span><span class="o">=</span><span class="s2">&quot;TransferDM&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="add-institution">
-<h3>Add institution<a class="headerlink" href="#add-institution" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="add-institution">
+<h3>Add institution<a class="headerlink" href="#add-institution" title="Permalink to this headline"></a></h3>
 <p>We did not include an institution in this TRB example; however if users want to assign an institution (e.g., “ResDivInstitution”) to ResAgt and DivAgt, they should do so by assuming that there is a cooperation between water release decisions and water diversion decisions. Namely, release decisions from ResAgt and diversion decisions from DivAgt are made simultaneously using a single decision-making object (<a class="reference internal" href="#fig6"><span class="std std-numref">Fig. 6</span></a>). Users can do the following.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mb</span><span class="o">.</span><span class="n">add_institution</span><span class="p">(</span><span class="n">institution</span><span class="o">=</span><span class="s2">&quot;ResDivInstitution&quot;</span><span class="p">,</span>
                    <span class="n">instit_dm_class</span><span class="o">=</span><span class="s2">&quot; ResDivDMClass&quot;</span><span class="p">,</span>
@@ -311,31 +316,33 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
 </pre></div>
 </div>
 <p>Note that ResDivInstitution will overwrite the originally assigned DM classes (if any) of ResAgt and DivAgt. The above command means a single ResDivInstitution decision-making object initialized from ResDivDMClass will be assigned to ResAgt and DivAgt’s attributes (e.g., <em>self.dm</em>). Users can utilize this property to design their agents.</p>
-</div>
-<div class="section" id="generate-abm-module-template-output-model-configuration-file">
-<h3>Generate ABM module template &amp; output model configuration file<a class="headerlink" href="#generate-abm-module-template-output-model-configuration-file" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="generate-abm-module-template-output-model-configuration-file">
+<h3>Generate ABM module template &amp; output model configuration file<a class="headerlink" href="#generate-abm-module-template-output-model-configuration-file" title="Permalink to this headline"></a></h3>
 <p>In addition to outputting a model configuration file (<em>.yaml</em>), the model builder can generate an ABM module template (<em>.py</em>) for users, in which the model builder will create the outline of agent type classes and decision-making classes, and users can concentrate on programming the calculation for each class given in the template.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Output initial model configuration file (.yaml) and ABM module template.</span>
 <span class="n">mb</span><span class="o">.</span><span class="n">write_model_to_yaml</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;HydroABMModel.yaml&quot;</span><span class="p">)</span>
 <span class="n">mb</span><span class="o">.</span><span class="n">gen_ABM_module_template</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="step-2-complete-a-model-configuration-file">
-<h2>Step 2: Complete a model configuration file<a class="headerlink" href="#step-2-complete-a-model-configuration-file" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="step-2-complete-a-model-configuration-file">
+<h2>Step 2: Complete a model configuration file<a class="headerlink" href="#step-2-complete-a-model-configuration-file" title="Permalink to this headline"></a></h2>
 <p>After the model configuration file (<em>.yaml</em>) is created, users should open the file to complete and correct any missing or misinterpreted values. For this example, again, we will keep the default values.</p>
-</div>
-<div class="section" id="step-3-program-abm-module-py">
-<h2>Step 3: Program ABM module (<em>.py</em>)<a class="headerlink" href="#step-3-program-abm-module-py" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="step-3-program-abm-module-py">
+<h2>Step 3: Program ABM module (<em>.py</em>)<a class="headerlink" href="#step-3-program-abm-module-py" title="Permalink to this headline"></a></h2>
 <p>In the generated ABM module (<em>.py</em>), users can find mainly two types of classes, including agent type classes (AgtType) and decision-making classes (DMClass/Institutional DMClass). Agent type classes are used to define agents’ actions and store up-to-date information (e.g., current date and current time step) in agents’ attributes. Decision-making classes are used to program a specific decision-making process. Decision-making classes can be further separated into DMClass and Institutional DMClass.</p>
 <p>The ABM design logic is illustrated in <a class="reference internal" href="#fig6"><span class="std std-numref">Fig. 6</span></a>. A “class” is a template for objects that can be initiated with object-specific attributes and settings. For example, Agent1 and Agent2 are initiated from the same AgtType1 class. Agent 2, Agent 4, and Agent 5 are initiated from the AgtType2 class. Each agent will be assigned a DM object or Institution object as one of its attributes. DM objects initiated from DMClass are NOT shared with other agents; Namely, agents with DM objects will only have one unique DM object (e.g., Agent 1 and Agent 2 in <a class="reference internal" href="#fig6"><span class="std std-numref">Fig. 6</span></a>). In contrast, an Institution object can be shared with multiple agents, in which those agents can make decisions together. For example, multiple irrigation districts make diversion decisions together to share the water shortage during a drought period. We will not implement the Institutional DMClass in this TRB example; however, we will show how to add an institution through a model builder.</p>
-<div class="figure align-center" id="id4">
+<figure class="align-center" id="id4">
 <span id="fig6"></span><a class="reference internal image-reference" href="../_images/fig6_ABM_design_logic.png"><img alt="ABM design logic." src="../_images/fig6_ABM_design_logic.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">ABM design logic. An agent is a combination of an AgtType class and an (Institutional) DM class. An Institution object can be shared among a group of agent objects (i.e., make decisions together), while a DM object can only be assigned to one agent object.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
-</div>
-<div class="section" id="agent-type-class-agttype">
-<h3>Agent type class (AgtType):<a class="headerlink" href="#agent-type-class-agttype" title="Permalink to this headline">¶</a></h3>
+<figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">ABM design logic. An agent is a combination of an AgtType class and an (Institutional) DM class. An Institution object can be shared among a group of agent objects (i.e., make decisions together), while a DM object can only be assigned to one agent object.</span><a class="headerlink" href="#id4" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<section id="agent-type-class-agttype">
+<h3>Agent type class (AgtType):<a class="headerlink" href="#agent-type-class-agttype" title="Permalink to this headline"></a></h3>
 <ul class="simple">
 <li><p><strong>self.name</strong>         = agent’s name</p></li>
 <li><p><strong>self.config</strong>       = agent’s configuration dictionary, {‘Attributes’: …, ‘Inputs’: …, ‘Pars’: …}.</p></li>
@@ -375,9 +382,9 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
         <span class="k">return</span> <span class="n">action</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="institutional-decision-making-classes-dmclass">
-<h3>(Institutional) decision-making classes (DMClass):<a class="headerlink" href="#institutional-decision-making-classes-dmclass" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="institutional-decision-making-classes-dmclass">
+<h3>(Institutional) decision-making classes (DMClass):<a class="headerlink" href="#institutional-decision-making-classes-dmclass" title="Permalink to this headline"></a></h3>
 <ul class="simple">
 <li><p><strong>self.name</strong>   = name of the agent or institute.</p></li>
 <li><p><strong>self.dc</strong>     = data collector object containing data. Routed streamflow (Q_routed) is also collected here.</p></li>
@@ -397,10 +404,10 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
 </pre></div>
 </div>
 <p>To keep the manual concise, we provide a complete ABM module for the TRB example at <em>./tutorials/HydroABM_example/TRB_ABM_complete.py</em>. Theoretical details can be found in Lin et al. (2022), and more coding tips are available at <a class="reference internal" href="9_advanced%20ABM%20coding%20tips.html#advanced-abm-coding-tips"><span class="std std-ref">Advanced ABM coding tips</span></a>.</p>
-</div>
-</div>
-<div class="section" id="step-4-run-a-calibration">
-<h2>Step 4: Run a calibration<a class="headerlink" href="#step-4-run-a-calibration" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="step-4-run-a-calibration">
+<h2>Step 4: Run a calibration<a class="headerlink" href="#step-4-run-a-calibration" title="Permalink to this headline"></a></h2>
 <p>First, we load the model configuration file, the climate data, and the observed monthly flow data for DLLO and WSLO, reservoir releases of ResAgt, and water diversions of DivAgt. Here, we have calculated the evapotranspiration using the Hamon method. Therefore, PET data is input along with other data. Note that we manually change the ABM module from “TRB_ABM.py” to “TRB_ABM_complete.py.”</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -516,9 +523,9 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
 <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">write_model</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;Best_HydroABMModel_gwlf_KGE.yaml&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="step-5-run-a-simulation">
-<h2>Step 5: Run a simulation<a class="headerlink" href="#step-5-run-a-simulation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="step-5-run-a-simulation">
+<h2>Step 5: Run a simulation<a class="headerlink" href="#step-5-run-a-simulation" title="Permalink to this headline"></a></h2>
 <p>After obtaining a calibrated model, users can now use it for any simulation-based experiment (e.g., streamflow uncertainty under climate change). The calibrated model configuration file (i.e., <em>Best_HydroABMModel_gwlf_KGE.yaml</em>) can be directly loaded into HydroCNHS to run a simulation.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Run a simulation.</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">HydroCNHS</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;Best_HydroABMModel_gwlf_KGE.yaml&quot;</span><span class="p">))</span>
@@ -561,8 +568,8 @@ We first <strong>add a reservoir agent (ResAgt)</strong>, in which its correspon
 <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calibration &mdash; HydroCNHS  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <title>Calibration &mdash; HydroCNHS  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -35,7 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
@@ -85,14 +88,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="calibration">
-<h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">¶</a></h1>
+  <section id="calibration">
+<h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline"></a></h1>
 <p>HydroCNHS is equipped with a genetic algorithm package powered by Distributed Evolutionary Algorithms in Python (DEAP), which can be used for calibration in parallel. HydroCNHS is unique in that aspect that both the parameters of the hydrological model and user-defined ABM can be calibrated simultaneously as long as they are defined in the model configuration file (<em>.yaml</em>). Furthermore, users are allowed to assign initial guesses to the algorithm.</p>
-<div class="section" id="calibration-with-the-genetic-algorithm-ga">
-<h2>Calibration with the genetic algorithm (GA)<a class="headerlink" href="#calibration-with-the-genetic-algorithm-ga" title="Permalink to this headline">¶</a></h2>
+<section id="calibration-with-the-genetic-algorithm-ga">
+<h2>Calibration with the genetic algorithm (GA)<a class="headerlink" href="#calibration-with-the-genetic-algorithm-ga" title="Permalink to this headline"></a></h2>
 <p>An evaluation function, a calibration input dictionary, and a GA configuration dictionary are required to use the GA calibration module supported by the HydroCNHS.</p>
-<div class="section" id="evaluation-function">
-<h3>Evaluation function<a class="headerlink" href="#evaluation-function" title="Permalink to this headline">¶</a></h3>
+<section id="evaluation-function">
+<h3>Evaluation function<a class="headerlink" href="#evaluation-function" title="Permalink to this headline"></a></h3>
 <p>Assuming we want to maximize <span class="math notranslate nohighlight">\(y=-x_1^2+5x_1-x_2\)</span> with <span class="math notranslate nohighlight">\(x_1,x_2 \in [-5,5]\)</span>, we can design the evaluation function as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">HydroCNHS</span>
@@ -123,9 +126,9 @@
 </pre></div>
 </div>
 <p>cali_wd, current_generation, and ith_individual can be used to create sub-folders or output files for each evaluation. This is especially useful for calibrating a large model that requires a long simulation time. The formatter contains information to convert 1-D array individuals back to the original parameter format (e.g., a list of DataFrames) through a converter object. We will introduce the Converter in the next section. rn_gen is recommended to be used to generate random numbers (e.g., input to a HydroCNHS object like model = HydroCNHS.Model(model, name, rn_gen)). By applying rn_gen, HydroCNHS can guarantee the reproducibility of the numerical experiment with a given random seed.</p>
-</div>
-<div class="section" id="calibration-input-dictionary">
-<h3>Calibration input dictionary<a class="headerlink" href="#calibration-input-dictionary" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="calibration-input-dictionary">
+<h3>Calibration input dictionary<a class="headerlink" href="#calibration-input-dictionary" title="Permalink to this headline"></a></h3>
 <p>A calibration input dictionary contains three keys, including par_name, par_bound, and wd. par_name is a list of the parameter names, par_bound is a list of parameter bounds, and wd is the working directory for the calibration experiment. The calibration input dictionary for this example is shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calibration inputs</span>
 <span class="n">cali</span><span class="o">.</span><span class="n">get_inputs_template</span><span class="p">()</span> <span class="c1"># print an input template.</span>
@@ -137,9 +140,9 @@
 </pre></div>
 </div>
 <p>Note that users can use a converter to generate the calibration input dictionary automatically.</p>
-</div>
-<div class="section" id="ga-configuration-dictionary">
-<h3>GA configuration dictionary<a class="headerlink" href="#ga-configuration-dictionary" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="ga-configuration-dictionary">
+<h3>GA configuration dictionary<a class="headerlink" href="#ga-configuration-dictionary" title="Permalink to this headline"></a></h3>
 <p>A GA configuration dictionary contains many control options. Please see the following code for the explanation of each option.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># GA configuration</span>
 <span class="n">cali</span><span class="o">.</span><span class="n">get_config_template</span><span class="p">()</span>
@@ -186,14 +189,16 @@
 <span class="c1"># GA done!</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id1">
+<figure class="align-center" id="id1">
 <span id="fig7"></span><a class="reference internal image-reference" href="../_images/fig7_ga_fitness.png"><img alt="The fitness and within-population standard deviation plot." src="../_images/fig7_ga_fitness.png" style="width: 500px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">The fitness and within-population standard deviation plot.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
-</div>
-</div>
-<div class="section" id="converter">
-<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline">¶</a></h2>
+<figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">The fitness and within-population standard deviation plot.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="converter">
+<h2>Converter<a class="headerlink" href="#converter" title="Permalink to this headline"></a></h2>
 <p>The Converter is designed to convert a list of parameter DataFrames into a 1-D array for GA calibration and return a 1-D array to the original list of DataFrames. It can automatically exclude NaN values in DataFrames and fix parameters not intended to be calibrated. Also, a converter can generate the calibration input dictionary.</p>
 <p>We use the following synthetic list of DataFrames as an example.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -240,8 +245,8 @@
 </pre></div>
 </div>
 <p>We can see the ‘par_name’ in cali_inputs does not contain ‘a|Subbasin1’ and ‘b|Subbasin1.’ The outputted a formatter contains the relationship between a 1-D array and a list of DataFrames.</p>
-<div class="section" id="convert-from-a-list-of-dataframes-to-a-1d-array">
-<h3>Convert from a list of DataFrames to a 1D array<a class="headerlink" href="#convert-from-a-list-of-dataframes-to-a-1d-array" title="Permalink to this headline">¶</a></h3>
+<section id="convert-from-a-list-of-dataframes-to-a-1d-array">
+<h3>Convert from a list of DataFrames to a 1D array<a class="headerlink" href="#convert-from-a-list-of-dataframes-to-a-1d-array" title="Permalink to this headline"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### to 1D array</span>
 <span class="n">converter</span><span class="o">.</span><span class="n">to_1D_array</span><span class="p">(</span><span class="n">df_list</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
 <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -250,9 +255,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="convert-from-a-1d-array-to-the-original-list-of-dataframes">
-<h3>Convert from a 1D array to the original list of DataFrames<a class="headerlink" href="#convert-from-a-1d-array-to-the-original-list-of-dataframes" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="convert-from-a-1d-array-to-the-original-list-of-dataframes">
+<h3>Convert from a 1D array to the original list of DataFrames<a class="headerlink" href="#convert-from-a-1d-array-to-the-original-list-of-dataframes" title="Permalink to this headline"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### to df_list</span>
 <span class="n">var_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">]</span><span class="o">*</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">converter</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">var_array</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
@@ -269,9 +274,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
