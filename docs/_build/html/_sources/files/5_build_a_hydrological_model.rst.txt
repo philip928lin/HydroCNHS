@@ -55,6 +55,7 @@ First, initiate a model builder object with a working directory (your working fo
 Second, set up the water system with the simulation period (i.e., start date and end date).
 
 .. code-block:: python
+    
     wd = prj_path
     mb = HydroCNHS.ModelBuilder(wd)
     mb.set_water_system(start_date="1981/1/1", end_date="2013/12/31")
