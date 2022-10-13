@@ -63,7 +63,7 @@ Link to human actions that locally alter the runoff in a subbasin, e.g., drainag
 Those human/agent actions can be modeled with various complexities according to users' ABM design. Actions can simply be an inputted daily time series or governed by complex endogenous behavior rules (i.e., decision-making rules). Institutional decisions (a group of agents making decisions together with institutional rules) are allowed in HydroCNHS. Users require to have some level of object-oriented programing concept to design an ABM module (*.py*).
 
 ## How to cite?
-Lin, C. Y., Yang, Y. C. E., & Wi S. (2022, under review). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management.
+Lin, C. Y., Yang, Y. C. E., & Wi S. (2022). [HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems](https://doi.org/10.1061/(ASCE)WR.1943-5452.0001630), Journal of Water Resources Planning and Management, 148(12), 6022005.
 
 ## Related studies
 Lin, C. Y., & Yang, Y. E. (2022). [The effects of model complexity on model output uncertainty in co‐evolved coupled natural–human systems](https://doi.org/10.1029/2021EF002403). Earth's Future, e2021EF002403.

@@ -24,7 +24,7 @@ HydroCNHS User Manual
 
 How to cite?
 ==================
-Lin, C. Y., Yang, Y. C. E., & Wi S. (2022, under review). HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems, Journal of Water Resources Planning and Management.
+Lin, C. Y., Yang, Y. C. E., & Wi S. (2022). `HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems <https://doi.org/10.1061/(ASCE)WR.1943-5452.0001630>`_, Journal of Water Resources Planning and Management, 148(12), 6022005.
 
 Related studies
 ==================
