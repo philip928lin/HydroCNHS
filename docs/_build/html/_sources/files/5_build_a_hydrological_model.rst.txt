@@ -2,10 +2,15 @@ Build a hydrological model
 ==========================
 
 To get familiar with the HydroCNHS model construction process, let's start with a hydrological model without human components. We will go through the following steps:
+
 1.	Create a model configuration file (*.yaml*) using a model builder.
+
 2.	Complete a model configuration file (*.yaml*) 
+
 3.	Run a calibration 
+
 4.	Run a simulation
+
 We will adopt the following delineated watershed (:numref:`fig4`) as a demonstration, in which we want to build a semi-distributed hydrological model to simulate the streamflow at the basin outlet, WSLO. The corresponding subbasins' information is provided in :numref:`table4`.
 
 

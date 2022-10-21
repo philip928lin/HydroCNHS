@@ -8,6 +8,8 @@ HydroCNHS User Manual
 
 **The Hydrological model for Coupled Natural-Human Systems (HydroCNHS)** is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS. 
 
+Manual contributors: Chung-Yi Lin & Ali Ghaffari
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

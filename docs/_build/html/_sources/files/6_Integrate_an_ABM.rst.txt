@@ -2,11 +2,17 @@ Integrate an ABM
 =================
 
 After getting familiar with HydroCNHS from the hydrological model example in the previous section, we want to build a water system with human components (i.e., ABM). We will go through a similar process in the last example and focus on adding the human components.
+
 1.	Create a model configuration file (*.yaml*) using a model builder.
+
 2.	Complete a model configuration file (*.yaml*) 
+
 3.	Program an ABM module (*.py*)
+
 4.	Run a calibration 
+
 5.	Run a simulation
+
 We adopt the Tualatin River Basin (TRB; :numref:`fig5`\; :numref:`table5`) as the tutorial example. The corresponding subbasins' information is shown in :numref:`table5`. In this example, we consider three human components (:numref:`table6`), including (1) a reservoir (*ResAgt*), (2) an irrigation diversion (*DivAgt*), and (3) a trans-basin water transfer (*PipeAgt*), to demonstrate the HydroCNHS's functionalities. Also, we model each human agent with different levels of behavioral complexities to provide users with a sense of how an agent can be modeled (:numref:`table6`). We will calibrate the model using the streamflow at DLLO and WSLO, reservoir releases from ResAgt, and water diversions from DivAgt on a monthly scale. More details about TRB can be found in Lin et al. (2022). Here, we focus on the coding part.
 
 .. _fig5:

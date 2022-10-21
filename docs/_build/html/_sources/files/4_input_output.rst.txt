@@ -5,8 +5,11 @@ Inputs
 ------
 
 HydroCNHS has the following three main inputs:
+
 (1) Daily climate data including precipitation, temperature, and (optional) potential evapotranspiration (python *dictionary object*), 
+
 (2) A model configuration file (*.yaml*; settings for the HydroCNHS and ABM models), and 
+
 (3) ABM modules (*.py*; customized human models).
 
 Outputs
