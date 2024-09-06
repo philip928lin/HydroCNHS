@@ -12,7 +12,7 @@ First, we manually create a data collector object for demonstration.
     ### Create a data collector object
     dc = HydroCNHS.Data_collector()
 
-Then, we add two fields, "field_1" and "field 2", with corresponding field information to the collector. Spaces are not allowed here, and the code will convert "field 2" to "field_2". 
+Then, we add two fields, "field_1" and "field 2", with corresponding field information to the collector. Spaces are not allowed here, and the code will convert "field 2" to "field_2".
 
 .. code-block:: python
     ### Add fields
@@ -48,7 +48,7 @@ We can also create a shortcut for accessing a field by the following command, in
 .. code-block:: python
 
     ### Get a field shortcut
-    shortcut = dc.get_field("field_1", copy=False)  
+    shortcut = dc.get_field("field_1", copy=False)
     shortcut["new_key"] = "new value"
     dc.field_1
     # Out[0]: {'new_key': 'new value'}
@@ -58,7 +58,7 @@ If we want to get a copy of a field (not a shortcut), we must assign "True" to t
 .. code-block:: python
 
     ### Get a copy of a field
-    copied = dc.get_field("field_1", copy=True) 
+    copied = dc.get_field("field_1", copy=True)
     copied["new_key2"] = "new value2"
     dc.field_1
     # Out[0]: {'new_key': 'new value'}

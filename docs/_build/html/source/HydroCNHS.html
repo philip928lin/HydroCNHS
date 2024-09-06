@@ -16,10 +16,10 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="HydroCNHS.calibration package" href="HydroCNHS.calibration.html" />
-    <link rel="prev" title="Advanced ABM coding tips" href="../files/9_advanced%20ABM%20coding%20tips.html" /> 
+    <link rel="prev" title="Advanced ABM coding tips" href="../files/9_advanced%20ABM%20coding%20tips.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
@@ -87,7 +87,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <div class="section" id="hydrocnhs-package">
 <h1>HydroCNHS package<a class="headerlink" href="#hydrocnhs-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-HydroCNHS.abm">
@@ -102,8 +102,8 @@
 * start_date: datetime object.
 * data_length: length of the simulation.
 * data_collector: a container to store simulated data.
-* rn_gen: random number generator to ensure reproducibility (e.g., 
-* self.rn_gen.random()). Note that do NOT set a global random seed in 
+* rn_gen: random number generator to ensure reproducibility (e.g.,
+* self.rn_gen.random()). Note that do NOT set a global random seed in
 * this module! All type of random number should be created by “rn_gen.”
 * dm: decision making object if assigned in the model file (.yaml).</p>
 <blockquote>
@@ -130,7 +130,7 @@
 <dt id="HydroCNHS.abm.read_factor">
 <code class="sig-prename descclassname"><span class="pre">HydroCNHS.abm.</span></code><code class="sig-name descname"><span class="pre">read_factor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ag_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.abm.read_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read factor from agent’s ag_config at a given outlet.</p>
-<p>The function will automatically parse the list-like value assignment. e.g., 
+<p>The function will automatically parse the list-like value assignment. e.g.,
 [ReturnFactor, 0, Plus].</p>
 <dl class="simple">
 <dt>ag_config<span class="classifier">dict</span></dt><dd><p>Agent’s configuration.</p>
@@ -169,7 +169,7 @@ cannot have duplicated field name.</p>
 <dl class="simple">
 <dt>field<span class="classifier">str</span></dt><dd><p>Field name. Cannot have space in a field name.</p>
 </dd>
-<dt>data_type<span class="classifier">dict, optional</span></dt><dd><p>Data type of the field (e.g., {} and []), by default {}. User can 
+<dt>data_type<span class="classifier">dict, optional</span></dt><dd><p>Data type of the field (e.g., {} and []), by default {}. User can
 also populate the field by directly assigning data here.</p>
 </dd>
 <dt>desc<span class="classifier">str</span></dt><dd><p>Field description.</p>
@@ -196,7 +196,7 @@ by default True.</p>
 <dt id="HydroCNHS.data_collector.Data_collector.get_dict">
 <code class="sig-name descname"><span class="pre">get_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.data_collector.Data_collector.get_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get data collector in dictionary format.</p>
-<p>Note that if copy=False, any modification on a variable assigned with 
+<p>Note that if copy=False, any modification on a variable assigned with
 the returned dictionary will also affect the data stored in the data
 collector object.</p>
 <dl class="simple">
@@ -215,7 +215,7 @@ be returned. Default False.</p>
 <code class="sig-name descname"><span class="pre">get_field</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.data_collector.Data_collector.get_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a field.</p>
 <p>This function create a shortcut to access a field. Namely, changes of
-a local variable of get_field() will be accumulated back to the 
+a local variable of get_field() will be accumulated back to the
 original data_collector. copy=Ture if a copy of a field is needed.</p>
 <dl class="simple">
 <dt>field<span class="classifier">str</span></dt><dd><p>Field name.</p>
@@ -223,7 +223,7 @@ original data_collector. copy=Ture if a copy of a field is needed.</p>
 <dt>copy<span class="classifier">bool</span></dt><dd><p>If true, create a copy of a field, which has seperate storage</p>
 </dd>
 </dl>
-<p>pointer than the original data_collector. Otherwise, return a shortcut 
+<p>pointer than the original data_collector. Otherwise, return a shortcut
 of a field to the original data_collector.
 Returns
 ——-
@@ -467,7 +467,7 @@ default None. If none, pet is calculted by Hamon’s method.</p>
 <em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">remove_na</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.indicators.Indicator.remove_na" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove nan in x_obv and y_sim.</p>
 <p>This function makes sure there is no nan involves in the indicator
-calculation. If nan is detected, data points will be remove from x_obv 
+calculation. If nan is detected, data points will be remove from x_obv
 and y_sim simultaneously.</p>
 <dl class="simple">
 <dt>x_obv<span class="classifier">array</span></dt><dd><p>Observation data.</p>
@@ -517,7 +517,7 @@ and y_sim simultaneously.</p>
 </dd>
 <dt>agt_name<span class="classifier">str</span></dt><dd><p>Agent name.</p>
 </dd>
-<dt>api<span class="classifier">str</span></dt><dd><p>The API to integrate the agent to the HydroCNHS. 
+<dt>api<span class="classifier">str</span></dt><dd><p>The API to integrate the agent to the HydroCNHS.
 e.g., mb.Dam.</p>
 </dd>
 <dt>priority<span class="classifier">int, optional</span></dt><dd><p>Priority of the agent if conflicts occur, by default 1.</p>
@@ -601,7 +601,7 @@ directory will be assigned, by default None.</p>
 </dd>
 <dt>runoff_model<span class="classifier">str, optional</span></dt><dd><p>“GWLF” or “ABCD” or “Other”, by default None.</p>
 </dd>
-<dt>Note<span class="classifier"></span></dt><dd><p>If “Other” is selected for runoff_model, users must provide  
+<dt>Note<span class="classifier"></span></dt><dd><p>If “Other” is selected for runoff_model, users must provide
 precalculated runoffs for each subbasin as an input to HydroCNHS.</p>
 </dd>
 </dl>
@@ -620,7 +620,7 @@ at routing_outlet.</p>
 </dd>
 <dt>instream_objects<span class="classifier">list, optional</span></dt><dd><p>A list of instream objects’ names (i.e., dam agents), by default [].</p>
 </dd>
-<dt>flow_length_list<span class="classifier">list, optional</span></dt><dd><p>A list of flow lengths. The order has to consist to the 
+<dt>flow_length_list<span class="classifier">list, optional</span></dt><dd><p>A list of flow lengths. The order has to consist to the
 upstream_outlet_list.</p>
 </dd>
 <dt>routing_model<span class="classifier">list, optional</span></dt><dd><p>Routing model, by default “Lohmann”.</p>
@@ -710,7 +710,7 @@ routing_outlet at time t.</p>
 </dd>
 <dt>routing<span class="classifier">dict</span></dt><dd><p>Routing setting dictionary from model.yaml file.</p>
 </dd>
-<dt>UH_Lohmann_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing pre-formed conveying UHs (i.e., no within 
+<dt>UH_Lohmann_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing pre-formed conveying UHs (i.e., no within
 subbasin routing).</p>
 </dd>
 <dt>Q_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing conveying water.</p>
@@ -734,7 +734,7 @@ routing_outlet at time t.</p>
 </dd>
 <dt>routing<span class="classifier">dict</span></dt><dd><p>Routing setting dictionary from model.yaml file.</p>
 </dd>
-<dt>UH_Lohmann_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing pre-formed conveying UHs (i.e., no within 
+<dt>UH_Lohmann_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing pre-formed conveying UHs (i.e., no within
 subbasin routing).</p>
 </dd>
 <dt>Q_convey<span class="classifier">dict</span></dt><dd><p>A dictionary containing conveying water.</p>
@@ -996,7 +996,7 @@ output model file.</p>
 <dt id="HydroCNHS.util.write_model_to_df">
 <code class="sig-prename descclassname"><span class="pre">HydroCNHS.util.</span></code><code class="sig-name descname"><span class="pre">write_model_to_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Pars']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HydroCNHS.util.write_model_to_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write model dictionary to dataframes given key options.</p>
-<p>This function will convert model dictionary to dataframes according to 
+<p>This function will convert model dictionary to dataframes according to
 user’s specified sections (key_option).</p>
 <dl class="simple">
 <dt>model_dict<span class="classifier">dict</span></dt><dd><p>Model dictionary.</p>
@@ -1144,7 +1144,7 @@ user’s specified sections (key_option).</p>
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -1155,7 +1155,7 @@ user’s specified sections (key_option).</p>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

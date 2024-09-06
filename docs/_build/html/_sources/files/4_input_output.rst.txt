@@ -6,9 +6,9 @@ Inputs
 
 HydroCNHS has the following three main inputs:
 
-(1) Daily climate data including precipitation, temperature, and (optional) potential evapotranspiration (python *dictionary object*), 
+(1) Daily climate data including precipitation, temperature, and (optional) potential evapotranspiration (python *dictionary object*),
 
-(2) A model configuration file (*.yaml*; settings for the HydroCNHS and ABM models), and 
+(2) A model configuration file (*.yaml*; settings for the HydroCNHS and ABM models), and
 
 (3) ABM modules (*.py*; customized human models).
 
@@ -40,7 +40,7 @@ A model configuration file is a YAML file that contains settings for the entire 
 
   WaterSystem:
     StartDate:    <simulation start date, e.g., 1981/1/1>
-    EndDate:      <simulation end date, e.g., 2013/12/31> 
+    EndDate:      <simulation end date, e.g., 2013/12/31>
     DataLength:   <total simulation length/days, e.g., 12053>
     NumSubbasins: <number of subbasins>
     Outlets:      <a list of subbasins'/outlets' names, e.g., ["outlet1", "outlet2"]>
@@ -49,7 +49,7 @@ A model configuration file is a YAML file that contains settings for the entire 
     Routing:      <selected routing model, e.g., 'Lohmann'>
     ABM:
       Modules:    <a list of ABM modules, e.g., ['TRB_ABM_Instit.py']>
-      InstitDMClasses:   
+      InstitDMClasses:
           <a dict of {InstitDMClass: a list of institutional decision-making objects}>
       DMClasses:      <a list of decision-making classes, e.g., ['ReleaseDM', 'TransferDM']>
       DamAPI:         <a list of agent type classes using DamAPI, e.g., ['Reservoir_AgtType']>

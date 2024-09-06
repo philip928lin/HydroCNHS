@@ -14,13 +14,13 @@ Subbasin is a sub-drainage land unit inside a watershed. HydroCNHS uses subbasin
 Semi-distributed hydrological model
 -----------------------------------
 
-HydroCNHS is a semi-distributed hydrological model with resolution/complexity between a lumped hydrological model and a distributed hydrological model, as shown in :numref:`fig1`. A lumped model describes the water balance of the entire watershed as a water bucket (:numref:`fig1`\a). A distributed model simulates water responses in each grid and routes them to the downstream outlets (:numref:`fig1`\c). A semi-distributed hydrological model is a hybrid approach for the two mentioned methods. The streamflow at a downstream outlet is calculated by routing the subbasins' (not grid) runoffs simulated by lumped models (:numref:`fig1`\b). 
+HydroCNHS is a semi-distributed hydrological model with resolution/complexity between a lumped hydrological model and a distributed hydrological model, as shown in :numref:`fig1`. A lumped model describes the water balance of the entire watershed as a water bucket (:numref:`fig1`\a). A distributed model simulates water responses in each grid and routes them to the downstream outlets (:numref:`fig1`\c). A semi-distributed hydrological model is a hybrid approach for the two mentioned methods. The streamflow at a downstream outlet is calculated by routing the subbasins' (not grid) runoffs simulated by lumped models (:numref:`fig1`\b).
 
 .. _fig1:
 .. figure:: ../figs/fig1_modeling_schema.png
   :align: center
   :width: 700
-  :alt: Comparison of three hydrological modeling schema. 
+  :alt: Comparison of three hydrological modeling schema.
 
   Comparison of three hydrological modeling schema: a) Lumped model, b) Semi-distributed model, and c) Distributed model.
 
@@ -44,7 +44,7 @@ HydroCNHS represents a water system in a node-link structure. Therefore, users m
 .. figure:: ../figs/fig2_routing_schema.png
   :align: center
   :width: 700
-  :alt: Routing schema using in HydroCNHS. 
+  :alt: Routing schema using in HydroCNHS.
 
   Routing schema using in HydroCNHS. a) single routing outlet, b) multiple routing outlets, and c) with a reservoir agent.
 
@@ -74,15 +74,15 @@ Design a water system with the supporting APIs
 
   A generic example of HydroCNHS coupling APIs and water system description.
 
-The four APIs in the HydroCNHS (:numref:`fig3`) are (1) Dam API, (2) RiverDiv API, (3) Conveying API, and (4) InSitu API. 
+The four APIs in the HydroCNHS (:numref:`fig3`) are (1) Dam API, (2) RiverDiv API, (3) Conveying API, and (4) InSitu API.
 
-**Dam API** is designed for integrating in-stream agents like reservoirs (e.g., R1 and R2 in :numref:`fig3`) that could significantly alter the streamflow regime. Agents with Dam API will be considered pseudo routing outlets (no routing is needed) involved in the routing scheme. Namely, streamflow is directly defined by agents' water releases decision. 
+**Dam API** is designed for integrating in-stream agents like reservoirs (e.g., R1 and R2 in :numref:`fig3`) that could significantly alter the streamflow regime. Agents with Dam API will be considered pseudo routing outlets (no routing is needed) involved in the routing scheme. Namely, streamflow is directly defined by agents' water releases decision.
 
-**RiverDiv API** is created for agents that divert water from rivers and may have return flows to other outlets, e.g., diversion agent D1 diverts water from N3 and returns water to N1 in :numref:`fig3`. This API ensures the diverted outlet is routed before agents' diversions. At the outlet receiving return flow, the subbasin runoff and returned flow join and enter the within-subbasin routing process since return flows often have no explicit return location. 
+**RiverDiv API** is created for agents that divert water from rivers and may have return flows to other outlets, e.g., diversion agent D1 diverts water from N3 and returns water to N1 in :numref:`fig3`. This API ensures the diverted outlet is routed before agents' diversions. At the outlet receiving return flow, the subbasin runoff and returned flow join and enter the within-subbasin routing process since return flows often have no explicit return location.
 
-**Conveying API** is designed for transferring water to another outlet from a routing outlet where the routing process has already been executed. The transferred water has no within-subbasin routing (no within-subbasin delay like runoff). Therefore, they will be routed separately from the subbasin's runoffs. If an agent wants to convey water from the downstream outlet to the upstream outlet (e.g., pump stations), the water will be delivered with delays (e.g., C2 diverts water from N3 first and delivers it to S2 at a later time step). 
+**Conveying API** is designed for transferring water to another outlet from a routing outlet where the routing process has already been executed. The transferred water has no within-subbasin routing (no within-subbasin delay like runoff). Therefore, they will be routed separately from the subbasin's runoffs. If an agent wants to convey water from the downstream outlet to the upstream outlet (e.g., pump stations), the water will be delivered with delays (e.g., C2 diverts water from N3 first and delivers it to S2 at a later time step).
 
-**InSitu API** is developed for agents that directly affect runoffs via “within subbasin activities” (e.g., I1 in :numref:`fig3`). For example, those runoff changes may come from land-use changes due to urbanization or exploiting groundwater through wells. Such adjustments will be made before any routing process at each time step. 
+**InSitu API** is developed for agents that directly affect runoffs via “within subbasin activities” (e.g., I1 in :numref:`fig3`). For example, those runoff changes may come from land-use changes due to urbanization or exploiting groundwater through wells. Such adjustments will be made before any routing process at each time step.
 
 We summarize the supported connections of each API in :numref:`table1`\.
 

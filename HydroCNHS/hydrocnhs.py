@@ -16,14 +16,25 @@ from .rainfall_runoff_model.abcd import run_ABCD
 from .rainfall_runoff_model.gwlf import run_GWLF
 from .rainfall_runoff_model.pet_hamon import cal_pet_Hamon
 from .routing import form_UH_Lohmann, run_step_Lohmann, run_step_Lohmann_convey
-from .util import (set_logging_config, load_model,
-                   load_customized_module_to_class,
-                   list_callable_public_object)
+from .util import (
+    set_logging_config,
+    load_model,
+    load_customized_module_to_class,
+    list_callable_public_object,
+)
 from .data_collector import Data_collector
 
+
 class Model(object):
-    def __init__(self, model, name=None, rn_gen=None, checked=False,
-                 parsed=False, log_filename=None):
+    def __init__(
+        self,
+        model,
+        name=None,
+        rn_gen=None,
+        checked=False,
+        parsed=False,
+        log_filename=None,
+    ):
         """Create a HydroCNHS model.
 
         Parameters
@@ -55,13 +66,11 @@ class Model(object):
         if name is None:
             self.logger = logging.getLogger("HydroCNHS")
         else:
-            self.logger = logging.getLogger("HydroCNHS."+name)
+            self.logger = logging.getLogger("HydroCNHS." + name)
         logger = self.logger
 
         # Parallelization setting
-        self.paral_setting = {"verbose": 0,
-                              "cores_formUH": -1,
-                              "cores_runoff": -1}
+        self.paral_setting = {"verbose": 0, "cores_formUH": -1, "cores_runoff": -1}
         # Load model.yaml
         model = load_model(model, checked=checked, parsed=parsed)
 
@@ -74,16 +83,15 @@ class Model(object):
             # User-provided rn generator
             self.rn_gen = rn_gen
             self.ss = rn_gen.bit_generator._seed_seq
-            logger.info(
-                "User-provided random number generator is assigned.")
+            logger.info("User-provided random number generator is assigned.")
 
         # Verify model contain all following keys.
         try:
             self.path = model["Path"]
             self.ws = model["WaterSystem"]  # ws: Water system
-            self.runoff = model["RainfallRunoff"]   # runoff: rainfall-runoff model
-            self.routing = model["Routing"] # routing: Routing
-            self.abm = model.get("ABM")     # abm can be none (decoupled model)
+            self.runoff = model["RainfallRunoff"]  # runoff: rainfall-runoff model
+            self.routing = model["Routing"]  # routing: Routing
+            self.abm = model.get("ABM")  # abm can be none (decoupled model)
             self.sys_parsed_data = model["SystemParsedData"]
         except:
             logger.error("Model file is incomplete or error.")
@@ -110,20 +118,19 @@ class Model(object):
         # Initialize data_collector
         self.dc = Data_collector()  # For collecting ABM's data.
         dc = self.dc
-        dc.add_field("Q_routed", {},
-                     desc="Routed streamflow of routing outlets.",
-                     unit="cms")
-        dc.add_field("Q_runoff", {},
-                     desc="Subbasin runoffs of outlets.",
-                     unit="cms")
+        dc.add_field(
+            "Q_routed", {}, desc="Routed streamflow of routing outlets.", unit="cms"
+        )
+        dc.add_field("Q_runoff", {}, desc="Subbasin runoffs of outlets.", unit="cms")
         dc.add_field("prec", {}, desc="Precipitation.", unit="cm")
         dc.add_field("temp", {}, desc="Temperature.", unit="degC")
-        dc.add_field("pet", {}, desc="Potential evapotranspiration.",
-                     unit="cm")
-        dc.add_field("UH_Lohmann", {},
-                     desc="Unit hydrograph of Lohmann routing.")
-        dc.add_field("UH_Lohmann_convey", {},
-                     desc="Unit hydrograph of Lohmann routing for convey agent.")
+        dc.add_field("pet", {}, desc="Potential evapotranspiration.", unit="cm")
+        dc.add_field("UH_Lohmann", {}, desc="Unit hydrograph of Lohmann routing.")
+        dc.add_field(
+            "UH_Lohmann_convey",
+            {},
+            desc="Unit hydrograph of Lohmann routing for convey agent.",
+        )
 
         # ----- Load external modules -----------------------------------------
         # We will automatically detect whether the ABM section is available.
@@ -138,11 +145,10 @@ class Model(object):
         # designing proper modules for HydroCNHS,. Certain protocals have to be
         # followed.
 
-
-        self.agents = {}     # Store all agent objects {agt_id: agt object}.
-        self.dms = {}        # Store all dm objects {agt_id: dm object}.
-        self.instit_dms = {} # Store all institutional dm objects
-                             # {institution: dm object}.
+        self.agents = {}  # Store all agent objects {agt_id: agt object}.
+        self.dms = {}  # Store all dm objects {agt_id: dm object}.
+        self.instit_dms = {}  # Store all institutional dm objects
+        # {institution: dm object}.
         agents = self.agents
         dms = self.dms
         instit_dms = self.instit_dms
@@ -155,9 +161,11 @@ class Model(object):
                 # functions.
                 class UserModules:
                     pass
+
                 for module_name in ws["ABM"]["Modules"]:
-                    load_customized_module_to_class(UserModules, module_name,
-                                                    module_path)
+                    load_customized_module_to_class(
+                        UserModules, module_name, module_path
+                    )
             user_object_name_list = list_callable_public_object(UserModules)
 
             # Initialize agents and decision-making objects ---------------
@@ -167,92 +175,130 @@ class Model(object):
                     if ag_type in user_object_name_list:
                         # Load from user-defined module.
                         try:
-                            agents[agt_id] = eval("UserModules."+ag_type)(
-                                name=agt_id, config=ag_config, start_date=start_date,
-                                current_date=start_date, data_length=data_length,
-                                t=0, dc=dc, rn_gen=rn_gen)
+                            agents[agt_id] = eval("UserModules." + ag_type)(
+                                name=agt_id,
+                                config=ag_config,
+                                start_date=start_date,
+                                current_date=start_date,
+                                data_length=data_length,
+                                t=0,
+                                dc=dc,
+                                rn_gen=rn_gen,
+                            )
                             logger.info(
-                                "Create {} from {} class".format(agt_id, ag_type))
+                                "Create {} from {} class".format(agt_id, ag_type)
+                            )
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             raise Error(
-                                "Fail to create {} from {} class.".format(agt_id, ag_type)
-                                +"\nMake sure the class is well-defined in "
-                                +"given modules.") from e
+                                "Fail to create {} from {} class.".format(
+                                    agt_id, ag_type
+                                )
+                                + "\nMake sure the class is well-defined in "
+                                + "given modules."
+                            ) from e
                     else:
                         # Try to load from built-in classes.
                         try:
                             agents[agt_id] = eval(ag_type)(
-                                name=agt_id, config=ag_config, start_date=start_date,
-                                current_date=start_date, data_length=data_length,
-                                t=0, dc=dc, rn_gen=rn_gen)
+                                name=agt_id,
+                                config=ag_config,
+                                start_date=start_date,
+                                current_date=start_date,
+                                data_length=data_length,
+                                t=0,
+                                dc=dc,
+                                rn_gen=rn_gen,
+                            )
                             logger.info(
                                 "Create {} from {} ".format(agt_id, ag_type)
-                                +"from the built-in classes.")
+                                + "from the built-in classes."
+                            )
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             raise Error(
-                                "Fail to create {} from {} class.".format(agt_id, ag_type)
-                                +"\n{} is not a built-in class.".format(ag_type)
-                                ) from e
+                                "Fail to create {} from {} class.".format(
+                                    agt_id, ag_type
+                                )
+                                + "\n{} is not a built-in class.".format(ag_type)
+                            ) from e
 
                     # Initialize dm or instit_dm is given in an agent object.
                     dm_name = abm[ag_type][agt_id]["Inputs"].get("DMClass")
                     ## instit_dm
                     if dm_name is not None:
                         instit_list = list(ws["ABM"]["Institutions"].keys())
-                        if (dm_name in instit_list
-                            and dm_name in list(instit_dms.keys())):
+                        if dm_name in instit_list and dm_name in list(
+                            instit_dms.keys()
+                        ):
                             # Add institutional decision-making object to the agent object.
                             # Agents belong to a institute will share one dm object.
                             agents[agt_id].dm = instit_dms[dm_name]
-                        elif (dm_name in instit_list
-                            and dm_name not in list(instit_dms.keys())):
+                        elif dm_name in instit_list and dm_name not in list(
+                            instit_dms.keys()
+                        ):
                             d = ws["ABM"]["InstitutionalDM"]
-                            instit_dm_class = list(d.keys())[[dm_name in v \
-                                for v in list(d.values())].index(True)]
+                            instit_dm_class = list(d.keys())[
+                                [dm_name in v for v in list(d.values())].index(True)
+                            ]
                             try:
                                 instit_dms[dm_name] = eval(
-                                    "UserModules."+instit_dm_class)(
-                                        name=dm_name, dc=dc, rn_gen=rn_gen)
+                                    "UserModules." + instit_dm_class
+                                )(name=dm_name, dc=dc, rn_gen=rn_gen)
                                 logger.info(
                                     "Create institute {} from {} class.".format(
-                                    dm_name, instit_dm_class))
+                                        dm_name, instit_dm_class
+                                    )
+                                )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to create institute {} from {}".format(
-                                    dm_name, instit_dm_class)+" class.") from e
+                                        dm_name, instit_dm_class
+                                    )
+                                    + " class."
+                                ) from e
                             agents[agt_id].dm = instit_dms[dm_name]
                         # No built-in for institution
-                        if (dm_name in user_object_name_list
-                            and dm_name not in instit_list):
+                        if (
+                            dm_name in user_object_name_list
+                            and dm_name not in instit_list
+                        ):
                             try:
-                                dms[agt_id] = eval(
-                                    "UserModules."+dm_name)(
-                                        name=agt_id, dc=dc, rn_gen=rn_gen)
+                                dms[agt_id] = eval("UserModules." + dm_name)(
+                                    name=agt_id, dc=dc, rn_gen=rn_gen
+                                )
                                 logger.info(
-                                    "Create {} from {} class.".format(
-                                    dm_name, dm_name))
+                                    "Create {} from {} class.".format(dm_name, dm_name)
+                                )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to create {} from {} class.".format(
-                                    dm_name, dm_name)) from e
+                                        dm_name, dm_name
+                                    )
+                                ) from e
                             agents[agt_id].dm = dms[agt_id]
-                        elif (dm_name not in user_object_name_list
-                            and dm_name not in instit_list):
+                        elif (
+                            dm_name not in user_object_name_list
+                            and dm_name not in instit_list
+                        ):
                             try:
                                 dms[agt_id] = eval(dm_name)(
-                                        name=agt_id, dc=dc, rn_gen=rn_gen)
+                                    name=agt_id, dc=dc, rn_gen=rn_gen
+                                )
                                 logger.info(
                                     "Create {} from built-in class.".format(
-                                    dm_name, dm_name))
+                                        dm_name, dm_name
+                                    )
+                                )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to create {} from built-in class.".format(
-                                    dm_name, dm_name)) from e
+                                        dm_name, dm_name
+                                    )
+                                ) from e
                             agents[agt_id].dm = dms[agt_id]
 
             # Make all agents accessible to all agents
@@ -284,20 +330,22 @@ class Model(object):
             pet = {}
             # Default: calculate pet with Hamon's method and no dz adjustment.
             for sb in outlets:
-                pet[sb] = cal_pet_Hamon(temp[sb],
-                                        runoff[sb]["Inputs"]["Latitude"],
-                                        ws["StartDate"], dz=None)
-            logger.info("Compute pet by Hamon method. Users can improve "
-                            +"the efficiency by assigning pre-calculated pet.")
+                pet[sb] = cal_pet_Hamon(
+                    temp[sb], runoff[sb]["Inputs"]["Latitude"], ws["StartDate"], dz=None
+                )
+            logger.info(
+                "Compute pet by Hamon method. Users can improve "
+                + "the efficiency by assigning pre-calculated pet."
+            )
         self.dc.temp = temp
         self.dc.prec = prec
         self.dc.pet = pet
-        #self.weather = {"temp":temp, "prec":prec, "pet":pet}
-        logger.info("Load temp & prec & pet with total length "
-                         +"{}.".format(ws["DataLength"]))
+        # self.weather = {"temp":temp, "prec":prec, "pet":pet}
+        logger.info(
+            "Load temp & prec & pet with total length " + "{}.".format(ws["DataLength"])
+        )
 
-    def run(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={},
-                 disable=False):
+    def run(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={}, disable=False):
         """Run HydroCNHS simulation.
 
         Parameters
@@ -341,10 +389,10 @@ class Model(object):
         # ----- Start a timer -------------------------------------------------
         start_time = time.monotonic()
         self.elapsed_time = 0
+
         def get_elapsed_time():
             elapsed_time = time.monotonic() - start_time
-            self.elapsed_time = time.strftime("%H:%M:%S",
-                                              time.gmtime(elapsed_time))
+            self.elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
             return self.elapsed_time
 
         # ----- Rainfall-runoff simulation ------------------------------------
@@ -365,23 +413,33 @@ class Model(object):
                         routing[ro][sb]["Pars"]["GScale"] = None
                         logger.info(
                             "Turn {}'s GShape and GScale to ".format((sb, ro))
-                            +"None in the routing setting. There is no "
-                            +"in-grid time lag with given observed Q.")
+                            + "None in the routing setting. There is no "
+                            + "in-grid time lag with given observed Q."
+                        )
 
         # Start runoff simulation in parallel.
-        logger.info("Pre-calculate rainfall-runoffs for {} sub-basins. [{}]".format(
-            len(outlets), get_elapsed_time()))
-        QParel = Parallel(n_jobs=paral_setting["cores_runoff"],
-                            verbose=paral_setting["verbose"]) \
-                        ( delayed(self.runoff_func)\
-                            (pars=runoff[sb]["Pars"], inputs=runoff[sb]["Inputs"],
-                                temp=dc.temp[sb], prec=dc.prec[sb],
-                                pet=dc.pet[sb], start_date=ws["StartDate"],
-                                data_length=data_length) \
-                            for sb in outlets )
+        logger.info(
+            "Pre-calculate rainfall-runoffs for {} sub-basins. [{}]".format(
+                len(outlets), get_elapsed_time()
+            )
+        )
+        QParel = Parallel(
+            n_jobs=paral_setting["cores_runoff"], verbose=paral_setting["verbose"]
+        )(
+            delayed(self.runoff_func)(
+                pars=runoff[sb]["Pars"],
+                inputs=runoff[sb]["Inputs"],
+                temp=dc.temp[sb],
+                prec=dc.prec[sb],
+                pet=dc.pet[sb],
+                start_date=ws["StartDate"],
+                data_length=data_length,
+            )
+            for sb in outlets
+        )
         # ----- Add user assigned Q first. ------------------------------------
         # Collect QParel results
-        Q_runoff = deepcopy(assigned_Q)    # Necessary deepcopy!
+        Q_runoff = deepcopy(assigned_Q)  # Necessary deepcopy!
         for i, sb in enumerate(outlets):
             Q_runoff[sb] = QParel[i]
 
@@ -389,27 +447,31 @@ class Model(object):
         # Necessary deepcopy to isolate self.Q_runoff and self.Q_routed storage
         # pointer!
         dc.Q_routed = deepcopy(Q_runoff)
-        logger.info("Complete rainfall-runoff simulation. [{}]".format(
-            get_elapsed_time()))
+        logger.info(
+            "Complete rainfall-runoff simulation. [{}]".format(get_elapsed_time())
+        )
 
         # ----- Form UH for Lohmann routing method ----------------------------
         # if ws_abm["Routing"] == "Lohmann": # No other choice
         # Form combination
-        UH_List = [(sb, ro) for ro in routing_outlets \
-                    for sb in routing[ro]]
+        UH_List = [(sb, ro) for ro in routing_outlets for sb in routing[ro]]
         # Remove assigned UH from the list.
         UH_List_Lohmann = list(set(UH_List) - set(assigned_UH.keys()))
         # Start forming UH_Lohmann in parallel.
         logger.info(
             "Start forming {} UHs for Lohmann routing. [{}]".format(
-                len(UH_List_Lohmann), get_elapsed_time()))
+                len(UH_List_Lohmann), get_elapsed_time()
+            )
+        )
         # pair = (outlet, routing outlet)
-        UHParel = Parallel(n_jobs=paral_setting["cores_formUH"],
-                            verbose=paral_setting["verbose"]) \
-                        ( delayed(form_UH_Lohmann)\
-                        (routing[pair[1]][pair[0]]["Inputs"],
-                            routing[pair[1]][pair[0]]["Pars"]) \
-                        for pair in UH_List_Lohmann )
+        UHParel = Parallel(
+            n_jobs=paral_setting["cores_formUH"], verbose=paral_setting["verbose"]
+        )(
+            delayed(form_UH_Lohmann)(
+                routing[pair[1]][pair[0]]["Inputs"], routing[pair[1]][pair[0]]["Pars"]
+            )
+            for pair in UH_List_Lohmann
+        )
 
         # Form UH ---------------------------------------------------------
         # Add user assigned UH first.
@@ -418,8 +480,8 @@ class Model(object):
         for i, pair in enumerate(UH_List_Lohmann):
             UH_Lohmann[pair] = UHParel[i]
         logger.info(
-            "Complete forming UHs for Lohmann routing. [{}]".format(
-                get_elapsed_time()))
+            "Complete forming UHs for Lohmann routing. [{}]".format(get_elapsed_time())
+        )
 
         # Form UH for conveyed nodes --------------------------------------
         # No in-grid routing.
@@ -432,30 +494,35 @@ class Model(object):
                     if uh in list(assigned_UH.keys()):
                         logger.error(
                             "Cannot process routing of conveying agents "
-                            +"since {} unit hydrograph is assigned. We will "
-                            +"use the assigned UH for simulation; however, "
-                            +"the results might not be accurate.".format(uh))
+                            + "since {} unit hydrograph is assigned. We will "
+                            + "use the assigned UH for simulation; however, "
+                            + "the results might not be accurate.".format(uh)
+                        )
                         UH_Lohmann_convey = UH_Lohmann[uh]
                     else:
                         UH_convey_List.append(uh)
-            UHParel = Parallel(n_jobs=paral_setting["cores_formUH"],
-                            verbose=paral_setting["verbose"]) \
-                            ( delayed(form_UH_Lohmann)\
-                            (routing[pair[1]][pair[0]]["Inputs"],
-                            routing[pair[1]][pair[0]]["Pars"],
-                            force_ingrid_off=True) \
-                            for pair in UH_convey_List )
+            UHParel = Parallel(
+                n_jobs=paral_setting["cores_formUH"], verbose=paral_setting["verbose"]
+            )(
+                delayed(form_UH_Lohmann)(
+                    routing[pair[1]][pair[0]]["Inputs"],
+                    routing[pair[1]][pair[0]]["Pars"],
+                    force_ingrid_off=True,
+                )
+                for pair in UH_convey_List
+            )
             for i, pair in enumerate(UH_convey_List):
                 UH_Lohmann_convey[pair] = UHParel[i]
             logger.info(
                 "Complete forming UHs for conveyed nodes. [{}]".format(
-                    get_elapsed_time()))
+                    get_elapsed_time()
+                )
+            )
 
         # ----- Time step simulation (Coupling hydrological model and ABM) ----
         Q_routed = dc.Q_routed
         # Obtain datetime index -----------------------------------------------
-        pd_date_index = date_range(start=start_date, periods=data_length,
-                                   freq="D")
+        pd_date_index = date_range(start=start_date, periods=data_length, freq="D")
         self.pd_date_index = pd_date_index  # So users can use it directly.
 
         # Load system-parsed data ---------------------------------------------
@@ -479,11 +546,12 @@ class Model(object):
                 current_date = pd_date_index[t]
                 for node in sim_seq:
                     if node in routing_outlets:
-                        #----- Run Lohmann routing model for one routing outlet
+                        # ----- Run Lohmann routing model for one routing outlet
                         # (node) for 1 timestep (day).
-                        Qt = run_step_Lohmann(node, routing, UH_Lohmann,
-                                                Q_routed, Q_runoff, t)
-                        #----- Store Qt to final output.
+                        Qt = run_step_Lohmann(
+                            node, routing, UH_Lohmann, Q_routed, Q_runoff, t
+                        )
+                        # ----- Store Qt to final output.
                         Q_routed[node][t] = Qt
 
         ##### HydroCNHS model (Coupled model) #################################
@@ -508,25 +576,30 @@ class Model(object):
                 for node in sim_seq:
                     # Load active agent for current node at time t ------------
                     river_div_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
-                        "RiverDivAgents")
+                        "RiverDivAgents"
+                    )
                     river_div_ags_minus = ag_sim_seq["AgSimMinus"][node].get(
-                        "RiverDivAgents")
+                        "RiverDivAgents"
+                    )
                     insitu_ags_minus = ag_sim_seq["AgSimMinus"][node].get(
-                        "InsituAgents")
-                    insitu_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
-                        "InsituAgents")
-                    dam_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
-                        "DamAgents")
+                        "InsituAgents"
+                    )
+                    insitu_ags_plus = ag_sim_seq["AgSimPlus"][node].get("InsituAgents")
+                    dam_ags_plus = ag_sim_seq["AgSimPlus"][node].get("DamAgents")
                     convey_ags_plus = ag_sim_seq["AgSimPlus"][node].get(
-                        "ConveyingAgents")
+                        "ConveyingAgents"
+                    )
                     convey_ags_minus = ag_sim_seq["AgSimMinus"][node].get(
-                        "ConveyingAgents")
+                        "ConveyingAgents"
+                    )
 
                     # Note for the first three if, we should only enter one of
                     # them at each node.
-                    if (insitu_ags_minus is not None
+                    if (
+                        insitu_ags_minus is not None
                         or insitu_ags_plus is not None
-                        or river_div_ags_plus is not None):
+                        or river_div_ags_plus is not None
+                    ):
                         r"""
                         For InsituAPI, they change water directly from
                         the runoff in each sub-basin or grid.
@@ -584,13 +657,15 @@ class Model(object):
                             Q_convey[o][t] += delta
 
                     if node in routing_outlets:
-                        #----- Run Lohmann routing model for one routing outlet
+                        # ----- Run Lohmann routing model for one routing outlet
                         # (node) for 1 time step (day).
                         Qt = run_step_Lohmann(
-                            node, routing, UH_Lohmann, Q_routed, Q_runoff, t)
+                            node, routing, UH_Lohmann, Q_routed, Q_runoff, t
+                        )
                         Qt_convey = run_step_Lohmann_convey(
-                            node, routing, UH_Lohmann_convey, Q_convey, t)
-                        #----- Store Qt to final output.
+                            node, routing, UH_Lohmann_convey, Q_convey, t
+                        )
+                        # ----- Store Qt to final output.
                         Q_routed[node][t] = Qt + Qt_convey
 
                     if convey_ags_minus is not None:
@@ -607,9 +682,8 @@ class Model(object):
                             delta = agents[ag].act(outlet=o)
                             Q_routed[o][t] += delta
         # ---------------------------------------------------------------------
-        print("")   # Force the logger to start a new line after tqdm.
-        logger.info(
-            "Complete HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
+        print("")  # Force the logger to start a new line after tqdm.
+        logger.info("Complete HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow
         # outlets of instream agents). For other variables users need to
         # extract them manually from this class.

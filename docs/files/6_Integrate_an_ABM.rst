@@ -5,11 +5,11 @@ After getting familiar with HydroCNHS from the hydrological model example in the
 
 1.	Create a model configuration file (*.yaml*) using a model builder.
 
-2.	Complete a model configuration file (*.yaml*) 
+2.	Complete a model configuration file (*.yaml*)
 
 3.	Program an ABM module (*.py*)
 
-4.	Run a calibration 
+4.	Run a calibration
 
 5.	Run a simulation
 
@@ -101,21 +101,21 @@ With a node-link structure of the TRB water system, we can follow the same proce
                         lat_list=lat_list, runoff_model="GWLF")
 
     ### Setup routing outlets
-    # Add WSLO 
+    # Add WSLO
     mb.set_routing_outlet(routing_outlet="WSLO",
                         upstream_outlet_list=["TRGC", "DAIRY", "RCTV", "WSLO"],
                         flow_length_list=[80064.864, 70988.164, 60398.680, 0])
-    # Add TRGC 
+    # Add TRGC
     mb.set_routing_outlet(routing_outlet="TRGC",
                         upstream_outlet_list=["DLLO", "TRGC"],
                         flow_length_list=[11748.211, 0])
-    # Add DLLO 
+    # Add DLLO
     # Specify that ResAgt is an instream object.
     mb.set_routing_outlet(routing_outlet="DLLO",
                         upstream_outlet_list=["ResAgt", "TRTR", "DLLO"],
                         flow_length_list=[9656.064, 30899.4048, 0],
-                        instream_objects=["ResAgt"])  
-    # Add HaggIn 
+                        instream_objects=["ResAgt"])
+    # Add HaggIn
     mb.set_routing_outlet(routing_outlet="HaggIn",
                         upstream_outlet_list=["HaggIn"],
                         flow_length_list=[0])
@@ -131,36 +131,36 @@ To add human components, we need to first initialize the ABM setting block by as
 Add agents
 ^^^^^^^^^^
 Next, we add human components (i.e., agents) to the model builder.
-We first **add a reservoir agent (ResAgt)**, in which its corresponding agent type class, agent name, api, link dictionary, and decision-making class can be assigned at this stage. Although not all information has to be provided now (i.e., it can be manually added to the model configuration file later), we encourage users to provide complete details here. 
+We first **add a reservoir agent (ResAgt)**, in which its corresponding agent type class, agent name, api, link dictionary, and decision-making class can be assigned at this stage. Although not all information has to be provided now (i.e., it can be manually added to the model configuration file later), we encourage users to provide complete details here.
 
 .. code-block:: python
 
     mb.add_agent(agt_type_class="Reservoir_AgtType", agt_name="ResAgt",
                  api=mb.api.Dam,
-                 link_dict={"HaggIn": -1, "ResAgt": 1}, 
+                 link_dict={"HaggIn": -1, "ResAgt": 1},
                  dm_class="ReleaseDM")
 
 The setting shown above means that ResAgt (an agent object) will be created from Reservoir_AgtType (an agent type class) and integrated into HydroCNHS using the Dam API. A decision-making object will be created from ReleaseDM (a decision-making class) and assigned to ResAgt as its attribute. This agent, ResAgt, will take water (factor = -1) from HaggIn routing outlet and release (factor = 1) water to ResAgt. Remember that ResAgt itself is a pseudo routing outlet.
 
-Following a similar procedure, we **add a water diversion agent (DivAgt)**. However, we have parameters, including ReturnFactor, a, and b, involved in this agent. Hence, a dictionary is provided to the par_dict argument. The format of the parameter dictionary is that keys are parameter names, and values are parameter values (-99 means waiting to be calibrated). 
+Following a similar procedure, we **add a water diversion agent (DivAgt)**. However, we have parameters, including ReturnFactor, a, and b, involved in this agent. Hence, a dictionary is provided to the par_dict argument. The format of the parameter dictionary is that keys are parameter names, and values are parameter values (-99 means waiting to be calibrated).
 
 However, if the parameter is the factor used in the link_dict, users need to follow the format shown here. For example, we want to calibrate a return factor (ReturnFactor) to determine the portion of diverted water returned to the WSLO subbasin. To do that, a list, ["ReturnFactor", 0, "Plus"], is given to link_dict at WSLO. HydroCNHS will interpret it as taking the factor value from parameter ReturnFactor with a list index of 0. "Plus" tells HydroCNHS we add water to WSLO. If water is taken from WSLO, then "Minus" should be assigned.
 
 .. code-block:: python
 
-    mb.add_agent(agt_type_class="Diversion_AgType", agt_name="DivAgt", 
+    mb.add_agent(agt_type_class="Diversion_AgType", agt_name="DivAgt",
                  api=mb.api.RiverDiv,
                  link_dict={"TRGC": -1, "WSLO": ["ReturnFactor", 0, "Plus"]},
                  dm_class="DivertDM",
                  par_dict={"ReturnFactor": [-99], "a": -99, "b":-99})
 
-Finally, we **add a trans-basin water transfer agent (PipeAgt)**. 
+Finally, we **add a trans-basin water transfer agent (PipeAgt)**.
 
 .. code-block:: python
 
-    mb.add_agent(agt_type_class="Pipe_AgType", agt_name="PipeAgt", 
+    mb.add_agent(agt_type_class="Pipe_AgType", agt_name="PipeAgt",
                  api=mb.api.Conveying,
-                 link_dict={"TRTR": 1}, 
+                 link_dict={"TRTR": 1},
                  dm_class="TransferDM")
 
 Add institution
@@ -197,15 +197,15 @@ After the model configuration file (*.yaml*) is created, users should open the f
 Step 3: Program ABM module (*.py*)
 ------------------------------------
 
-In the generated ABM module (*.py*), users can find mainly two types of classes, including agent type classes (AgtType) and decision-making classes (DMClass/Institutional DMClass). Agent type classes are used to define agents' actions and store up-to-date information (e.g., current date and current time step) in agents' attributes. Decision-making classes are used to program a specific decision-making process. Decision-making classes can be further separated into DMClass and Institutional DMClass. 
+In the generated ABM module (*.py*), users can find mainly two types of classes, including agent type classes (AgtType) and decision-making classes (DMClass/Institutional DMClass). Agent type classes are used to define agents' actions and store up-to-date information (e.g., current date and current time step) in agents' attributes. Decision-making classes are used to program a specific decision-making process. Decision-making classes can be further separated into DMClass and Institutional DMClass.
 
-The ABM design logic is illustrated in :numref:`fig6`. A "class" is a template for objects that can be initiated with object-specific attributes and settings. For example, Agent1 and Agent2 are initiated from the same AgtType1 class. Agent 2, Agent 4, and Agent 5 are initiated from the AgtType2 class. Each agent will be assigned a DM object or Institution object as one of its attributes. DM objects initiated from DMClass are NOT shared with other agents; Namely, agents with DM objects will only have one unique DM object (e.g., Agent 1 and Agent 2 in :numref:`fig6`). In contrast, an Institution object can be shared with multiple agents, in which those agents can make decisions together. For example, multiple irrigation districts make diversion decisions together to share the water shortage during a drought period. We will not implement the Institutional DMClass in this TRB example; however, we will show how to add an institution through a model builder. 
+The ABM design logic is illustrated in :numref:`fig6`. A "class" is a template for objects that can be initiated with object-specific attributes and settings. For example, Agent1 and Agent2 are initiated from the same AgtType1 class. Agent 2, Agent 4, and Agent 5 are initiated from the AgtType2 class. Each agent will be assigned a DM object or Institution object as one of its attributes. DM objects initiated from DMClass are NOT shared with other agents; Namely, agents with DM objects will only have one unique DM object (e.g., Agent 1 and Agent 2 in :numref:`fig6`). In contrast, an Institution object can be shared with multiple agents, in which those agents can make decisions together. For example, multiple irrigation districts make diversion decisions together to share the water shortage during a drought period. We will not implement the Institutional DMClass in this TRB example; however, we will show how to add an institution through a model builder.
 
 .. _fig6:
 .. figure:: ../figs/fig6_ABM_design_logic.png
   :align: center
   :width: 600
-  :alt: ABM design logic. 
+  :alt: ABM design logic.
 
   ABM design logic. An agent is a combination of an AgtType class and an (Institutional) DM class. An Institution object can be shared among a group of agent objects (i.e., make decisions together), while a DM object can only be assigned to one agent object.
 
@@ -229,26 +229,26 @@ Agent type class (AgtType):
     class XXX_AgtType(Base):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            # The AgtType inherited attributes are applied. 
+            # The AgtType inherited attributes are applied.
             # See the note at top.
 
         def act(self, outlet):
             # Read corresponding factor of the given outlet
             factor = read_factor(self.config, outlet)
-            
+
             # Common usage:
             # Get streamflow of outlet at timestep t
             Q = self.dc.Q_routed[outlet][self.t]
-            
+
             # Make decision from (Institutional) decision-making
             # object if self.dm is not None.
             #decision = self.dm.make_dm(your_arguments)
-            
+
             if factor <= 0:     # Divert from the outlet
                 action = 0
             elif factor > 0:    # Add to the outlet
                 action = 0
-            
+
             return action
 
 
@@ -265,7 +265,7 @@ Agent type class (AgtType):
     class XXX_DM(Base):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            # The (Institutional) DMClass inherited attributes are applied. 
+            # The (Institutional) DMClass inherited attributes are applied.
             # See the note at top.
 
         def make_dm(self, your_arguments):
@@ -275,15 +275,15 @@ Agent type class (AgtType):
 
 To keep the manual concise, we provide a complete ABM module for the TRB example at *./tutorials/HydroABM_example/TRB_ABM_complete.py*. Theoretical details can be found in Lin et al. (2022), and more coding tips are available at :ref:`Advanced ABM coding tips`.
 
-Step 4: Run a calibration 
+Step 4: Run a calibration
 -------------------------
 
 First, we load the model configuration file, the climate data, and the observed monthly flow data for DLLO and WSLO, reservoir releases of ResAgt, and water diversions of DivAgt. Here, we have calculated the evapotranspiration using the Hamon method. Therefore, PET data is input along with other data. Note that we manually change the ABM module from "TRB_ABM.py" to "TRB_ABM_complete.py."
 
 .. code-block:: python
 
-    import matplotlib.pyplot as plt 
-    import pandas as pd 
+    import matplotlib.pyplot as plt
+    import pandas as pd
     import HydroCNHS.calibration as cali
     from copy import deepcopy
 
@@ -360,7 +360,7 @@ Third, we program the evaluation function for a genetic algorithm (GA). The four
             KGEs.append(HydroCNHS.Indicator().KGE(
                 x_obv=obv_flow_data[cali_period[0]:cali_period[1]][[target]],
                 y_sim=sim_Q_M[cali_period[0]:cali_period[1]][[target]]))
-        
+
         fitness = sum(KGEs)/4
         return (fitness,)
 
@@ -449,4 +449,3 @@ After obtaining a calibrated model, users can now use it for any simulation-base
     axes[0].legend(ncol=3, bbox_to_anchor=(1, 1.5), fontsize=9)
 
     fig.align_ylabels(axes)
-

@@ -1,4 +1,4 @@
-# Logging configuration. 
+# Logging configuration.
 # Do not change anything here unless you fully understand logging and HydroCNHS
 # structure.
 version: 1
@@ -26,12 +26,12 @@ handlers:                     # Set console and log file handlers.
     backupCount: 5            # If the log file is filled, then XXX.log.1
 
 loggers:
-  HydroCNHS:                  # Logger name. Do not not modify this! 
+  HydroCNHS:                  # Logger name. Do not not modify this!
     level: INFO               # Msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
     handlers: [console]       # Will be overwrote in set_logging_config()!
     propagate: no
 # Root logger. If there is not specific logger is assign, then system will
 # default root logger.
-root:                         
+root:
   level: DEBUG
   handlers: [console]

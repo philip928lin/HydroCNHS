@@ -1,15 +1,15 @@
 Introduction
 ============
 
-The Hydrological model for Coupled Natural-Human Systems (HydroCNHS) is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS. 
+The Hydrological model for Coupled Natural-Human Systems (HydroCNHS) is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS.
 
 When should you use HydroCNHS?
 ------------------------------
 1.	Want to build a hydrological model with auto-parameter-tuning (calibration) features.
 2.	Want to add human components into a hydrological model under a unified framework without worrying about routing logic.
 3.	Want to calibrate the entire integrated model (hydrological + ABM modules) with customized agents' parameters.
-4.	Want to design human behaviors with a high degree of freedom, including coupling with external software. 
-5.	Want to conduct extensive numerical experiments to test various human behavioral designs (i.e., integrating and testing many ABM modules). 
+4.	Want to design human behaviors with a high degree of freedom, including coupling with external software.
+5.	Want to conduct extensive numerical experiments to test various human behavioral designs (i.e., integrating and testing many ABM modules).
 
 Feature highlights
 ------------------
@@ -26,7 +26,7 @@ Supporting APIs for incorporating human/agent components
 .. figure:: ../figs/fig3_hydrocnhs.png
   :align: center
   :width: 500
-  :alt: Logo 
+  :alt: Logo
 
 Dam API
 ^^^^^^^

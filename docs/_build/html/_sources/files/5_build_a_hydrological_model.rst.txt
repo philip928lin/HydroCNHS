@@ -5,9 +5,9 @@ To get familiar with the HydroCNHS model construction process, let's start with 
 
 1.	Create a model configuration file (*.yaml*) using a model builder.
 
-2.	Complete a model configuration file (*.yaml*) 
+2.	Complete a model configuration file (*.yaml*)
 
-3.	Run a calibration 
+3.	Run a calibration
 
 4.	Run a simulation
 
@@ -18,7 +18,7 @@ We will adopt the following delineated watershed (:numref:`fig4`) as a demonstra
 .. figure:: ../figs/fig4_example_watershed.png
   :align: center
   :width: 300
-  :alt: Example watershed. 
+  :alt: Example watershed.
 
   Example watershed.
 
@@ -27,7 +27,7 @@ We will adopt the following delineated watershed (:numref:`fig4`) as a demonstra
 .. table:: Subbasins' information.
   :align: center
   :width: 100%
-  
+
   +----------------+-------------------+---------------+-----------------------+
   |Subbasin/outlet |Drainage area [ha] |Latitude [deg] |Flow length to WSLO [m]|
   +================+===================+===============+=======================+
@@ -47,7 +47,7 @@ We will adopt the following delineated watershed (:numref:`fig4`) as a demonstra
 Step 1: Create a model configuration file
 -----------------------------------------
 
-HydroCNHS comes with a model builder to help users create an initial model configuration file. 
+HydroCNHS comes with a model builder to help users create an initial model configuration file.
 
 First, initiate a model builder object with a working directory (your working folder directory).
 
@@ -60,12 +60,12 @@ First, initiate a model builder object with a working directory (your working fo
 Second, set up the water system with the simulation period (i.e., start date and end date).
 
 .. code-block:: python
-    
+
     wd = prj_path
     mb = HydroCNHS.ModelBuilder(wd)
     mb.set_water_system(start_date="1981/1/1", end_date="2013/12/31")
 
-Third, we can add subbasins (i.e., outlet_list) into the model. We adopt the GWLF model as the rainfall-runoff model (i.e., runoff_model). We also assign the corresponding subbasins' areas (i.e., area_list) and latitude (i.e., lat_list) using the information from :numref:`table4`. Note that area_list and lat_list are optional arguments. Users can manually enter that information to the model configuration file (*.yaml*). 
+Third, we can add subbasins (i.e., outlet_list) into the model. We adopt the GWLF model as the rainfall-runoff model (i.e., runoff_model). We also assign the corresponding subbasins' areas (i.e., area_list) and latitude (i.e., lat_list) using the information from :numref:`table4`. Note that area_list and lat_list are optional arguments. Users can manually enter that information to the model configuration file (*.yaml*).
 
 .. code-block:: python
 
@@ -92,7 +92,7 @@ Finally, we can print out the model for quick view and then write it to *.yaml* 
     ### Print the model in the console
     mb.print_model()
 
-    ### Output initial model configuration file (.yaml) 
+    ### Output initial model configuration file (.yaml)
     mb.write_model_to_yaml(filename="HydroModel.yaml")
 
 Now, we should have the initial model configuration file (i.e., *HydroModel.yaml*) in the corresponding folder.
@@ -102,15 +102,15 @@ Step 2: Complete a model configuration file
 
 Before using the created *HydroModel.yaml* for the later experiment, we need to open it and ensure the information is correct. The “Inputs” in LSM and Routing sections should be all populated. Some default values may be used (e.g., :math:`S0`, :math:`U0`, and :math:`SnowS`). They should be updated according to users' needs. For this example, we don't need to modify anything. You might notice that all the parameters have **a value of -99**. This is the default value in HydroCNHS, meaning that those values need to be calibrated if not provided by users.
 
-Step 3: Run a calibration 
+Step 3: Run a calibration
 -------------------------
 
 First, we load the climate data, observed flow data at WSLO, and the model configuration file. Here, we have calculated the evapotranspiration using the Hamon method. Therefore, we load it as the inputs as well.
 
 .. code-block:: python
 
-    import matplotlib.pyplot as plt 
-    import pandas as pd 
+    import matplotlib.pyplot as plt
+    import pandas as pd
     import HydroCNHS.calibration as cali
     from copy import deepcopy
 
@@ -175,7 +175,7 @@ Third, we program the evaluation function for a genetic algorithm (GA). Kling-Gu
         KGE = HydroCNHS.Indicator().KGE(
             x_obv=obv_flow_WSLO[cali_period[0]:cali_period[1]][cali_target],
             y_sim=sim_Q_M[cali_period[0]:cali_period[1]][cali_target])
-        
+
         fitness = KGE
         return (fitness,)
 

@@ -2,7 +2,7 @@ Model builder
 ===================
 
 The ModelBuilder() of model builder module can quickly help users to establish
-the outline of a model (.yaml). Namely, ModelBuilder can create a template 
+the outline of a model (.yaml). Namely, ModelBuilder can create a template
 model for :ref:`calibration<Calibration>`. First, we initialize a ModelBuilder
 object as shown in the following.
 
@@ -28,18 +28,18 @@ object as shown in the following.
 
 Then, we follow the print out instructions to create a model template.
 
-Here, we demonstrate how to create a coupled model template for the Tualatin 
+Here, we demonstrate how to create a coupled model template for the Tualatin
 River Basin (TRB).
 
 .. figure:: ./figs/TRB.png
   :align: center
   :width: 500
-  :alt: The Tualatin River Basin system diagram. 
+  :alt: The Tualatin River Basin system diagram.
 
-  The Tualatin River Basin system diagram (Lin et al., 2022). TRTR, 
-  Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins. 
-  PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and 
-  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two 
+  The Tualatin River Basin system diagram (Lin et al., 2022). TRTR,
+  Hagg\ :sub:`In`\, DLLO, TRGC, DAIRY, RCTV, and WSLO are seven subbasins.
+  PipeAgt, ResAgt, and DivAgt are trans-basin aqueduct, Hagg reservoir, and
+  irrigation diversion agents, respectively. DrainAgt1 and DrainAgt2 are two
   drainage-system agents for the runoff-changing scenario.
 
 
@@ -53,20 +53,20 @@ River Basin (TRB).
     outlet_list = ["TRTR", "HaggIn", "DLLO", "TRGC", "DAIRY", "RCTV", "WSLO"]
     mb.set_lsm(outlet_list=outlet_list, lsm_model="GWLF")   # or lsm_model="ABCD"
 
-    ### Setup routing 
-    # We have four routing outlets, which we will add them into the model one by 
+    ### Setup routing
+    # We have four routing outlets, which we will add them into the model one by
     # one.
-    mb.set_routing_outlet(routing_outlet="WSLO", 
+    mb.set_routing_outlet(routing_outlet="WSLO",
                         upstream_outlet_list=["TRGC", "DAIRY", "RCTV", "WSLO"])
-    mb.set_routing_outlet(routing_outlet="TRGC", 
+    mb.set_routing_outlet(routing_outlet="TRGC",
                         upstream_outlet_list=["DLLO", "TRGC"])
-    mb.set_routing_outlet(routing_outlet="DLLO", 
-                        upstream_outlet_list=["ResAgt", "TRTR", "DLLO"], 
-                        instream_outlets=["ResAgt"]) 
-    # Note: ResAgt (Hagg Lake) is the reservoir agent, whcih is considerred as 
+    mb.set_routing_outlet(routing_outlet="DLLO",
+                        upstream_outlet_list=["ResAgt", "TRTR", "DLLO"],
+                        instream_outlets=["ResAgt"])
+    # Note: ResAgt (Hagg Lake) is the reservoir agent, whcih is considerred as
     # an instream control object.
 
-    mb.set_routing_outlet(routing_outlet="HaggIn", 
+    mb.set_routing_outlet(routing_outlet="HaggIn",
                         upstream_outlet_list=["HaggIn"])
 
     ### Setup ABM
@@ -78,15 +78,15 @@ River Basin (TRB).
     mb.write_model_to_yaml(filename)
 
 
-After "write_model_to_yaml()", open the create model.yaml (see below) to 
+After "write_model_to_yaml()", open the create model.yaml (see below) to
 further edit it. Users need to manually add necessary "inputs" information
-for all sections. Namely, users need to fill all **null** *except those nested 
-under "Pars" subsections*. For the ABM section, users are asked to manually add 
-"agents" to the model. 
+for all sections. Namely, users need to fill all **null** *except those nested
+under "Pars" subsections*. For the ABM section, users are asked to manually add
+"agents" to the model.
 
-Note that the **-99** values under "Pars" subsections are the parameters 
-required :ref:`calibration<Calibration>`. 
-  
+Note that the **-99** values under "Pars" subsections are the parameters
+required :ref:`calibration<Calibration>`.
+
 .. code-block:: yaml
 
     Path: {WD: working directory, Modules: abm_module path}
@@ -175,8 +175,8 @@ required :ref:`calibration<Calibration>`.
         Modules: []
         AgGroup: null
 
-After filling in the necessary information (e.g., Inputs and ABM settings, we 
-will obtain a model template (see below) ready to be calibrated (i.e., those 
+After filling in the necessary information (e.g., Inputs and ABM settings, we
+will obtain a model template (see below) ready to be calibrated (i.e., those
 -99 values).
 
 .. code-block:: yaml

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 from deap import base, creator, tools
 import logging
+
 logger = logging.getLogger("HydroCNHS.GA")
 
 r"""
@@ -30,12 +31,15 @@ config = {"min_or_max":         "min",
           "plot":               True
           }
 """
+
+
 def scale(individual, bound_scale, lower_bound):
     """individual is 1d ndarray."""
     individual = individual.reshape(bound_scale.shape)
     scaled_individual = np.multiply(individual, bound_scale)
     scaled_individual = np.add(scaled_individual, lower_bound)
     return scaled_individual.flatten()
+
 
 def descale(individual, bound_scale, lower_bound):
     """individual is 1d ndarray."""
@@ -44,8 +48,10 @@ def descale(individual, bound_scale, lower_bound):
     descaled_individual = np.divide(descaled_individual, bound_scale)
     return descaled_individual.flatten()
 
+
 def sample_by_MC(size, rn_gen_gen):
     return rn_gen_gen.uniform(0, 1, size)
+
 
 def sample_by_LHC(size, rn_gen_gen):
     # size = [pop_size, num_par]
@@ -57,12 +63,13 @@ def sample_by_LHC(size, rn_gen_gen):
         temp = np.empty([pop_size])
         # Uniformly sample in each interval.
         for j in range(pop_size):
-            temp[j] = rn_gen_gen.uniform(low=j*d, high=(j + 1)*d)
+            temp[j] = rn_gen_gen.uniform(low=j * d, high=(j + 1) * d)
         # Shuffle to random order.
         rn_gen_gen.shuffle(temp)
         # Scale [0,1] to its bound.
-        pop[:,i] = temp
+        pop[:, i] = temp
     return pop
+
 
 def gen_init_pop(creator, size, method="LHC", guess_pop=None, rn_gen_gen=None):
     # size = [pop_size, num_par]
@@ -70,22 +77,23 @@ def gen_init_pop(creator, size, method="LHC", guess_pop=None, rn_gen_gen=None):
     pop = np.empty(size)
     if guess_pop is not None:
         ass_size = guess_pop.shape[0]
-        pop[:ass_size,:] = guess_pop
+        pop[:ass_size, :] = guess_pop
         # Randomly initialize the rest of population
         size[0] = pop_size - ass_size
     else:
         ass_size = 0
     if method == "MC":
-        pop[ass_size:,:] = sample_by_MC(size, rn_gen_gen)
+        pop[ass_size:, :] = sample_by_MC(size, rn_gen_gen)
     elif method == "LHC":
-        pop[ass_size:,:] = sample_by_LHC(size, rn_gen_gen)
+        pop[ass_size:, :] = sample_by_LHC(size, rn_gen_gen)
 
     # Convert to DEAP individual objects.
     individuals = []
     for i in range(pop_size):
-        individual = pop[i,:]
+        individual = pop[i, :]
         individuals.append(creator(individual))
     return individuals
+
 
 def mut_uniform(individual, prob_mut, rn_gen_gen):
     num_par = len(individual)
@@ -94,6 +102,7 @@ def mut_uniform(individual, prob_mut, rn_gen_gen):
     individual[mut] = new_sample.flatten()[mut]
     return individual
 
+
 def mut_middle(individual, p1, p2, prob_mut, rn_gen_gen):
     num_par = len(individual)
     new_sample = rn_gen_gen.uniform(0, 1, num_par)
@@ -101,12 +110,13 @@ def mut_middle(individual, p1, p2, prob_mut, rn_gen_gen):
         rnd = rn_gen_gen.random()
         if rnd < prob_mut:
             if p1[i] < p2[i]:
-                individual[i] = p1[i] + rn_gen_gen.random() * (p2[i]-p1[i])
+                individual[i] = p1[i] + rn_gen_gen.random() * (p2[i] - p1[i])
             elif p1[i] > p2[i]:
-                individual[i] = p2[i] + rn_gen_gen.random() * (p1[i]-p2[i])
+                individual[i] = p2[i] + rn_gen_gen.random() * (p1[i] - p2[i])
             else:
                 individual[i] = new_sample[i]
     return individual
+
 
 def selRoulette(individuals, k, rn_gen_gen, fit_attr="fitness"):
     # From DEAP
@@ -122,6 +132,8 @@ def selRoulette(individuals, k, rn_gen_gen, fit_attr="fitness"):
                 chosen.append(ind)
                 break
     return chosen
+
+
 def cxUniform(ind1, ind2, indpb, rn_gen_gen):
     # From DEAP
     size = min(len(ind1), len(ind2))
@@ -143,10 +155,10 @@ creator.create("Individual_max", np.ndarray, fitness=creator.Fitness_max)
 
 tb = base.Toolbox()
 
-tb.register("crossover", cxUniform)     # apply customized rn_gen
+tb.register("crossover", cxUniform)  # apply customized rn_gen
 tb.register("mutate_uniform", mut_uniform)
 tb.register("mutate_middle", mut_middle)
-tb.register("select", selRoulette)      # apply customized rn_gen
+tb.register("select", selRoulette)  # apply customized rn_gen
 tb.register("ellite", tools.selBest)
 
 
@@ -155,7 +167,7 @@ class GA_DEAP(object):
         """Initialize the GA calibration object.
 
         Note that this GA algorithm only allows to calibrate real numbers.
-        
+
         Parameters
         ----------
         evaluation_func : function
@@ -168,10 +180,12 @@ class GA_DEAP(object):
             Random number generator created by create_rn_gen(), by default None.
             If given, randomness of the designed model is controled by rn_gen.
             We encourage user to assign it to maintain the reproducibility of
-            the stochastic simulation. 
+            the stochastic simulation.
         """
-        print("GA Calibration Guide\n"
-              +"Step 1: set or load (GA_auto_save.pickle).\nStep 2: run.")
+        print(
+            "GA Calibration Guide\n"
+            + "Step 1: set or load (GA_auto_save.pickle).\nStep 2: run."
+        )
         if rn_gen is None:
             # Assign a random seed.
             seed = np.random.randint(0, 100000)
@@ -203,38 +217,46 @@ class GA_DEAP(object):
         config = self.config
         max_gen_org = config["max_gen"]
         if max_gen is None:
-            print("Enter the new max_gen (original max_gen = {})".format(max_gen)
-                  +" or Press Enter to continue.")
+            print(
+                "Enter the new max_gen (original max_gen = {})".format(max_gen)
+                + " or Press Enter to continue."
+            )
             ans1 = input()
         else:
             ans1 = max_gen
         if ans1 != "":
             ans2 = int(ans1)
             if ans2 <= max_gen_org:
-                print("Fail to update MaxGen. Note that new max_gen must be"
-                      +" larger than original max_gen. Please reload.")
+                print(
+                    "Fail to update MaxGen. Note that new max_gen must be"
+                    + " larger than original max_gen. Please reload."
+                )
             else:
                 self.config["max_gen"] = ans2
                 # Add random seed if increased max gen.
-                self.rng_seeds += self.ss.spawn(ans2-max_gen_org)
+                self.rng_seeds += self.ss.spawn(ans2 - max_gen_org)
         # Add toolbox
         if config["min_or_max"] == "min":
             tb.register("population", gen_init_pop, creator.Individual_min)
         else:
             tb.register("population", gen_init_pop, creator.Individual_max)
-        tb.register("scale", scale, bound_scale=self.bound_scale,
-                          lower_bound=self.lower_bound)
-        tb.register("descale", descale, bound_scale=self.bound_scale,
-                          lower_bound=self.lower_bound)
-        
-    def set(self, inputs, config, formatter=None,
-            name="Calibration"):
+        tb.register(
+            "scale", scale, bound_scale=self.bound_scale, lower_bound=self.lower_bound
+        )
+        tb.register(
+            "descale",
+            descale,
+            bound_scale=self.bound_scale,
+            lower_bound=self.lower_bound,
+        )
+
+    def set(self, inputs, config, formatter=None, name="Calibration"):
         """Setup the GA calibration.
 
         Parameters
         ----------
         inputs : dict
-            Calibration input dictionary generated by Convertor. Or, get the 
+            Calibration input dictionary generated by Convertor. Or, get the
             template by calling get_inputs_template().
         config : dict
             Calibration configuration dictionary. Get the template by calling
@@ -248,7 +270,7 @@ class GA_DEAP(object):
         self.config = config
         self.inputs = inputs
         self.formatter = formatter
-        #self.system_config = loadConfig()
+        # self.system_config = loadConfig()
         self.size = (config["pop_size"], len(inputs["par_name"]))
 
         # Continue run setup
@@ -265,14 +287,14 @@ class GA_DEAP(object):
         self.summary["std"] = []
 
         # Random number generators' seed for each generation (from 0 to max_gen)
-        self.rng_seeds = self.ss.spawn(config["max_gen"]+1)
+        self.rng_seeds = self.ss.spawn(config["max_gen"] + 1)
 
         # Scale setting
         bound_scale = []
         lower_bound = []
         par_bound = inputs["par_bound"]
         for i in range(self.size[1]):
-        # for i, ty in enumerate(inputs["par_type"]):
+            # for i, ty in enumerate(inputs["par_type"]):
             # if ty == "real": Only allow real number for now.
             bound_scale.append(par_bound[i][1] - par_bound[i][0])
             lower_bound.append(par_bound[i][0])
@@ -289,10 +311,15 @@ class GA_DEAP(object):
             tb.register("population", gen_init_pop, creator.Individual_min)
         else:
             tb.register("population", gen_init_pop, creator.Individual_max)
-        tb.register("scale", scale, bound_scale=self.bound_scale,
-                          lower_bound=self.lower_bound)
-        tb.register("descale", descale, bound_scale=self.bound_scale,
-                          lower_bound=self.lower_bound)
+        tb.register(
+            "scale", scale, bound_scale=self.bound_scale, lower_bound=self.lower_bound
+        )
+        tb.register(
+            "descale",
+            descale,
+            bound_scale=self.bound_scale,
+            lower_bound=self.lower_bound,
+        )
 
         # Create calibration folder under WD
         self.cali_wd = os.path.join(inputs["wd"], name)
@@ -300,10 +327,12 @@ class GA_DEAP(object):
         if os.path.isdir(self.cali_wd) is not True:
             os.mkdir(self.cali_wd)
         else:
-            logger.warning("Current calibration folder exists."
-                           +" Default to overwrite the folder!"
-                           +"\n{}".format(self.cali_wd))
-        #---------------------------------------
+            logger.warning(
+                "Current calibration folder exists."
+                + " Default to overwrite the folder!"
+                + "\n{}".format(self.cali_wd)
+            )
+        # ---------------------------------------
 
     def run_individual(self, individual="best", name="best"):
         """Run the evaluation for a given individual.
@@ -311,16 +340,16 @@ class GA_DEAP(object):
         Warning! run_individual() does not generantee the same rn_gen will be
         assign to the evaluation, but the same one will be used for
         run_individual()
-        
+
         Parameters
         ----------
         individual : 1darray, optional
             Individual or solution, by default "best".
         name : str, optional
-            This will be sent to the evaluation function through info = 
+            This will be sent to the evaluation function through info =
             (cali_wd, name, name, formatter, rn_gen), by default "best".
         """
-        
+
         if individual == "best":
             sol = self.solution
         else:
@@ -329,18 +358,18 @@ class GA_DEAP(object):
         cali_wd = self.cali_wd
         # Warning! Does not generantee the same rn_gen will be assign to the
         # evaluation, but the same one will be used for run_individual()
-        rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen-1],
-                                    self.size[0])
-        fitness = tb.evaluate(
-            sol, (cali_wd, name, name, formatter, rn_gen_pop[0]))
-        
+        rn_gen_pop = self.gen_rn_gens(
+            self.rng_seeds[self.current_gen - 1], self.size[0]
+        )
+        fitness = tb.evaluate(sol, (cali_wd, name, name, formatter, rn_gen_pop[0]))
+
         print("Fitness: {}".format(fitness))
 
     def gen_rn_gens(self, seed, size):
         # Create rn_gen for each individual in the pop with predefined
         # generation specific seed.
         rn_gen_gen = np.random.default_rng(seed)
-        ind_seeds = rn_gen_gen.bit_generator._seed_seq.spawn(size+1)
+        ind_seeds = rn_gen_gen.bit_generator._seed_seq.spawn(size + 1)
         rn_gen_pop = [np.random.default_rng(s) for s in ind_seeds]
         # rn_gen for selection, crossover, mutation for each generation
         self.rn_gen_gen = rn_gen_gen
@@ -372,49 +401,50 @@ class GA_DEAP(object):
         if self.done_ini is False:
             # self.rng_seeds[0] will be used for initialize population as well
             # as form pop for the first generation.
-            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen],
-                                        size[0])
+            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen], size[0])
 
-            pop = tb.population(self.size, config["sampling_method"],
-                                guess_pop, self.rn_gen_gen)
+            pop = tb.population(
+                self.size, config["sampling_method"], guess_pop, self.rn_gen_gen
+            )
             self.done_ini = True
             scaled_pop = list(map(tb.scale, pop))
             # Note np.array(scaled_pop[k]) is necessary for serialization.
             # Use joblib instead of DEAP document of Scoop or muliprocessing,
             # so we don't have to run in external terminal.
 
-            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose) \
-                                ( delayed(tb.evaluate)\
-                                    (np.array(scaled_pop[k]),
-                                     (cali_wd, self.current_gen, k, formatter,
-                                      rn_gen_pop[k])) \
-                                    for k in range(len(scaled_pop)) )
+            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose)(
+                delayed(tb.evaluate)(
+                    np.array(scaled_pop[k]),
+                    (cali_wd, self.current_gen, k, formatter, rn_gen_pop[k]),
+                )
+                for k in range(len(scaled_pop))
+            )
 
             # Note that we assign fitness to original pop not the scaled_pop.
             for ind, fit in zip(pop, fitnesses):
                 ind.fitness.values = fit
             self.find_best_and_record(pop)
-        else: # Load previous run
-            pop = self.records[self.current_gen-1]
+        else:  # Load previous run
+            pop = self.records[self.current_gen - 1]
             # To continue the random sequence from previous run
             # (do ga things using seed from last generation)
             self.rn_gen_gen = np.random.default_rng(
-                self.rng_seeds[self.current_gen-1])
+                self.rng_seeds[self.current_gen - 1]
+            )
 
         # Iteration
         prob_cross = config["prob_cross"]
         prob_mut = config["prob_mut"]
         while self.current_gen <= max_gen:
-
             # Select the next generation individuals
             parents = tb.select(pop, size[0], self.rn_gen_gen)
             # Clone the selected individuals
             offspring = list(map(tb.clone, parents))
 
             # Apply crossover and mutation on the offspring
-            for p1, p2, child1, child2 in zip(parents[::2], parents[1::2],
-                                              offspring[::2], offspring[1::2]):
-
+            for p1, p2, child1, child2 in zip(
+                parents[::2], parents[1::2], offspring[::2], offspring[1::2]
+            ):
                 # Keep the parent with some probability prob_cross
                 # if np.random.uniform() < prob_cross:
                 #     tb.crossover(child1, child2, prob_cross)
@@ -437,18 +467,17 @@ class GA_DEAP(object):
             if stochastic:
                 invalid_ind = offspring
             else:
-                invalid_ind = [ind for ind in offspring \
-                               if not ind.fitness.valid]
+                invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
 
             scaled_pop = list(map(tb.scale, invalid_ind))
-            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen],
-                                        size[0])
-            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose) \
-                                ( delayed(tb.evaluate)\
-                                    (np.array(scaled_pop[k]),
-                                     (cali_wd, self.current_gen, k, formatter,
-                                      rn_gen_pop[k])) \
-                                    for k in range(len(invalid_ind)) )
+            rn_gen_pop = self.gen_rn_gens(self.rng_seeds[self.current_gen], size[0])
+            fitnesses = Parallel(n_jobs=paral_cores, verbose=paral_verbose)(
+                delayed(tb.evaluate)(
+                    np.array(scaled_pop[k]),
+                    (cali_wd, self.current_gen, k, formatter, rn_gen_pop[k]),
+                )
+                for k in range(len(invalid_ind))
+            )
             for ind, fit in zip(invalid_ind, fitnesses):
                 ind.fitness.values = fit
 
@@ -468,7 +497,7 @@ class GA_DEAP(object):
         self.records[self.current_gen] = list(map(tb.clone, pop))
         if config["drop_record"]:
             # Delete previous generation's record
-            self.records.pop(self.current_gen-1,"")
+            self.records.pop(self.current_gen - 1, "")
 
         self.current_gen += 1
 
@@ -477,12 +506,13 @@ class GA_DEAP(object):
         fits = [ind.fitness.values[0] for ind in pop]
         length = len(pop)
         mean = sum(fits) / length
-        sum2 = sum(x*x for x in fits)
-        std = abs(sum2 / length - mean**2)**0.5
+        sum2 = sum(x * x for x in fits)
+        std = abs(sum2 / length - mean**2) ** 0.5
 
         elapsed_time = time.monotonic() - self.start_time
         self.summary["elapsed_time"] = time.strftime(
-            "%H:%M:%S", time.gmtime(elapsed_time))
+            "%H:%M:%S", time.gmtime(elapsed_time)
+        )
         self.summary["max_fitness"].append(max(fits))
         self.summary["min_fitness"].append(min(fits))
         self.summary["avg"].append(mean)
@@ -492,14 +522,15 @@ class GA_DEAP(object):
         if config["auto_save"]:
             self.auto_save()
 
-        if ((self.current_gen-1) % config["print_level"] == 0
-            or self.current_gen > config["max_gen"]):
-            print("\n=====Generation {}=====".format(self.current_gen-1))
+        if (self.current_gen - 1) % config[
+            "print_level"
+        ] == 0 or self.current_gen > config["max_gen"]:
+            print("\n=====Generation {}=====".format(self.current_gen - 1))
             print("  Elapsed time %s" % self.summary["elapsed_time"])
-            print("  Min %s" % round(min(fits),5))
-            print("  Max %s" % round(max(fits),5))
-            print("  Avg %s" % round(mean,5))
-            print("  Std %s" % round(std,5))
+            print("  Min %s" % round(min(fits), 5))
+            print("  Max %s" % round(max(fits), 5))
+            print("  Avg %s" % round(mean, 5))
+            print("  Std %s" % round(std, 5))
 
             if config["plot"]:
                 # Plot progress
@@ -512,24 +543,36 @@ class GA_DEAP(object):
                     fitness = self.summary["min_fitness"]
                     ax1.set_ylabel("Fitness (Min)")
                 x = np.arange(len(fitness))
-                lns1 = ax1.plot(x, fitness, label="Fitness", linewidth=2,
-                                color="black", marker=".", zorder=2)
-                lns2 = ax2.plot(x, self.summary["std"], label="Fitness std",
-                                linewidth=2, color="grey", linestyle="--",
-                                marker="x", zorder=1)
+                lns1 = ax1.plot(
+                    x,
+                    fitness,
+                    label="Fitness",
+                    linewidth=2,
+                    color="black",
+                    marker=".",
+                    zorder=2,
+                )
+                lns2 = ax2.plot(
+                    x,
+                    self.summary["std"],
+                    label="Fitness std",
+                    linewidth=2,
+                    color="grey",
+                    linestyle="--",
+                    marker="x",
+                    zorder=1,
+                )
                 ax2.set_ylabel("Fitness standard deviation")
 
-                ax1.set_title(
-                    self.name + "  [{}]".format(self.summary["elapsed_time"]))
+                ax1.set_title(self.name + "  [{}]".format(self.summary["elapsed_time"]))
                 ax1.set_xlim([0, config["max_gen"]])
                 ax1.set_xlabel("Generation")
 
-                lns = lns1+lns2
+                lns = lns1 + lns2
                 labs = [l.get_label() for l in lns]
                 ax1.legend(lns, labs)
                 plt.tight_layout()
-                filename = os.path.join(self.cali_wd,
-                                        "Fitness_" + self.name + ".png")
+                filename = os.path.join(self.cali_wd, "Fitness_" + self.name + ".png")
                 try:
                     fig.savefig(filename, dpi=300)
                 except Exception as e:
@@ -543,8 +586,7 @@ class GA_DEAP(object):
     def auto_save(self):
         cali_wd = self.cali_wd
         snap_shot = self.__dict__
-        with open(os.path.join(cali_wd, "GA_auto_save.pickle"),
-                  'wb') as outfile:
+        with open(os.path.join(cali_wd, "GA_auto_save.pickle"), "wb") as outfile:
             # protocol=pickle.HIGHEST_PROTOCOL
             # print()
             pickle.dump(snap_shot, outfile)

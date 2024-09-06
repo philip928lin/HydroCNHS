@@ -25,7 +25,7 @@ A data collector is a data container object to store model outputs. We encourage
 Logging
 -------
 
-Logging is a python package to organize model output messages. We encourage users to adopt it in their ABM module design. This will help you to integrate your agent output messages into HydroCNHS. 
+Logging is a python package to organize model output messages. We encourage users to adopt it in their ABM module design. This will help you to integrate your agent output messages into HydroCNHS.
 
 .. code-block:: python
 

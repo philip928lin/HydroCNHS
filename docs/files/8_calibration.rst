@@ -61,12 +61,12 @@ A calibration input dictionary contains three keys, including par_name, par_boun
               'wd': 'working directory'}
     inputs["wd"] = prj_path
 
-Note that users can use a converter to generate the calibration input dictionary automatically. 
+Note that users can use a converter to generate the calibration input dictionary automatically.
 
 GA configuration dictionary
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A GA configuration dictionary contains many control options. Please see the following code for the explanation of each option. 
+A GA configuration dictionary contains many control options. Please see the following code for the explanation of each option.
 
 .. code-block:: python
 
@@ -80,7 +80,7 @@ A GA configuration dictionary contains many control options. Please see the foll
             'prob_mut': 0.15,           # Mutation probability of each parameter.
             'stochastic': False,        # Is the evaluation stochastic?
             'max_gen': 100,             # Maximum generation number.
-            'sampling_method': 'LHC',   # Sampling method for the initial population. 
+            'sampling_method': 'LHC',   # Sampling method for the initial population.
             'drop_record': False,       # Whether to drop historical records to save space.
             'paral_cores': -1,          # Number of parallel cores. -1 means all available cores.
             'paral_verbose': 1,         # Higher value will output more console messages.
@@ -180,7 +180,7 @@ Now, we want to generate the calibration input dictionary with fixed "a" and "b"
                 [0, 10], [0, 10]]}
     """
 
-We can see the 'par_name' in cali_inputs does not contain 'a|Subbasin1' and 'b|Subbasin1.' The outputted a formatter contains the relationship between a 1-D array and a list of DataFrames. 
+We can see the 'par_name' in cali_inputs does not contain 'a|Subbasin1' and 'b|Subbasin1.' The outputted a formatter contains the relationship between a 1-D array and a list of DataFrames.
 
 Convert from a list of DataFrames to a 1D array
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

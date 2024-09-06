@@ -1,0 +1,49 @@
+[project]
+name = "HydroCNHS"
+version = "1.0.1"
+authors = [{name = "Chung-Yi Lin", email = "philip928lin@gmail.com"}]
+license = "file: LICENSE"
+description = "file: README.md"
+homepage = "https://github.com/philip928lin/HydroCNHS"
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Framework :: IPython",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Hydrology"
+]
+dependencies = [
+    "joblib",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "ruamel.yaml",
+    "scipy",
+    "sklearn",
+    "tqdm",
+    "pyyaml"
+]
+python-requires = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+    "ipython",
+]
+
+lint = [
+    "pre-commit>=2.20.0",
+]
+
+# tools
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+

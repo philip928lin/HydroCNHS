@@ -8,6 +8,7 @@
 import numpy as np
 import logging
 
+
 def run_ABCD(pars, inputs, temp, prec, pet, data_length, **kwargs):
     """ABCD rainfall-runoff model.
 
@@ -45,31 +46,30 @@ def run_ABCD(pars, inputs, temp, prec, pet, data_length, **kwargs):
     """
 
     # Data
-    temp = np.array(temp)      # [degC] Daily mean temperature.
-    prec = np.array(prec)      # [cm] Daily precipitation.
-    pet = np.array(pet)        # [cm] Daily potential evapotranspiration.
+    temp = np.array(temp)  # [degC] Daily mean temperature.
+    prec = np.array(prec)  # [cm] Daily precipitation.
+    pet = np.array(pet)  # [cm] Daily potential evapotranspiration.
 
     # Variable
-    SnowSt = inputs["SnowS"]   # [cm] Initial snow storage.
-    QU = 0                     # [cm] Runoff.
-    QL = 0                     # [cm] Baseflow.
-    XL = inputs["XL"]          # [cm] Initial saturated soil water content.
-                               ## [0, 400]
-    XU = 0                     # [cm] Soil water storage (Antecedent Moisture).
+    SnowSt = inputs["SnowS"]  # [cm] Initial snow storage.
+    QU = 0  # [cm] Runoff.
+    QL = 0  # [cm] Baseflow.
+    XL = inputs["XL"]  # [cm] Initial saturated soil water content.
+    ## [0, 400]
+    XU = 0  # [cm] Soil water storage (Antecedent Moisture).
 
     # Pars
-    a = pars["a"]                   # [0, 1]
-    b = pars["b"]                   # [cm] [0, 400]
-    c = pars["c"]                   # [0, 1]
-    d = pars["d"]                   # [0, 1]
-    Df = pars["Df"]                 # [0, 1]
+    a = pars["a"]  # [0, 1]
+    b = pars["b"]  # [cm] [0, 400]
+    c = pars["c"]  # [0, 1]
+    d = pars["d"]  # [0, 1]
+    Df = pars["Df"]  # [0, 1]
 
-    #----- Loop through all days (Python for loop ending needs +1) ------------
-    CMS = np.zeros(data_length) # Create a 1D array to store results
+    # ----- Loop through all days (Python for loop ending needs +1) ------------
+    CMS = np.zeros(data_length)  # Create a 1D array to store results
     for i in range(data_length):
-
         # Determine rainfall, snowfall and snow accumulation-------------------
-        if temp[i] > 0:           # If temperature is above 0 degC,
+        if temp[i] > 0:  # If temperature is above 0 degC,
             # precipitation is rainfall (cm) and no snow accumulation
             Rt = prec[i]
         else:
@@ -77,38 +77,38 @@ def run_ABCD(pars, inputs, temp, prec, pet, data_length, **kwargs):
             Rt = 0
             # Snowfall will accumulated and become snow storage(cm)
             SnowSt = SnowSt + prec[i]
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Determine snowmelt (Degree-day method)-------------------------------
-        if temp[i] > 0:           # Temperature above 0 degC
+        if temp[i] > 0:  # Temperature above 0 degC
             # Snowmelt (cm) capped by snow storage
             Mt = min(SnowSt, Df * temp[i])
             SnowSt = SnowSt - Mt  # Update snow storage
         else:
             Mt = 0
 
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Determin available water (P)
         P = Rt + Mt + XU
 
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # ET opportunity (Guillermo et al., 2010)
-        Pb = P+b
-        a2 = 2*a
-        In = (Pb/a2)**2 -  P*b/a # In should >= 0
-        EO = Pb/a2 - In**0.5
+        Pb = P + b
+        a2 = 2 * a
+        In = (Pb / a2) ** 2 - P * b / a  # In should >= 0
+        EO = Pb / a2 - In**0.5
 
         # EO = EO.real
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Actual evapotranspiration (E)
-        E = EO * ( 1-np.exp(-pet[i]/b) )
-        E = min( pet[i], max(0 , E) )
+        E = EO * (1 - np.exp(-pet[i] / b))
+        E = min(pet[i], max(0, E))
         XU = EO - E
         AW = P - EO
-        XL = (XL + c*AW) / (1+d)
+        XL = (XL + c * AW) / (1 + d)
         QL = d * XL
-        QU = (1-c) * AW
+        QU = (1 - c) * AW
         Q = QL + QU
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Change unit to cms (m^3/sec)-----------------------------------------
         # Area [ha]
         CMS[i] = (Q * 0.01 * inputs["Area"] * 10000) / 86400
