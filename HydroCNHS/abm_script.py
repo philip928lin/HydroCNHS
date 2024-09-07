@@ -1,5 +1,5 @@
 import_str = """import logging
-from HydroCNHS.abm import Base, read_factor
+from hydrocnhs.abm import Base, read_factor
 logger = logging.getLogger("ABM")
 # logger can be used to log message (e.g., logger.info(msg)).
 

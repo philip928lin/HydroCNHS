@@ -1,6 +1,6 @@
 [project]
-name = "HydroCNHS"
-version = "1.0.1"
+name = "hydrocnhs"
+version = "1.1.1"
 authors = [{name = "Chung-Yi Lin", email = "philip928lin@gmail.com"}]
 license = {file = "LICENSE"}
 description = "A Python Package of Hydrological Model for Coupled Natural–Human Systems"
@@ -13,7 +13,8 @@ dependencies = [
     "scipy",
     "scikit-learn",
     "tqdm",
-    "pyyaml"
+    "pyyaml",
+    "deap"
 ]
 
 
@@ -28,7 +29,7 @@ lint = [
 
 # tools
 [tool.setuptools]
-packages = ["HydroCNHS"]
+packages = ["hydrocnhs"]
 
 [tool.black]
 line-length = 88
