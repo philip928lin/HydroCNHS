@@ -167,7 +167,7 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
                 res_dict.update(dict_list[d])
         return res_dict
 
-    allowed_output_sections = ["RainfallRunoff", "Routing", "ABM"]
+    allowed_output_sections = ["RainfallRunoff", "Routing", "ABM", "Sediment"]
     section_list = [i for i in allowed_output_sections if i in model_dict]
     df_name = []
     output_df_list = []
@@ -210,6 +210,15 @@ def write_model_to_df(model_dict, key_option=["Pars"], prefix=""):
                     converted_dict = convert_dict_to_df(merged_dict, (ag, agtype))
                     df = pd.concat([df, converted_dict], axis=1)
             output_df_list.append(df)
+        elif s == "Sediment":
+            df_name.append(prefix + "Sediment")
+            df = pd.DataFrame()
+            for sub in model_dict[s]:
+                dict_list = [model_dict[s][sub].get(i) for i in key_option]
+                merged_dict = merge_dicts(dict_list)
+                converted_dict = convert_dict_to_df(merged_dict, sub)
+                df = pd.concat([df, converted_dict], axis=1)
+            output_df_list.append(df)
     return output_df_list, df_name
 
 
@@ -244,12 +253,13 @@ def gen_default_bounds(model_dict, key_option=["Pars"]):
         "Kc": [0.5, 1.5],
     }
     abcd_bounds = {"a": [0, 1], "b": [0, 400], "c": [0, 1], "d": [0, 1], "Df": [0, 1]}
-    routing = {
+    routing_bounds = {
         "GShape": [1, 100],
         "GScale": [0.01, 150],
         "Velo": [0.5, 55],
         "Diff": [200, 4000],
     }
+    sediment_bounds = {"CP": [1e-7, 1e-1], "Sa": [0, 4], "Sb": [1, 5], "Sq": [1, 5]}
     for df, name in zip(df_list, df_name):
         if "Runoff_GWLF" in name:
             for k, v in gwlf_bounds.items():
@@ -258,8 +268,12 @@ def gen_default_bounds(model_dict, key_option=["Pars"]):
             for k, v in abcd_bounds.items():
                 df.loc[k, :] = str(v)
         elif "Routing_Lohmann" in name:
-            for k, v in routing.items():
+            for k, v in routing_bounds.items():
                 df.loc[k, df.loc[k, :].isna() == False] = str(v)
+        elif "Sediment" in name:
+            df.loc[:, :] = np.nan
+            for k, v in sediment_bounds.items():
+                df.loc[k, :] = str(v)
         else:
             for k in list(df.index):
                 df.loc[k, df.loc[k, :].isna() == False] = str([0, 1])
@@ -391,6 +405,10 @@ def load_df_to_model_dict(model_dict, df, section, key):
         ABM = model_dict["ABM"]
         for agagType in df_dict:
             ABM[agagType[1]][agagType[0]][key] = df_dict[agagType]
+    if section == "Sediment":
+        sed = model_dict["Sediment"]
+        for sub in df_dict:
+            sed[sub][key] = df_dict[sub]
 
     return model_dict
 

@@ -134,7 +134,95 @@ def form_UH_Lohmann(inputs, routing_pars, force_ingrid_off=False):
     return UH_direct
 
 
-def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_runoff, t):
+def run_step_Lohmann_sed(routing_outlet, routing, UH_Lohmann, Q, Q_runoff, t, Q_frac):
+    """Calculate a single time step routing for a given routing_outlet at time t.
+
+    Parameters
+    ----------
+    routing_outlet : str
+        routing outlet.
+    routing : dict
+        Routing setting dictionary from model.yaml file.
+    UH_Lohmann : dict
+        A dictionary containing pre-formed UHs.
+    Q : dict
+        A dictionary containing newest routed flows.
+    Q_runoff : dict
+        A dictionary containing newest unrouted flows without.
+    t : int
+        Index of current time step [day].
+
+    Returns
+    -------
+    float
+        Routed flow of routing_outlet at time t.
+    """
+    Qt = None
+    ro = routing_outlet
+    Qresult = 0
+    Subbasin = list(routing[ro].keys())
+    for sb in Subbasin:
+        l = len(UH_Lohmann[(sb, ro)]) - 1
+        # t+1 is length, t is index.
+        UH = UH_Lohmann[(sb, ro)][0 : min(t + 1, l)]
+        if ro == sb:
+            # Q[ro] is routed Q. We need to use unrouted Q (Q_runoff) to run the
+            # routing.
+            Q_reverse = np.flip(Q_runoff[sb][max(t - (l - 1), 0) : t + 1])
+        else:
+            Q_reverse = np.flip(Q[sb][max(t - (l - 1), 0) : t + 1])
+        q_frac = np.sum(UH * Q_reverse)
+        Q_frac[ro][sb][t] = q_frac
+        Qresult += q_frac
+    Qt = Qresult  # Store the result for time t
+    return Qt
+
+
+def run_step_Lohmann_convey_sed(
+    routing_outlet, routing, UH_Lohmann_convey, Q_convey, t, Q_frac
+):
+    """Calculate a single time step conveying water routing for a given
+    routing_outlet at time t.
+
+    Parameters
+    ----------
+    routing_outlet : str
+        routing outlet.
+    routing : dict
+        Routing setting dictionary from model.yaml file.
+    UH_Lohmann_convey : dict
+        A dictionary containing pre-formed conveying UHs (i.e., no within
+        subbasin routing).
+    Q_convey : dict
+        A dictionary containing conveying water.
+    t : int
+        Index of current time step [day].
+
+    Returns
+    -------
+    float
+        Routed conveying flow of routing_outlet at time t.
+    """
+    Qt = None
+    ro = routing_outlet
+    Qresult = 0
+    Subbasin = list(routing[ro].keys())
+    for sb in Subbasin:
+        uh_convey = UH_Lohmann_convey.get((sb, ro))
+        if uh_convey is not None:
+            l = len(uh_convey) - 1
+            # t+1 is length, t is index.
+            UH = uh_convey[0 : min(t + 1, l)]
+            Q_reverse = np.flip(Q_convey[sb][max(t - (l - 1), 0) : t + 1])
+            # Q_frac[sb][t] should already have the value from the normal routing.
+            q_frac = np.sum(UH * Q_reverse)
+            Q_frac[ro][sb][t] += q_frac
+            Qresult += q_frac
+    Qt = Qresult  # Store the result for time t
+    return Qt
+
+
+def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_runoff, t, *args):
     """Calculate a single time step routing for a given routing_outlet at time t.
 
     Parameters
@@ -176,7 +264,9 @@ def run_step_Lohmann(routing_outlet, routing, UH_Lohmann, Q, Q_runoff, t):
     return Qt
 
 
-def run_step_Lohmann_convey(routing_outlet, routing, UH_Lohmann_convey, Q_convey, t):
+def run_step_Lohmann_convey(
+    routing_outlet, routing, UH_Lohmann_convey, Q_convey, t, *args
+):
     """Calculate a single time step conveying water routing for a given
     routing_outlet at time t.
 

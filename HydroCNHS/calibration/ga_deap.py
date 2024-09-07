@@ -163,7 +163,7 @@ tb.register("ellite", tools.selBest)
 
 
 class GA_DEAP(object):
-    def __init__(self, evaluation_func, rn_gen=None):
+    def __init__(self, evaluation_func=lambda individual, info: None, rn_gen=None):
         """Initialize the GA calibration object.
 
         Note that this GA algorithm only allows to calibrate real numbers.

@@ -32,9 +32,12 @@ def cal_pet_Hamon(temp, Lat, start_date, dz=None):
         tlaps = 0.6
         temp = temp - tlaps * dz / 100
     # Calculate Julian days
-    data_length = len(temp)
-    start_date = to_datetime(start_date, format="%Y/%m/%d")
-    pdDatedateIndex = date_range(start=start_date, periods=data_length, freq="D")
+    if isinstance(start_date, str):
+        data_length = len(temp)
+        start_date = to_datetime(start_date, format="%Y/%m/%d")
+        pdDatedateIndex = date_range(start=start_date, periods=data_length, freq="D")
+    else:
+        pdDatedateIndex = start_date  # for internal use.
     JDay = to_numeric(pdDatedateIndex.strftime("%j"))  # convert to Julian days
     # Calculate solar declination [rad] from day of year (JDay) based on
     # equations 24 in ALLen et al (1998).

@@ -68,10 +68,29 @@ agent_template = {
     "Pars": {},
 }
 
+sediment_template = {
+    "Inputs": {"IDs": [], "Areas": [], "CoolMonths": [], "WarmMonths": []},
+    "Pars": {
+        "K": [],
+        "Ac": -99,
+        "Aw": -99,
+        "LS": [],
+        "DR": -99,
+        "CP": -99,
+        "Sa": -99,
+        "Sb": -99,
+        "Sq": -99,
+    },
+}
+# "CP" can be a value or a list
+
 
 class ModelBuilder(object):
-    def __init__(self, wd):
-        self.model = deepcopy(model_template)
+    def __init__(self, wd, model=None):
+        if model is None:
+            self.model = deepcopy(model_template)
+        else:
+            self.model = deepcopy(model)
         self.model["Path"]["WD"] = wd
         self.wd = wd
         self.help()
@@ -369,6 +388,47 @@ class ModelBuilder(object):
         # Remove from DMClass if exist
         if institution in self.model["WaterSystem"]["ABM"]["DMClasses"]:
             self.model["WaterSystem"]["ABM"]["DMClasses"].remove(institution)
+
+    def set_sediment(self, start_month):
+        self.model["WaterSystem"]["Sediment"] = {"StartMonth": start_month}
+
+        self.model["Sediment"] = {}
+        outlet_list = self.model["WaterSystem"]["Outlets"]
+        for sub in outlet_list:
+            self.model["Sediment"][sub] = deepcopy(sediment_template)
+
+    def add_sediment(
+        self,
+        subbasin,
+        area_list,
+        cool_months,
+        K_list,
+        Ac,
+        Aw,
+        LS_list,
+        DR,
+        id_list=None,
+        CP=-99,
+        Sa=-99,
+        Sb=-99,
+        Sq=-99,
+    ):
+        sed_sub = self.model["Sediment"][subbasin]
+        sed_sub["Inputs"]["IDs"] = id_list
+        sed_sub["Inputs"]["Areas"] = area_list
+        sed_sub["Inputs"]["CoolMonths"] = cool_months
+        sed_sub["Inputs"]["WarmMonths"] = [
+            i + 1 for i in range(12) if i + 1 not in cool_months
+        ]
+        sed_sub["Pars"]["K"] = K_list
+        sed_sub["Pars"]["Ac"] = Ac
+        sed_sub["Pars"]["Aw"] = Aw
+        sed_sub["Pars"]["LS"] = LS_list
+        sed_sub["Pars"]["DR"] = DR
+        sed_sub["Pars"]["CP"] = CP
+        sed_sub["Pars"]["Sa"] = Sa
+        sed_sub["Pars"]["Sb"] = Sb
+        sed_sub["Pars"]["Sq"] = Sq
 
     def write_model_to_yaml(self, filename):
         """Output model configuration file (.yaml)

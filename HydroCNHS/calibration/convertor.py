@@ -74,6 +74,8 @@ class Convertor(object):
             if fixed_par_list is not None:
                 fixed_par_val_list = []
                 for tup in fixed_par_list[i]:
+                    if "." in tup[0]:
+                        tup = ([j for j in list(df.index) if tup[0] in j], tup[1])
                     if tup[1] == ":":  # For all columns.
                         tup = (tup[0], list(df))
                     if tup[0] == ":":  # For all index.
@@ -232,6 +234,8 @@ class Convertor(object):
             # Add fixed values back
             if formatter["fixed_par_list"] is not None:
                 for ii, tup in enumerate(formatter["fixed_par_list"][i]):
+                    if "." in tup[0]:
+                        tup = ([j for j in list(df.index) if tup[0] in j], tup[1])
                     if tup[1] == ":":  # For all columns.
                         tup = (tup[0], list(df))
                     if tup[0] == ":":  # For all index.
