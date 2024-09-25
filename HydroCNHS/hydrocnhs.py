@@ -104,6 +104,7 @@ class Model(object):
             self.rn_gen = rn_gen
             self.ss = rn_gen.bit_generator._seed_seq
             logger.info("User-provided random number generator is assigned.")
+        rn_gen = self.rn_gen
 
         # Verify model contain all following keys.
         try:
@@ -308,14 +309,21 @@ class Model(object):
                         elif dm_name in instit_list and dm_name not in list(
                             instit_dms.keys()
                         ):
-                            d = ws["ABM"]["InstitutionalDM"]
+                            d = ws["ABM"]["InstitDMClasses"]
                             instit_dm_class = list(d.keys())[
                                 [dm_name in v for v in list(d.values())].index(True)
                             ]
                             try:
                                 instit_dms[dm_name] = eval(
                                     "UserModules." + instit_dm_class
-                                )(name=dm_name, dc=dc, rn_gen=rn_gen)
+                                )(
+                                    name=dm_name, 
+                                    dc=dc, 
+                                    rn_gen=rn_gen, 
+                                    abm_config=ws["ABM"], 
+                                    start_date=start_date, 
+                                    data_length=data_length,
+                                )
                                 logger.info(
                                     "Create institute {} from {} class.".format(
                                         dm_name, instit_dm_class
@@ -337,7 +345,12 @@ class Model(object):
                         ):
                             try:
                                 dms[agt_id] = eval("UserModules." + dm_name)(
-                                    name=agt_id, dc=dc, rn_gen=rn_gen
+                                    name=agt_id, 
+                                    dc=dc, 
+                                    rn_gen=rn_gen, 
+                                    abm_config=ws["ABM"],
+                                    start_date=start_date, 
+                                    data_length=data_length,
                                 )
                                 logger.info(
                                     "Create {} from {} class.".format(dm_name, dm_name)
@@ -356,18 +369,23 @@ class Model(object):
                         ):
                             try:
                                 dms[agt_id] = eval(dm_name)(
-                                    name=agt_id, dc=dc, rn_gen=rn_gen
+                                    name=agt_id, 
+                                    dc=dc, 
+                                    rn_gen=rn_gen, 
+                                    abm_config=ws["ABM"],
+                                    start_date=start_date, 
+                                    data_length=data_length,
                                 )
                                 logger.info(
                                     "Create {} from built-in class.".format(
-                                        dm_name, dm_name
+                                        dm_name
                                     )
                                 )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
                                     "Fail to create {} from built-in class.".format(
-                                        dm_name, dm_name
+                                        dm_name
                                     )
                                 ) from e
                             agents[agt_id].dm = dms[agt_id]

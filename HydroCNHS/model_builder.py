@@ -348,8 +348,9 @@ class ModelBuilder(object):
                 )
             )
 
-        ws_abm["DMClasses"].append(dm_class)
-        ws_abm["DMClasses"] = list(set(ws_abm["DMClasses"]))
+        if dm_class is not None:
+            ws_abm["DMClasses"].append(dm_class)
+            ws_abm["DMClasses"] = list(set(ws_abm["DMClasses"]))
 
         abm[agt_type_class][agt_name] = deepcopy(agent_template)
         abm[agt_type_class][agt_name]["Attributes"] = deepcopy(attr_dict)
