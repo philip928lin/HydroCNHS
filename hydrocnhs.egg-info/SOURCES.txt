@@ -1,3 +1,4 @@
+LICENSE
 MANIFEST.in
 README.md
 setup.py
@@ -98,6 +99,7 @@ docs/_build/html/_static/plus.png
 docs/_build/html/_static/pygments.css
 docs/_build/html/_static/searchtools.js
 docs/_build/html/_static/underscore-1.12.0.js
+docs/_build/html/_static/underscore-1.13.1.js
 docs/_build/html/_static/underscore.js
 docs/_build/html/_static/css/badge_only.css
 docs/_build/html/_static/css/theme.css

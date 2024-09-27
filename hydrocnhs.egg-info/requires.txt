@@ -5,6 +5,6 @@ pandas
 joblib
 scipy
 matplotlib
-sklearn
+scikit-learn
 pyyaml
 deap
