@@ -138,8 +138,12 @@ class ModelBuilder(object):
         start_date = pd.to_datetime(start_date, format="%Y/%m/%d")
         self.model["WaterSystem"]["DataLength"] = (end_date - start_date).days + 1
 
+        self.model["WaterSystem"]["Outlets"] = []
+        self.model["WaterSystem"]["NumSubbasins"] = 0
+        self.model["WaterSystem"]["RainfallRunoff"] = None
+
     def set_rainfall_runoff(
-        self, outlet_list, area_list=None, lat_list=None, runoff_model="GWLF"
+        self, outlet_list, area_list=None, lat_list=None, runoff_model="GWLF", activate=True
     ):
         """Set up RainfallRunoff.
 
@@ -158,8 +162,8 @@ class ModelBuilder(object):
             If "Other" is selected for runoff_model, users must provide
             precalculated runoffs for each subbasin as an input to HydroCNHS.
         """
-        self.model["WaterSystem"]["Outlets"] = outlet_list
-        self.model["WaterSystem"]["NumSubbasins"] = len(outlet_list)
+        self.model["WaterSystem"]["Outlets"] += outlet_list
+        self.model["WaterSystem"]["NumSubbasins"] += len(outlet_list)
         self.model["WaterSystem"]["RainfallRunoff"] = runoff_model
 
         # Select RainfallRunoff templete.
@@ -176,13 +180,18 @@ class ModelBuilder(object):
 
         for sub in outlet_list:
             self.model["RainfallRunoff"][sub] = deepcopy(RainfallRunoff_templete)
-
+            if activate is False:
+                self.model["RainfallRunoff"][sub]["Pars"] = {
+                    k: None for k in self.model["RainfallRunoff"][sub]["Pars"]
+                    }
         if area_list is not None:
             for i, sub in enumerate(outlet_list):
                 self.model["RainfallRunoff"][sub]["Inputs"]["Area"] = area_list[i]
         if lat_list is not None:
             for i, sub in enumerate(outlet_list):
                 self.model["RainfallRunoff"][sub]["Inputs"]["Latitude"] = lat_list[i]
+        
+        
 
     def set_routing_outlet(
         self,
@@ -191,6 +200,7 @@ class ModelBuilder(object):
         instream_objects=[],
         flow_length_list=None,
         routing_model="Lohmann",
+        activate=True,
     ):
         """Set up a routing outlet.
 
@@ -232,7 +242,10 @@ class ModelBuilder(object):
         route_ro = self.model["Routing"][routing_outlet]
 
         for i, o in enumerate(upstream_outlet_list):
-            if o in instream_objects:
+            if activate is False:
+                route_ro[o] = deepcopy(Lohmann_template)
+                route_ro[o]["Pars"] = {k: None for k in route_ro[o]["Pars"]}
+            elif o in instream_objects:
                 # No within-subbasin routing.
                 route_ro[o] = deepcopy(Lohmann_template)
                 route_ro[o]["Pars"]["GShape"] = None
@@ -254,7 +267,7 @@ class ModelBuilder(object):
 
             route_ro[o]["Inputs"]["FlowLength"] = flow_length_list[i]
 
-        # Turn of within-subbasin routing if upstream outlets of other routing
+        # Turn off within-subbasin routing if upstream outlets of other routing
         # are routing_outlet (this newly added one).
         routing_outlets = list(self.model["Routing"].keys())
         for ro in routing_outlets:

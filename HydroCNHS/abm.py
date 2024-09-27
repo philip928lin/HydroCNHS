@@ -47,7 +47,7 @@ def read_factor(ag_config, outlet):
     factor = ag_config["Inputs"]["Links"][outlet]
     # For parameterized factor.
     if isinstance(factor, list):
-        factor = ag_config["Pars"][factor[0]][factor[1]]
+        factor = ag_config["Pars"][factor[0]][int(factor[1])]
     return factor
 
 
