@@ -1,4 +1,4 @@
-[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](philip928lin.github.io/HydroCNHS/)
+[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://philip928lin.github.io/HydroCNHS/)
 
 # HydroCNHS
 A Python Package of Hydrological Model for Coupled Natural–Human Systems
@@ -25,7 +25,7 @@ pip install -e .
 ```
 
 ## User Manual & Example
-[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](philip928lin.github.io/HydroCNHS/)
+[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://philip928lin.github.io/HydroCNHS/)
 
 ## When should you use HydroCNHS?
 1. Want to build a hydrological model with auto-parameter-tuning (calibration) features.
