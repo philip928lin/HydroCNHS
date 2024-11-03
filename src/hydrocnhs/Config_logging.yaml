@@ -1,0 +1,37 @@
+# Logging configuration.
+# Do not change anything here unless you fully understand logging and HydroCNHS
+# structure.
+version: 1
+formatters:
+  brief:
+    format: '%(name)s %(message)s'
+  simple:
+    format: '[%(asctime)s] %(name)s [%(levelname)s] %(message)s'
+    datefmt: '%m/%d %I:%M:%S'
+  simple_with_year:
+    format: '[%(asctime)s] %(name)s [%(levelname)s] %(message)s'
+    datefmt: '%Y/%m/%d %I:%M:%S'
+
+handlers:                     # Set console and log file handlers.
+  console:                    # Do not delete this!
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple         # Output format brief or simple
+    stream: ext://sys.stdout
+  file:                       # Do not delete this!
+    class : logging.handlers.RotatingFileHandler
+    formatter: simple_with_year   # Output format brief or simple
+    filename: HydroCNHS.log
+    maxBytes: 262144000       # 250 MB = 26,214,4000 bytes.
+    backupCount: 5            # If the log file is filled, then XXX.log.1
+
+loggers:
+  HydroCNHS:                  # Logger name. Do not not modify this!
+    level: INFO               # Msg level ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+    handlers: [console]       # Will be overwrote in set_logging_config()!
+    propagate: no
+# Root logger. If there is not specific logger is assign, then system will
+# default root logger.
+root:
+  level: DEBUG
+  handlers: [console]

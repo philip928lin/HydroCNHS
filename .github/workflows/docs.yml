@@ -1,0 +1,42 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install sphinx sphinx_rtd_theme sphinx-autodoc-typehints nbsphinx
+
+    - name: Install hydrocnhs
+      run: |
+        pip install .
+
+    - name: Generate API documentation
+      run: |
+        sphinx-apidoc -o docs/source/api src/hydrocnhs
+
+    - name: Build documentation
+      run: |
+        cd docs
+        make html
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GH_PAT }}
+        publish_dir: ./docs/_build/html

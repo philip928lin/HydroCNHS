@@ -1,0 +1,28 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0  # Use the latest version
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+-   repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+    -   id: black
+    # By default, targets Python files only
+#-   repo: https://github.com/lorenzwalthert/precommit
+#    rev: v0.4.2  # Use the latest release from the repository
+#    hooks:
+#    -   id: style-files
+    # R package styler to format R files according to the tidyverse style guide.
+
+# Instrunctions to install pre-commit
+# To auto run pre-commit on every commit, do the following:
+# 1. Install pre-commit: `pip install pre-commit`
+# 2. Install the pre-commit hooks: `pre-commit install`
+# [optional] Run pre-commit on all files: `pre-commit run --all-files`
+#            (manually run pre-commit on all files)
+# The detailed configurations for black are defined in pyproject.toml
+# To just run pre-commit when pushing to the remote repository, do the following:
+# pre-commit uninstall (if the pre-commit hooks are already installed)
+# pre-commit install --hook-type pre-push

@@ -6,7 +6,7 @@ A Python Package of Hydrological Model for Coupled Natural–Human Systems
 
 <img src="https://github.com/philip928lin/HydroCNHS/blob/main/docs/figs/fig3_hydrocnhs.png?raw=true" alt="Complex Adaptive Water System" width="500"/>
 
-Modeling Coupled Natural–Human Systems (CNHS) to inform comprehensive water resources management policies or describe hydrological cycles in the Anthropocene has become popular in recent years. To fulfill this need, we developed a semi-distributed Hydrological model for Coupled Natural–Human Systems, HydroCNHS. The HydroCNHS is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling concept, into the HydroCNHS. Specifically, we design Dam API, RiverDiv API, Conveying API, and InSitu API to integrate, respectively, customized man-made infrastructures such as reservoirs, off-stream diversions, trans-basin aqueducts, and drainage systems that abstract human behaviors (e.g., operator and farmers’ water use decisions). Each of the HydroCNHS APIs has a unique plug-in structure that respects within-subbasin and inter-subbasin (i.e., river) routing logic for maintaining the water balance. In addition, the HydroCNHS uses a single model configuration file to organize input features for the hydrological model and case-specific human systems models. Also, HydroCNHS enables the model calibration using parallel computing power. We demonstrate the functionalities of the HydroCNHS package through a case study in the Northwest United States. Given the integrity of the modeling framework, HydroCNHS can benefit water resources planning and management in various aspects, including the uncertainty analysis in CNHS modeling and more complex agent design. 
+Modeling Coupled Natural–Human Systems (CNHS) to inform comprehensive water resources management policies or describe hydrological cycles in the Anthropocene has become popular in recent years. To fulfill this need, we developed a semi-distributed Hydrological model for Coupled Natural–Human Systems, HydroCNHS. The HydroCNHS is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling concept, into the HydroCNHS. Specifically, we design Dam API, RiverDiv API, Conveying API, and InSitu API to integrate, respectively, customized man-made infrastructures such as reservoirs, off-stream diversions, trans-basin aqueducts, and drainage systems that abstract human behaviors (e.g., operator and farmers’ water use decisions). Each of the HydroCNHS APIs has a unique plug-in structure that respects within-subbasin and inter-subbasin (i.e., river) routing logic for maintaining the water balance. In addition, the HydroCNHS uses a single model configuration file to organize input features for the hydrological model and case-specific human systems models. Also, HydroCNHS enables the model calibration using parallel computing power. We demonstrate the functionalities of the HydroCNHS package through a case study in the Northwest United States. Given the integrity of the modeling framework, HydroCNHS can benefit water resources planning and management in various aspects, including the uncertainty analysis in CNHS modeling and more complex agent design.
 
 
 ## Install
@@ -14,7 +14,7 @@ Install HydroCNHS by *pip*.
 ```
 pip install hydrocnhs
 ```
-To install the latest version (beta version) of  HydroCNHS, users can (1) install HydroCNHS by *git*.
+To install the latest version (recommend) of  HydroCNHS, users can (1) install HydroCNHS by *git*.
 ```
 pip install git+https://github.com/philip928lin/HydroCNHS.git
 ```
@@ -35,8 +35,8 @@ Click [![Documentation Status](https://readthedocs.org/projects/hydrocnhs/badge/
 1.	Want to build a hydrological model with auto-parameter-tuning (calibration) features.
 2.	Want to add human components into a hydrological model under a unified framework without worrying about routing logic.
 3.	Want to calibrate the entire integrated model (hydrological + ABM modules) with customized agents' parameters.
-4.	Want to design human behaviors with a high degree of freedom, including coupling with external software. 
-5.	Want to conduct extensive numerical experiments to test various human behavioral designs (i.e., integrating and testing many ABM modules). 
+4.	Want to design human behaviors with a high degree of freedom, including coupling with external software.
+5.	Want to conduct extensive numerical experiments to test various human behavioral designs (i.e., integrating and testing many ABM modules).
 
 ## Feature highlights
 - Built-in genetic algorithm calibration module that can utilize parallel computing power.
