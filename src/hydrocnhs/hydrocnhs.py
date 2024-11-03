@@ -41,46 +41,52 @@ class Model(object):
         rn_gen=None,
         checked=False,
         parsed=False,
-        log_filename=None,
+        log_settings={
+            "level": "WARNING",
+            "log_filename": None,
+        },
         paral_setting={
             "verbose": 0,
-            "cores_pet": -1,
-            "cores_formUH": -1,
-            "cores_runoff": -1,
+            "cores_pet": 1,
+            "cores_formUH": 1,
+            "cores_runoff": 1,
         },
     ):
-        """Create a HydroCNHS model.
+        """Initialize a HydroCNHS model.
 
         Parameters
         ----------
-        model : dict/str
-            HydroCNHS model. It can be provided by a dictionary or .yaml file
-            name.
+        model : dict or str
+            HydroCNHS model. It can be provided as a dictionary or a .yaml file name.
         name : str, optional
             The name of the created model, by default None.
         rn_gen : object, optional
             Random number generator created by create_rn_gen(), by default None.
-            If given, randomness of the designed model is controled by rn_gen.
-            We encourage user to assign it to maintain the reproducibility of
+            If provided, the randomness of the designed model is controlled by rn_gen.
+            It is recommended to assign it to maintain the reproducibility of
             the stochastic simulation.
         checked : bool, optional
-            If true, no checking process will be conducted, by default False.
+            If True, no checking process will be conducted, by default False.
         parsed : bool, optional
-            If true, the model will not be re-parsed, by default False.
-        log_filename : str, optional
-            If log filename is given, a log file will be created, by
-            default None. Note: Do not create the log file when calbrating the
-            model in parallel. Unexpected I/O errors may occur.
+            If True, the model will not be re-parsed, by default False.
+        log_settings : dict, optional
+            Log settings, by default {"level": "WARNING", "log_filename": None}.
+            level: logging level, log_filename: log file name.
+            Note: Creating the log file when calibrating the
+            model in parallel may cause unexpected I/O errors.
         paral_setting : dict, optional
-            Parellel computation setting. Default {"verbose": 0, "cores_pet":
-            -1, "cores_formUH": -1, "cores_runoff": -1}. -1 means all cores
-            and treads, -2 means all threads - 1. See joblib package for more
-            details.
+            Parallel computation settings. Default is no parallel computing, {"verbose": 0, 
+            "cores_pet": 1, "cores_formUH": 1, "cores_runoff": 1}. Parallel computing is 
+            not necessary if the number of subbasins is small or if using HPC where one 
+            processor is assigned for one job.
+            See the joblib package for more details.
         """
         # Assign model name and get logger.
         self.name = name
-        if log_filename is not None:
-            set_logging_config(log_filename)
+        set_logging_config(
+            log_filename=log_settings["log_filename"],
+            log_level=log_settings["level"]
+            )
 
         # Get logger.
         if name is None:
@@ -103,7 +109,7 @@ class Model(object):
             # User-provided rn generator
             self.rn_gen = rn_gen
             self.ss = rn_gen.bit_generator._seed_seq
-            logger.info("User-provided random number generator is assigned.")
+            logger.info("A user-provided random number generator has been assigned.")
         rn_gen = self.rn_gen
 
         # Verify model contain all following keys.
@@ -116,7 +122,7 @@ class Model(object):
             self.abm = model.get("ABM")  # abm can be none (decoupled model)
             self.sys_parsed_data = model["SystemParsedData"]
         except:
-            logger.error("Model file is incomplete or error.")
+            logger.error("The model file/dictionary is incomplete or contains errors.")
 
         path = self.path
         ws = self.ws
@@ -136,13 +142,13 @@ class Model(object):
         dc.add_field(
             "Q_runoff",
             {sb: np.zeros(data_length) for sb in ws["Outlets"]},
-            desc="Subbasin runoffs of outlets.",
+            desc="Runoffs of subbasin outlets.",
             unit="cms",
         )
         dc.add_field(
             "Q_routed",
             {sb: np.zeros(data_length) for sb in ws["Outlets"]},
-            desc="Routed streamflow of routing outlets.",
+            desc="Routed streamflow at routing outlets.",
             unit="cms",
         )
         instream_agents = self.sys_parsed_data["DamAgents"]
@@ -258,15 +264,15 @@ class Model(object):
                                 rn_gen=rn_gen,
                             )
                             logger.info(
-                                "Create {} from {} class".format(agt_id, ag_type)
+                                "Created {} from {} class".format(agt_id, ag_type)
                             )
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             raise Error(
-                                "Fail to create {} from {} class.".format(
+                                "Failed to create {} from {} class.".format(
                                     agt_id, ag_type
                                 )
-                                + "\nMake sure the class is well-defined in "
+                                + "\nMake sure the class is well-defined in the"
                                 + "given modules."
                             ) from e
                     else:
@@ -283,13 +289,13 @@ class Model(object):
                                 rn_gen=rn_gen,
                             )
                             logger.info(
-                                "Create {} from {} ".format(agt_id, ag_type)
+                                "Created {} from {} ".format(agt_id, ag_type)
                                 + "from the built-in classes."
                             )
                         except Exception as e:
                             logger.error(traceback.format_exc())
                             raise Error(
-                                "Fail to create {} from {} class.".format(
+                                "Failed to create {} from {} class.".format(
                                     agt_id, ag_type
                                 )
                                 + "\n{} is not a built-in class.".format(ag_type)
@@ -325,14 +331,14 @@ class Model(object):
                                     data_length=data_length,
                                 )
                                 logger.info(
-                                    "Create institute {} from {} class.".format(
+                                    "Created institute {} from {} class.".format(
                                         dm_name, instit_dm_class
                                     )
                                 )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
-                                    "Fail to create institute {} from {}".format(
+                                    "Failed to create institute {} from {}".format(
                                         dm_name, instit_dm_class
                                     )
                                     + " class."
@@ -353,12 +359,12 @@ class Model(object):
                                     data_length=data_length,
                                 )
                                 logger.info(
-                                    "Create {} from {} class.".format(dm_name, dm_name)
+                                    "Created {} from {} class.".format(dm_name, dm_name)
                                 )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
-                                    "Fail to create {} from {} class.".format(
+                                    "Failed to create {} from {} class.".format(
                                         dm_name, dm_name
                                     )
                                 ) from e
@@ -377,14 +383,14 @@ class Model(object):
                                     data_length=data_length,
                                 )
                                 logger.info(
-                                    "Create {} from built-in class.".format(
+                                    "Created {} from the built-in class.".format(
                                         dm_name
                                     )
                                 )
                             except Exception as e:
                                 logger.error(traceback.format_exc())
                                 raise Error(
-                                    "Fail to create {} from built-in class.".format(
+                                    "Failed to create {} from the built-in class.".format(
                                         dm_name
                                     )
                                 ) from e
@@ -395,7 +401,7 @@ class Model(object):
                 agt.agents = agents
 
     def load_weather_data(self, temp, prec, pet=None, outlets=[]):
-        """Load temperature, precipitation, and otential evapotranpiration data.
+        """Load temperature, precipitation, and potential evapotranspiration data.
 
         Parameters
         ----------
@@ -408,11 +414,11 @@ class Model(object):
             subbasin named by its outlet. E.g., {"subbasin1":[...],
             "subbasin2":[...]}
         pet : dict, optional
-            [cm] Daily potential evapotranpiration time series data (value) for
+            [cm] Daily potential evapotranspiration time series data (value) for
             each subbasin named by its outlet, by default None. E.g.,
             {"subbasin1":[...], "subbasin2":[...]}
         outlets : list, optional
-            Outlets that need weather data for rainfall-runoffs simulation.
+            Outlets that need weather data for rainfall-runoff simulation.
         """
         pd_date_index = self.pd_date_index
         runoff = self.runoff
@@ -435,14 +441,14 @@ class Model(object):
             #                            runoff[sb]["Inputs"]["Latitude"],
             #                            ws["StartDate"], dz=None)
             logger.info(
-                "Compute pet by Hamon method. Users can improve "
-                + "the efficiency by assigning pre-calculated pet."
+                "Computed pet by Hamon method. Users can improve "
+                + "efficiency by assigning pre-calculated pet."
             )
         self.dc.temp = temp
         self.dc.prec = prec
         self.dc.pet = pet
         logger.info(
-            "Load temp & prec & pet with total length " + "{}.".format(self.data_length)
+            "Loaded weather data with total length {}.".format(self.data_length)
         )
 
     def run(self, temp, prec, pet=None, assigned_Q={}, assigned_UH={}, disable=False):
@@ -455,13 +461,13 @@ class Model(object):
         prec : dict
             [cm] Daily precipitation.
         pet : dict, optional
-            [cm] Potential evapotranspiration, by
-            default None. If none, pet is calculted by Hamon's method.
+            [cm] Potential evapotranspiration, by default None. If None, pet is 
+            calculated by Hamon's method.
         assigned_Q : dict, optional
-            [cms] If user want to manually assign Q for certain outlets
+            [cms] If the user wants to manually assign Q for certain outlets
             {"outlet": array}, by default {}.
         assigned_UH : dict, optional
-            If user want to manually assign UH (Lohmann) for certain outlet
+            If the user wants to manually assign UH (Lohmann) for certain outlets
             {"outlet": array}, by default {}.
         disable : bool, optional
             Disable display progress bar, by default False.
@@ -518,9 +524,8 @@ class Model(object):
                         routing[ro][sb]["Pars"]["GShape"] = None
                         routing[ro][sb]["Pars"]["GScale"] = None
                         logger.info(
-                            "Turn {}'s GShape and GScale to ".format((sb, ro))
-                            + "None in the routing setting. There is no "
-                            + "in-grid time lag with given observed Q."
+                            "Turned {}'s GShape and GScale to None in the routing setting. "
+                            + "There is no in-grid time lag with given observed Q.".format((sb, ro))
                         )
 
         # Setup runoff simulation.
@@ -598,11 +603,11 @@ class Model(object):
                 Q_runoff[sb][s:l] = QParel[i][0]
                 Q_routed[sb][s:l] = QParel[i][0]
                 runoff_vars[sb] = QParel[i][1]
-            logger.info("\nCompute rainfall-runoffs for {} time steps.".format(l))
+            logger.info("\nComputed rainfall-runoffs for {} time steps.".format(l))
             return None
 
         logger.info(
-            "Complete rainfall-runoff simulation setup. [{}]".format(get_elapsed_time())
+            "Completed rainfall-runoff simulation setup. [{}]".format(get_elapsed_time())
         )
 
         # ----- Form UH for Lohmann routing method ----------------------------
@@ -634,7 +639,7 @@ class Model(object):
         for i, pair in enumerate(UH_List_Lohmann):
             UH_Lohmann[pair] = UHParel[i]
         logger.info(
-            "Complete forming UHs for Lohmann routing. [{}]".format(get_elapsed_time())
+            "Completed forming UHs for Lohmann routing. [{}]".format(get_elapsed_time())
         )
 
         # Form UH for conveyed nodes --------------------------------------
@@ -668,7 +673,7 @@ class Model(object):
             for i, pair in enumerate(UH_convey_List):
                 UH_Lohmann_convey[pair] = UHParel[i]
             logger.info(
-                "Complete forming UHs for conveyed nodes. [{}]".format(
+                "Completed forming UHs for conveyed nodes. [{}]".format(
                     get_elapsed_time()
                 )
             )
@@ -735,7 +740,7 @@ class Model(object):
         # model and human model. However, the user-defined human model has to
         # follow specific protocal. See the documantation for details.
         else:
-            logger.info("Start a HydroCNHS simulation.")
+            logger.info("Start a coupled natural-human system simulation.")
             agents = self.agents
             ### Add the storage for convey water.
             Q_convey = {}
@@ -874,7 +879,7 @@ class Model(object):
                     yi += 1
         # ---------------------------------------------------------------------
         print("")  # Force the logger to start a new line after tqdm.
-        logger.info("Complete HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
+        logger.info("Completed HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow
         # outlets of instream agents). For other variables users need to
         # extract them manually from this class.

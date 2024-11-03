@@ -24,7 +24,7 @@ logger = logging.getLogger("HydroCNHS.sc")
 this_dir, this_filename = os.path.split(__file__)
 
 
-def set_logging_config(log_filename=None):
+def set_logging_config(log_filename=None, log_level="WARNING"):
     """Set up logging config.
 
     Parameters
@@ -45,6 +45,11 @@ def set_logging_config(log_filename=None):
     else:
         # Delete file handler.
         logging_config["handlers"].pop("file")
+
+    # Set log level
+    logging_config["loggers"]["HydroCNHS"]["level"] = log_level
+    
+
     config.dictConfig(logging_config)
 
 
