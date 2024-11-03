@@ -39,9 +39,3 @@ target-version = ["py310", "py311", "py312"]
 dependencies = [
     "pytest",
 ]
-
-[tool.hatch.build.targets.sdist]
-include = ["src/**"]
-
-[tool.hatch.build.targets.wheel]
-include = ["src/**"]
