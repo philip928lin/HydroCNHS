@@ -1,5 +1,0 @@
-include HydroCNHS/*.yaml
-recursive-include docs *
-recursive-include tutorials *
-include HydroCNHS/calibration/*.py
-include HydroCNHS/rainfall_runoff_model/*.py

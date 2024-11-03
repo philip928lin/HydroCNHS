@@ -14,7 +14,7 @@ Install HydroCNHS by *pip*.
 ```
 pip install hydrocnhs
 ```
-To install the latest version (beta version) of  HydroCNHS, users can (1) install HydroCNHS by *git*.
+To install the latest version (recommend) of  HydroCNHS, users can (1) install HydroCNHS by *git*.
 ```
 pip install git+https://github.com/philip928lin/HydroCNHS.git
 ```
