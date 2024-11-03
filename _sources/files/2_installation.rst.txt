@@ -12,7 +12,7 @@ To install the latest version (beta version) of  `HydroCNHS <https://github.com/
 
    pip install git+https://github.com/philip928lin/HydroCNHS.git
 
-Or, (2) download the HydroCNHS package directly from the HydroCNHS GitHub repository. Then, install HydroCNHS from the *setup.py*.
+Or, (2) download the HydroCNHS package directly from the HydroCNHS GitHub repository.
 
 .. code-block:: python
 
