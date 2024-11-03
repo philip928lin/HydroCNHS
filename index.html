@@ -1,0 +1,203 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydroCNHS User Manual &mdash; hydrocnhs v1.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=94b79c3d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="files/2_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            hydrocnhs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="files/2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/3_101_classroom.html">101 classroom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/5_build_a_hydrological_model.html">Build a hydrological model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/hydrocnhs.html">hydrocnhs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">hydrocnhs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HydroCNHS User Manual</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hydrocnhs-user-manual">
+<h1>HydroCNHS User Manual<a class="headerlink" href="#hydrocnhs-user-manual" title="Link to this heading"></a></h1>
+<p><strong>The Hydrological model for Coupled Natural-Human Systems (HydroCNHS)</strong> is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling (ABM) concept, into the HydroCNHS.</p>
+<p>Manual contributors: Chung-Yi Lin &amp; Ali Ghaffari</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="files/2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/3_101_classroom.html">101 classroom</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#watershed-basin">Watershed/Basin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#subbasin">Subbasin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#semi-distributed-hydrological-model">Semi-distributed hydrological model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#rainfall-runoff-process-modeling">Rainfall-runoff process modeling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#routing-routing-outlets">Routing &amp; Routing outlets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#a-water-system-in-node-link-structure">A water system in node-link structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/3_101_classroom.html#design-a-water-system-with-the-supporting-apis">Design a water system with the supporting APIs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files/4_input_output.html">Input/Output</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/4_input_output.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/4_input_output.html#outputs">Outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/4_input_output.html#daily-climate-data">Daily climate data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/4_input_output.html#model-configuration-file">Model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/4_input_output.html#abm-modules">ABM modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files/5_build_a_hydrological_model.html">Build a hydrological model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/5_build_a_hydrological_model.html#step-1-create-a-model-configuration-file">Step 1: Create a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/5_build_a_hydrological_model.html#step-2-complete-a-model-configuration-file">Step 2: Complete a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/5_build_a_hydrological_model.html#step-3-run-a-calibration">Step 3: Run a calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/5_build_a_hydrological_model.html#step-4-run-a-simulation">Step 4: Run a simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files/6_Integrate_an_ABM.html">Integrate an ABM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/6_Integrate_an_ABM.html#step-1-create-a-model-configuration-file">Step 1: Create a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/6_Integrate_an_ABM.html#step-2-complete-a-model-configuration-file">Step 2: Complete a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/6_Integrate_an_ABM.html#step-3-program-abm-module-py">Step 3: Program ABM module (<em>.py</em>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/6_Integrate_an_ABM.html#step-4-run-a-calibration">Step 4: Run a calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/6_Integrate_an_ABM.html#step-5-run-a-simulation">Step 5: Run a simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files/7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files/8_calibration.html">Calibration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/8_calibration.html#calibration-with-the-genetic-algorithm-ga">Calibration with the genetic algorithm (GA)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/8_calibration.html#converter">Converter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files/9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="files/9_advanced%20ABM%20coding%20tips.html#enhancing-computational-speed">Enhancing computational speed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="files/9_advanced%20ABM%20coding%20tips.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/hydrocnhs.html">hydrocnhs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.abm">hydrocnhs.abm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.abm_script">hydrocnhs.abm_script module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.data_collector">hydrocnhs.data_collector module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.hydrocnhs">hydrocnhs.hydrocnhs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.indicators">hydrocnhs.indicators module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.model_builder">hydrocnhs.model_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.routing">hydrocnhs.routing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.sediment">hydrocnhs.sediment module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.util">hydrocnhs.util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs.visual">hydrocnhs.visual module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/hydrocnhs.html#module-hydrocnhs">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="how-to-cite">
+<h1>How to cite?<a class="headerlink" href="#how-to-cite" title="Link to this heading"></a></h1>
+<p>Lin, C. Y., Yang, Y. C. E., &amp; Wi S. (2022). <a class="reference external" href="https://doi.org/10.1061/(ASCE)WR.1943-5452.0001630">HydroCNHS: A Python Package of Hydrological Model for Coupled Natural Human Systems</a>, Journal of Water Resources Planning and Management, 148(12), 6022005.</p>
+</section>
+<section id="related-studies">
+<h1>Related studies<a class="headerlink" href="#related-studies" title="Link to this heading"></a></h1>
+<p>Lin, C. Y., &amp; Yang, Y. E. (2022). <a class="reference external" href="https://doi.org/10.1029/2021EF002403">The effects of model complexity on model output uncertainty in co-evolved coupled natural-human systems</a>. Earth’s Future, e2021EF002403.
+Lin, C.-Y., Yang, Y. E., &amp; Chaudhary, A. K. (2023). <a class="reference external" href="https://doi.org/10.1016/j.jhydrol.2023.129959">Pay-for-practice or Pay-for-performance? A coupled agent-based evaluation tool for assessing sediment management incentive policies</a>. Journal of Hydrology, 624, 129959.</p>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="files/2_installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

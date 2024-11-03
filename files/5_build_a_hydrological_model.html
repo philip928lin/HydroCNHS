@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build a hydrological model &mdash; hydrocnhs v1.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=94b79c3d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Integrate an ABM" href="6_Integrate_an_ABM.html" />
+    <link rel="prev" title="Input/Output" href="4_input_output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hydrocnhs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_101_classroom.html">101 classroom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Build a hydrological model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-create-a-model-configuration-file">Step 1: Create a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-complete-a-model-configuration-file">Step 2: Complete a model configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-run-a-calibration">Step 3: Run a calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-run-a-simulation">Step 4: Run a simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/hydrocnhs.html">hydrocnhs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hydrocnhs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Build a hydrological model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/files/5_build_a_hydrological_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="build-a-hydrological-model">
+<h1>Build a hydrological model<a class="headerlink" href="#build-a-hydrological-model" title="Link to this heading"></a></h1>
+<p>To get familiar with the HydroCNHS model construction process, let’s start with a hydrological model without human components. We will go through the following steps:</p>
+<ol class="arabic simple">
+<li><p>Create a model configuration file (<em>.yaml</em>) using a model builder.</p></li>
+<li><p>Complete a model configuration file (<em>.yaml</em>)</p></li>
+<li><p>Run a calibration</p></li>
+<li><p>Run a simulation</p></li>
+</ol>
+<p>We will adopt the following delineated watershed (<a class="reference internal" href="#fig4"><span class="std std-numref">Fig. 4</span></a>) as a demonstration, in which we want to build a semi-distributed hydrological model to simulate the streamflow at the basin outlet, WSLO. The corresponding subbasins’ information is provided in <a class="reference internal" href="#table4"><span class="std std-numref">Table 4</span></a>.</p>
+<figure class="align-center" id="id1">
+<span id="fig4"></span><a class="reference internal image-reference" href="../_images/fig4_example_watershed.png"><img alt="Example watershed." src="../_images/fig4_example_watershed.png" style="width: 300px;" />
+</a>
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Example watershed.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<span id="table4"></span><table class="docutils align-center" id="id2" style="width: 100%">
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">Subbasins’ information.</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Subbasin/outlet</p></th>
+<th class="head"><p>Drainage area [ha]</p></th>
+<th class="head"><p>Latitude [deg]</p></th>
+<th class="head"><p>Flow length to WSLO [m]</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Hagg</p></td>
+<td><p>10034.2408</p></td>
+<td><p>45.469</p></td>
+<td><p>101469.139</p></td>
+</tr>
+<tr class="row-odd"><td><p>DLLO</p></td>
+<td><p>22568.2404</p></td>
+<td><p>45.475</p></td>
+<td><p>91813.075</p></td>
+</tr>
+<tr class="row-even"><td><p>TRGC</p></td>
+<td><p>24044.6363</p></td>
+<td><p>45.502</p></td>
+<td><p>80064.864</p></td>
+</tr>
+<tr class="row-odd"><td><p>DAIRY</p></td>
+<td><p>59822.7546</p></td>
+<td><p>45.520</p></td>
+<td><p>70988.164</p></td>
+</tr>
+<tr class="row-even"><td><p>RCTV</p></td>
+<td><p>19682.6046</p></td>
+<td><p>45.502</p></td>
+<td><p>60398.680</p></td>
+</tr>
+<tr class="row-odd"><td><p>WSLO</p></td>
+<td><p>47646.8477</p></td>
+<td><p>45.350</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<section id="step-1-create-a-model-configuration-file">
+<h2>Step 1: Create a model configuration file<a class="headerlink" href="#step-1-create-a-model-configuration-file" title="Link to this heading"></a></h2>
+<p>HydroCNHS comes with a model builder to help users create an initial model configuration file.</p>
+<p>First, initiate a model builder object with a working directory (your working folder directory).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">hydrocnhs</span>
+<span class="n">prj_path</span><span class="p">,</span> <span class="n">this_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Second, set up the water system with the simulation period (i.e., start date and end date).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wd</span> <span class="o">=</span> <span class="n">prj_path</span>
+<span class="n">mb</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">ModelBuilder</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+<span class="n">mb</span><span class="o">.</span><span class="n">set_water_system</span><span class="p">(</span><span class="n">start_date</span><span class="o">=</span><span class="s2">&quot;1981/1/1&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">=</span><span class="s2">&quot;2013/12/31&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Third, we can add subbasins (i.e., outlet_list) into the model. We adopt the GWLF model as the rainfall-runoff model (i.e., runoff_model). We also assign the corresponding subbasins’ areas (i.e., area_list) and latitude (i.e., lat_list) using the information from <a class="reference internal" href="#table4"><span class="std std-numref">Table 4</span></a>. Note that area_list and lat_list are optional arguments. Users can manually enter that information to the model configuration file (<em>.yaml</em>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">outlet_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Hagg&#39;</span><span class="p">,</span> <span class="s1">&#39;DLLO&#39;</span><span class="p">,</span> <span class="s1">&#39;TRGC&#39;</span><span class="p">,</span> <span class="s1">&#39;DAIRY&#39;</span><span class="p">,</span> <span class="s1">&#39;RCTV&#39;</span><span class="p">,</span> <span class="s1">&#39;WSLO&#39;</span><span class="p">]</span>
+<span class="n">area_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">10034.2408</span><span class="p">,</span> <span class="mf">22568.2404</span><span class="p">,</span> <span class="mf">24044.6363</span><span class="p">,</span> <span class="mf">59822.7546</span><span class="p">,</span> <span class="mf">19682.6046</span><span class="p">,</span>
+             <span class="mf">47646.8477</span><span class="p">]</span>
+<span class="n">lat_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">45.469</span><span class="p">,</span> <span class="mf">45.475</span><span class="p">,</span> <span class="mf">45.502</span><span class="p">,</span> <span class="mf">45.520</span><span class="p">,</span> <span class="mf">45.502</span><span class="p">,</span> <span class="mf">45.350</span><span class="p">]</span>
+<span class="n">mb</span><span class="o">.</span><span class="n">set_rainfall_runoff</span><span class="p">(</span><span class="n">outlet_list</span><span class="o">=</span><span class="n">outlet_list</span><span class="p">,</span><span class="n">area_list</span><span class="o">=</span><span class="n">area_list</span><span class="p">,</span>
+                       <span class="n">lat_list</span><span class="o">=</span><span class="n">lat_list</span><span class="p">,</span> <span class="n">runoff_model</span><span class="o">=</span><span class="s2">&quot;GWLF&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Fourth, we want to add the routing setting. Here, we only have one routing outlet, WSLO, hence, we only need to run the following code once, and all the outlets are considered upstream outlets of WSLO.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flow_length_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">101469.139</span><span class="p">,</span> <span class="mf">91813.075</span><span class="p">,</span> <span class="mf">80064.864</span><span class="p">,</span> <span class="mf">70988.164</span><span class="p">,</span> <span class="mf">60398.680</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">mb</span><span class="o">.</span><span class="n">set_routing_outlet</span><span class="p">(</span><span class="n">routing_outlet</span><span class="o">=</span><span class="s2">&quot;WSLO&quot;</span><span class="p">,</span>
+                      <span class="n">upstream_outlet_list</span><span class="o">=</span><span class="n">outlet_list</span><span class="p">,</span>
+                      <span class="n">flow_length_list</span><span class="o">=</span><span class="n">flow_length_list</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we can print out the model for quick view and then write it to <em>.yaml</em> file with the given name.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Print the model in the console</span>
+<span class="n">mb</span><span class="o">.</span><span class="n">print_model</span><span class="p">()</span>
+
+<span class="c1">### Output initial model configuration file (.yaml)</span>
+<span class="n">mb</span><span class="o">.</span><span class="n">write_model_to_yaml</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;HydroModel.yaml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we should have the initial model configuration file (i.e., <em>HydroModel.yaml</em>) in the corresponding folder.</p>
+</section>
+<section id="step-2-complete-a-model-configuration-file">
+<h2>Step 2: Complete a model configuration file<a class="headerlink" href="#step-2-complete-a-model-configuration-file" title="Link to this heading"></a></h2>
+<p>Before using the created <em>HydroModel.yaml</em> for the later experiment, we need to open it and ensure the information is correct. The “Inputs” in LSM and Routing sections should be all populated. Some default values may be used (e.g., <span class="math notranslate nohighlight">\(S0\)</span>, <span class="math notranslate nohighlight">\(U0\)</span>, and <span class="math notranslate nohighlight">\(SnowS\)</span>). They should be updated according to users’ needs. For this example, we don’t need to modify anything. You might notice that all the parameters have <strong>a value of -99</strong>. This is the default value in hydrocnhs, meaning that those values need to be calibrated if not provided by users.</p>
+</section>
+<section id="step-3-run-a-calibration">
+<h2>Step 3: Run a calibration<a class="headerlink" href="#step-3-run-a-calibration" title="Link to this heading"></a></h2>
+<p>First, we load the climate data, observed flow data at WSLO, and the model configuration file. Here, we have calculated the evapotranspiration using the Hamon method. Therefore, we load it as the inputs as well.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">hydrocnhs.calibration</span> <span class="k">as</span> <span class="nn">cali</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="c1"># Load climate data</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span><span class="s2">&quot;Temp_degC.csv&quot;</span><span class="p">),</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+<span class="n">prec</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span><span class="s2">&quot;Prec_cm.csv&quot;</span><span class="p">),</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+<span class="n">pet</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span><span class="s2">&quot;Pet_cm.csv&quot;</span><span class="p">),</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load flow gauge monthly data at WSLO</span>
+<span class="n">obv_flow_WSLO</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span><span class="s2">&quot;WSLO_M_cms.csv&quot;</span><span class="p">),</span>
+                            <span class="n">index_col</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">],</span> <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Date&quot;</span><span class="p">])</span>
+
+<span class="c1"># Load model</span>
+<span class="n">model_dict</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="s2">&quot;HydroModel.yaml&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Second, we generate default parameter bounds and create a convertor for calibration. Details about the converter are provided in the Calibration section.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate default parameter bounds</span>
+<span class="n">df_list</span><span class="p">,</span> <span class="n">df_name</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">write_model_to_df</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+<span class="n">par_bound_df_list</span><span class="p">,</span> <span class="n">df_name</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">gen_default_bounds</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+
+<span class="c1"># Create convertor for calibration</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="p">()</span>
+<span class="n">cali_inputs</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">gen_cali_inputs</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="n">df_list</span><span class="p">,</span> <span class="n">par_bound_df_list</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">formatter</span>
+</pre></div>
+</div>
+<p>Third, we program the evaluation function for a genetic algorithm (GA). Kling-Gupta efficiency (KGE; Gupta et al., 2009) is adopted to represent the model performance of simulated monthly streamflow at the WSLO routing outlet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Code evaluation function for GA algorthm</span>
+<span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+    <span class="n">cali_wd</span><span class="p">,</span> <span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">info</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_generation</span><span class="p">,</span> <span class="n">ith_individual</span><span class="p">)</span>
+
+    <span class="c1">##### individual -&gt; model</span>
+    <span class="c1"># Convert 1D array to a list of dataframes.</span>
+    <span class="n">df_list</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+    <span class="c1"># Feed dataframes in df_list to model dictionary.</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df_list</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">df_name</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">load_df_to_model_dict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Pars&quot;</span><span class="p">)</span>
+
+    <span class="c1">##### Run simuluation</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span>
+
+    <span class="c1">##### Get simulation data</span>
+    <span class="c1"># Streamflow of routing outlets.</span>
+    <span class="n">cali_target</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;WSLO&quot;</span><span class="p">]</span>
+    <span class="n">cali_period</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;1981-1-1&quot;</span><span class="p">,</span> <span class="s2">&quot;2005-12-31&quot;</span><span class="p">)</span>
+    <span class="n">sim_Q_D</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">pd_date_index</span><span class="p">)[</span><span class="n">cali_target</span><span class="p">]</span>
+    <span class="c1"># Resample the daily simulation output to monthly outputs.</span>
+    <span class="n">sim_Q_M</span> <span class="o">=</span> <span class="n">sim_Q_D</span><span class="p">[</span><span class="n">cali_target</span><span class="p">]</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;MS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">KGE</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">Indicator</span><span class="p">()</span><span class="o">.</span><span class="n">KGE</span><span class="p">(</span>
+        <span class="n">x_obv</span><span class="o">=</span><span class="n">obv_flow_WSLO</span><span class="p">[</span><span class="n">cali_period</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">cali_period</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">cali_target</span><span class="p">],</span>
+        <span class="n">y_sim</span><span class="o">=</span><span class="n">sim_Q_M</span><span class="p">[</span><span class="n">cali_period</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">cali_period</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">cali_target</span><span class="p">])</span>
+
+    <span class="n">fitness</span> <span class="o">=</span> <span class="n">KGE</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">fitness</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>Forth, we set up a GA for calibration. Again, we will explain calibration in more detail in the Calibration section. Here, the code is demonstrated. Note that calibration might take some time to run, depending on your system specifications. Users can lower down ‘pop_size ‘ and ‘max_gen’ if they just want to experience the process instead of seeking convergence. Note that to debug your code, please set ‘paral_cores’ to 1 to show the error messages.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;min_or_max&#39;</span><span class="p">:</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;pop_size&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+     <span class="s1">&#39;num_ellite&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+     <span class="s1">&#39;prob_cross&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+     <span class="s1">&#39;prob_mut&#39;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+     <span class="s1">&#39;stochastic&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;max_gen&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+     <span class="s1">&#39;sampling_method&#39;</span><span class="p">:</span> <span class="s1">&#39;LHC&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;drop_record&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;paral_cores&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+     <span class="s1">&#39;paral_verbose&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+     <span class="s1">&#39;auto_save&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="s1">&#39;print_level&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+     <span class="s1">&#39;plot&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+<span class="n">seed</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">rn_gen</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">create_rn_gen</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+<span class="n">ga</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">GA_DEAP</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span> <span class="n">rn_gen</span><span class="p">)</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cali_inputs</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Cali_HydroModel_gwlf_KGE&quot;</span><span class="p">)</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">summary</span>
+<span class="n">individual</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">solution</span>
+</pre></div>
+</div>
+<p>Finally, we export the calibrated model (i.e., <em>Best_HydroModel_gwlf_KGE.yaml</em>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">##### Output the calibrated model.</span>
+<span class="n">df_list</span> <span class="o">=</span> <span class="n">cali</span><span class="o">.</span><span class="n">Convertor</span><span class="o">.</span><span class="n">to_df_list</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+<span class="n">model_best</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">model_dict</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df_list</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">df_name</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">load_df_to_model_dict</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Pars&quot;</span><span class="p">)</span>
+<span class="n">hydrocnhs</span><span class="o">.</span><span class="n">write_model</span><span class="p">(</span><span class="n">model_best</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ga</span><span class="o">.</span><span class="n">cali_wd</span><span class="p">,</span> <span class="s2">&quot;Best_HydroModel_gwlf_KGE.yaml&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="step-4-run-a-simulation">
+<h2>Step 4: Run a simulation<a class="headerlink" href="#step-4-run-a-simulation" title="Link to this heading"></a></h2>
+<p>After obtaining a calibrated model, users can now use it for any simulation-based experiment (e.g., streamflow uncertainty under climate change). The calibrated model configuration file (e.g., <em>Best_HydroModel_gwlf_KGE.yaml</em>) can be directly loaded into hydrocnhs to run a simulation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">### Run a simulation.</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">hydrocnhs</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="s2">&quot;Cali_HydroModel_gwlf_KGE&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;Best_HydroModel_gwlf_KGE.yaml&quot;</span><span class="p">))</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">pet</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">pd_date_index</span><span class="p">)</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;MS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="c1">### Plot</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obv_flow_WSLO</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">obv_flow_WSLO</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s2">&quot;WSLO&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Obv&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">obv_flow_WSLO</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;WSLO&quot;</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sim&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The complete script can be found at <em>./tutorials/Hydro_example/Main_HydroModel.py</em>.</p>
+<p>The following section will further introduce how to incorporate user-defined ABM modules into the model.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="4_input_output.html" class="btn btn-neutral float-left" title="Input/Output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="6_Integrate_an_ABM.html" class="btn btn-neutral float-right" title="Integrate an ABM" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

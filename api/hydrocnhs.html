@@ -1,0 +1,1535 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hydrocnhs package &mdash; hydrocnhs v1.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=94b79c3d"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hydrocnhs.calibration package" href="hydrocnhs.calibration.html" />
+    <link rel="prev" title="Advanced ABM coding tips" href="../files/9_advanced%20ABM%20coding%20tips.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            hydrocnhs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../files/2_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/3_101_classroom.html">101 classroom</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/4_input_output.html">Input/Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/5_build_a_hydrological_model.html">Build a hydrological model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/6_Integrate_an_ABM.html">Integrate an ABM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/7_data_collector.html">Data collector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/8_calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/9_advanced%20ABM%20coding%20tips.html">Advanced ABM coding tips</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">hydrocnhs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html">hydrocnhs.calibration package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html">hydrocnhs.rainfall_runoff_model package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.abm">hydrocnhs.abm module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.abm.Base"><code class="docutils literal notranslate"><span class="pre">Base</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.abm.agent"><code class="docutils literal notranslate"><span class="pre">agent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.abm.read_factor"><code class="docutils literal notranslate"><span class="pre">read_factor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.abm_script">hydrocnhs.abm_script module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.abm_script.add_agt_class"><code class="docutils literal notranslate"><span class="pre">add_agt_class()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.abm_script.add_dm_class"><code class="docutils literal notranslate"><span class="pre">add_dm_class()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.data_collector">hydrocnhs.data_collector module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector"><code class="docutils literal notranslate"><span class="pre">Data_collector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector.add_field"><code class="docutils literal notranslate"><span class="pre">Data_collector.add_field()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector.del_field"><code class="docutils literal notranslate"><span class="pre">Data_collector.del_field()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector.get_dict"><code class="docutils literal notranslate"><span class="pre">Data_collector.get_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector.get_field"><code class="docutils literal notranslate"><span class="pre">Data_collector.get_field()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.data_collector.Data_collector.list_fields"><code class="docutils literal notranslate"><span class="pre">Data_collector.list_fields()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.hydrocnhs">hydrocnhs.hydrocnhs module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.hydrocnhs.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.hydrocnhs.Model.get_model_object"><code class="docutils literal notranslate"><span class="pre">Model.get_model_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.hydrocnhs.Model.load_weather_data"><code class="docutils literal notranslate"><span class="pre">Model.load_weather_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.hydrocnhs.Model.run"><code class="docutils literal notranslate"><span class="pre">Model.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.indicators">hydrocnhs.indicators module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.indicators.Indicator"><code class="docutils literal notranslate"><span class="pre">Indicator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.cal_indicator_df"><code class="docutils literal notranslate"><span class="pre">Indicator.cal_indicator_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_cp"><code class="docutils literal notranslate"><span class="pre">Indicator.get_cp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_df_indicator"><code class="docutils literal notranslate"><span class="pre">Indicator.get_df_indicator()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_ikge"><code class="docutils literal notranslate"><span class="pre">Indicator.get_ikge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_inse"><code class="docutils literal notranslate"><span class="pre">Indicator.get_inse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_kge"><code class="docutils literal notranslate"><span class="pre">Indicator.get_kge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_nse"><code class="docutils literal notranslate"><span class="pre">Indicator.get_nse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_r"><code class="docutils literal notranslate"><span class="pre">Indicator.get_r()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_r2"><code class="docutils literal notranslate"><span class="pre">Indicator.get_r2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_rmse"><code class="docutils literal notranslate"><span class="pre">Indicator.get_rmse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.get_rsr"><code class="docutils literal notranslate"><span class="pre">Indicator.get_rsr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.indicators.Indicator.remove_na"><code class="docutils literal notranslate"><span class="pre">Indicator.remove_na()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.model_builder">hydrocnhs.model_builder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder"><code class="docutils literal notranslate"><span class="pre">ModelBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.add_agent"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.add_agent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.add_institution"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.add_institution()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.add_sediment"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.add_sediment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.gen_ABM_module_template"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.gen_ABM_module_template()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.help"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.help()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.print_model"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.print_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.set_ABM"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.set_ABM()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.set_rainfall_runoff"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.set_rainfall_runoff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.set_routing_outlet"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.set_routing_outlet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.set_sediment"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.set_sediment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.set_water_system"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.set_water_system()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.model_builder.ModelBuilder.write_model_to_yaml"><code class="docutils literal notranslate"><span class="pre">ModelBuilder.write_model_to_yaml()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.routing">hydrocnhs.routing module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.routing.form_UH_Lohmann"><code class="docutils literal notranslate"><span class="pre">form_UH_Lohmann()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.routing.run_step_Lohmann"><code class="docutils literal notranslate"><span class="pre">run_step_Lohmann()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.routing.run_step_Lohmann_convey"><code class="docutils literal notranslate"><span class="pre">run_step_Lohmann_convey()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.routing.run_step_Lohmann_convey_sed"><code class="docutils literal notranslate"><span class="pre">run_step_Lohmann_convey_sed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.routing.run_step_Lohmann_sed"><code class="docutils literal notranslate"><span class="pre">run_step_Lohmann_sed()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.sediment">hydrocnhs.sediment module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.sediment.cal_LS"><code class="docutils literal notranslate"><span class="pre">cal_LS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.sediment.cal_SX"><code class="docutils literal notranslate"><span class="pre">cal_SX()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.sediment.cal_TR_B"><code class="docutils literal notranslate"><span class="pre">cal_TR_B()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.sediment.cal_usle"><code class="docutils literal notranslate"><span class="pre">cal_usle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.sediment.run_TSS"><code class="docutils literal notranslate"><span class="pre">run_TSS()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.util">hydrocnhs.util module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.check_RainfallRunoff"><code class="docutils literal notranslate"><span class="pre">check_RainfallRunoff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.check_WS"><code class="docutils literal notranslate"><span class="pre">check_WS()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.check_agent_in_routing"><code class="docutils literal notranslate"><span class="pre">check_agent_in_routing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.check_model"><code class="docutils literal notranslate"><span class="pre">check_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.create_rn_gen"><code class="docutils literal notranslate"><span class="pre">create_rn_gen()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.dict_to_string"><code class="docutils literal notranslate"><span class="pre">dict_to_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.form_sim_seq"><code class="docutils literal notranslate"><span class="pre">form_sim_seq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.gen_default_bounds"><code class="docutils literal notranslate"><span class="pre">gen_default_bounds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.list_callable_public_object"><code class="docutils literal notranslate"><span class="pre">list_callable_public_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.load_customized_module_to_class"><code class="docutils literal notranslate"><span class="pre">load_customized_module_to_class()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.load_df_to_model_dict"><code class="docutils literal notranslate"><span class="pre">load_df_to_model_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.load_model"><code class="docutils literal notranslate"><span class="pre">load_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.parse_model"><code class="docutils literal notranslate"><span class="pre">parse_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.parse_sim_seq"><code class="docutils literal notranslate"><span class="pre">parse_sim_seq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.set_logging_config"><code class="docutils literal notranslate"><span class="pre">set_logging_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.update_sim_seq_with_group"><code class="docutils literal notranslate"><span class="pre">update_sim_seq_with_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.write_model"><code class="docutils literal notranslate"><span class="pre">write_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.write_model_to_csv"><code class="docutils literal notranslate"><span class="pre">write_model_to_csv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.util.write_model_to_df"><code class="docutils literal notranslate"><span class="pre">write_model_to_df()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs.visual">hydrocnhs.visual module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hydrocnhs.visual.Visual"><code class="docutils literal notranslate"><span class="pre">Visual</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.visual.Visual.plot_reg"><code class="docutils literal notranslate"><span class="pre">Visual.plot_reg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.visual.Visual.plot_simple_ts"><code class="docutils literal notranslate"><span class="pre">Visual.plot_simple_ts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydrocnhs.visual.Visual.plot_timeseries"><code class="docutils literal notranslate"><span class="pre">Visual.plot_timeseries()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-hydrocnhs">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">hydrocnhs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">hydrocnhs package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/hydrocnhs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hydrocnhs-package">
+<h1>hydrocnhs package<a class="headerlink" href="#hydrocnhs-package" title="Link to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="hydrocnhs.calibration.html">hydrocnhs.calibration package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.calibration.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.calibration.html#module-hydrocnhs.calibration.convertor">hydrocnhs.calibration.convertor module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.convertor.Convertor"><code class="docutils literal notranslate"><span class="pre">Convertor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.convertor.Convertor.gen_cali_inputs"><code class="docutils literal notranslate"><span class="pre">Convertor.gen_cali_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.convertor.Convertor.gen_formatter"><code class="docutils literal notranslate"><span class="pre">Convertor.gen_formatter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.convertor.Convertor.to_1D_array"><code class="docutils literal notranslate"><span class="pre">Convertor.to_1D_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.convertor.Convertor.to_df_list"><code class="docutils literal notranslate"><span class="pre">Convertor.to_df_list()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.calibration.html#module-hydrocnhs.calibration.ga_deap">hydrocnhs.calibration.ga_deap module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP"><code class="docutils literal notranslate"><span class="pre">GA_DEAP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.auto_save"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.auto_save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.find_best_and_record"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.find_best_and_record()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.gen_rn_gens"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.gen_rn_gens()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.load"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.run"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.run_individual"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.run_individual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.GA_DEAP.set"><code class="docutils literal notranslate"><span class="pre">GA_DEAP.set()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.cxUniform"><code class="docutils literal notranslate"><span class="pre">cxUniform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.descale"><code class="docutils literal notranslate"><span class="pre">descale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.gen_init_pop"><code class="docutils literal notranslate"><span class="pre">gen_init_pop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.logger"><code class="docutils literal notranslate"><span class="pre">logger</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.mut_middle"><code class="docutils literal notranslate"><span class="pre">mut_middle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.mut_uniform"><code class="docutils literal notranslate"><span class="pre">mut_uniform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.sample_by_LHC"><code class="docutils literal notranslate"><span class="pre">sample_by_LHC()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.sample_by_MC"><code class="docutils literal notranslate"><span class="pre">sample_by_MC()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.scale"><code class="docutils literal notranslate"><span class="pre">scale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.ga_deap.selRoulette"><code class="docutils literal notranslate"><span class="pre">selRoulette()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.calibration.html#module-hydrocnhs.calibration">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.get_config_template"><code class="docutils literal notranslate"><span class="pre">get_config_template()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.get_inputs_template"><code class="docutils literal notranslate"><span class="pre">get_inputs_template()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.calibration.html#hydrocnhs.calibration.helper"><code class="docutils literal notranslate"><span class="pre">helper()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html">hydrocnhs.rainfall_runoff_model package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#module-hydrocnhs.rainfall_runoff_model.abcd">hydrocnhs.rainfall_runoff_model.abcd module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#hydrocnhs.rainfall_runoff_model.abcd.run_ABCD"><code class="docutils literal notranslate"><span class="pre">run_ABCD()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#module-hydrocnhs.rainfall_runoff_model.gwlf">hydrocnhs.rainfall_runoff_model.gwlf module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#hydrocnhs.rainfall_runoff_model.gwlf.run_GWLF"><code class="docutils literal notranslate"><span class="pre">run_GWLF()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#module-hydrocnhs.rainfall_runoff_model.pet_hamon">hydrocnhs.rainfall_runoff_model.pet_hamon module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#hydrocnhs.rainfall_runoff_model.pet_hamon.cal_pet_Hamon"><code class="docutils literal notranslate"><span class="pre">cal_pet_Hamon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="hydrocnhs.rainfall_runoff_model.html#module-hydrocnhs.rainfall_runoff_model">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-hydrocnhs.abm">
+<span id="hydrocnhs-abm-module"></span><h2>hydrocnhs.abm module<a class="headerlink" href="#module-hydrocnhs.abm" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.abm.Base">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.abm.</span></span><span class="sig-name descname"><span class="pre">Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.abm.Base" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Agent_type class’s available items:
+* name: agent’s name.
+* config: agent’s configuration dictionary the model file (.yaml).
+* start_date: datetime object.
+* data_length: length of the simulation.
+* data_collector: a container to store simulated data.
+* rn_gen: random number generator to ensure reproducibility (e.g.,
+* self.rn_gen.random()). Note that do NOT set a global random seed in
+* this module! All type of random number should be created by “rn_gen.”
+* dm: decision making object if assigned in the model file (.yaml).</p>
+<blockquote>
+<div><p>Decision-making class’s available items:</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>start_date: datetime object.</p></li>
+<li><p>data_length: length of the simulation.</p></li>
+<li><p>abm: the ABM configuration dictionary from the model file (.yaml).</p></li>
+<li><p>data_collector: a container to store simulated data.</p></li>
+<li><p>rn_gen: random number generator to ensure reproducibility (e.g.,</p></li>
+<li><p>self.rn_gen.random()). Note that do NOT set a global random seed in</p></li>
+<li><p>this module! All type of random number should be created by “rn_gen.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.abm.agent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.abm.</span></span><span class="sig-name descname"><span class="pre">agent</span></span><a class="headerlink" href="#hydrocnhs.abm.agent" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.abm.read_factor">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.abm.</span></span><span class="sig-name descname"><span class="pre">read_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ag_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.abm.read_factor" title="Link to this definition"></a></dt>
+<dd><p>Read factor from agent’s ag_config at a given outlet.</p>
+<p>The function will automatically parse the list-like value assignment. e.g.,
+[ReturnFactor, 0, Plus].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ag_config</strong> (<em>dict</em>) – Agent’s configuration.</p></li>
+<li><p><strong>outlet</strong> (<em>str</em>) – Outlet name.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.abm_script">
+<span id="hydrocnhs-abm-script-module"></span><h2>hydrocnhs.abm_script module<a class="headerlink" href="#module-hydrocnhs.abm_script" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.abm_script.add_agt_class">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.abm_script.</span></span><span class="sig-name descname"><span class="pre">add_agt_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agt_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.abm_script.add_agt_class" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.abm_script.add_dm_class">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.abm_script.</span></span><span class="sig-name descname"><span class="pre">add_dm_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_institution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.abm_script.add_dm_class" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-hydrocnhs.data_collector">
+<span id="hydrocnhs-data-collector-module"></span><h2>hydrocnhs.data_collector module<a class="headerlink" href="#module-hydrocnhs.data_collector" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.data_collector.</span></span><span class="sig-name descname"><span class="pre">Data_collector</span></span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector.add_field">
+<span class="sig-name descname"><span class="pre">add_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_exist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector.add_field" title="Link to this definition"></a></dt>
+<dd><p>Add a field to the data collector.</p>
+<p>A field can be a dictionary or a list. A Data_collector object
+cannot have duplicated field name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> (<em>str</em>) – Field name. Cannot have space in a field name.</p></li>
+<li><p><strong>data_type</strong> (<em>dict</em><em>, </em><em>optional</em>) – Data type of the field (e.g., {} and []), by default {}. User can
+also populate the field by directly assigning data here.</p></li>
+<li><p><strong>desc</strong> (<em>str</em>) – Field description.</p></li>
+<li><p><strong>unit</strong> – Unit of the field.</p></li>
+<li><p><strong>check_exist</strong> (<em>bool</em><em>, </em><em>optional</em>) – If Ture, check the given field name is not existed before adding,
+by default True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector.del_field">
+<span class="sig-name descname"><span class="pre">del_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector.del_field" title="Link to this definition"></a></dt>
+<dd><p>Delete a field from the data collector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>field</strong> (<em>str</em>) – Field name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector.get_dict">
+<span class="sig-name descname"><span class="pre">get_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector.get_dict" title="Link to this definition"></a></dt>
+<dd><p>Get data collector in dictionary format.</p>
+<p>Note that if copy=False, any modification on a variable assigned with
+the returned dictionary will also affect the data stored in the data
+collector object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>copy</strong> (<em>str</em>) – If true, a copy of dictionary will be returned, else a pointer will
+be returned. Default False.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary contains all fields.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector.get_field">
+<span class="sig-name descname"><span class="pre">get_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector.get_field" title="Link to this definition"></a></dt>
+<dd><p>Get a field.</p>
+<p>This function create a shortcut to access a field. Namely, changes of
+a local variable of get_field() will be accumulated back to the
+original data_collector. copy=Ture if a copy of a field is needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> (<em>str</em>) – Field name.</p></li>
+<li><p><strong>copy</strong> (<em>bool</em>) – If true, create a copy of a field, which has seperate storage</p></li>
+<li><p><strong>Otherwise</strong> (<em>pointer than the original data_collector.</em>)</p></li>
+<li><p><strong>shortcut</strong> (<em>return a</em>)</p></li>
+<li><p><strong>data_collector.</strong> (<em>of a field to the original</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Assigned field type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.data_collector.Data_collector.list_fields">
+<span class="sig-name descname"><span class="pre">list_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.data_collector.Data_collector.list_fields" title="Link to this definition"></a></dt>
+<dd><p>Print available fields in the data collector.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.hydrocnhs">
+<span id="hydrocnhs-hydrocnhs-module"></span><h2>hydrocnhs.hydrocnhs module<a class="headerlink" href="#module-hydrocnhs.hydrocnhs" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.hydrocnhs.Model">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.hydrocnhs.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rn_gen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checked</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parsed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'level':</span> <span class="pre">'WARNING',</span> <span class="pre">'log_filename':</span> <span class="pre">None}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paral_setting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'cores_formUH':</span> <span class="pre">1,</span> <span class="pre">'cores_pet':</span> <span class="pre">1,</span> <span class="pre">'cores_runoff':</span> <span class="pre">1,</span> <span class="pre">'verbose':</span> <span class="pre">0}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.hydrocnhs.Model" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.hydrocnhs.Model.get_model_object">
+<span class="sig-name descname"><span class="pre">get_model_object</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.hydrocnhs.Model.get_model_object" title="Link to this definition"></a></dt>
+<dd><p>Get the model object in a dictionary form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>model object dictionary.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.hydrocnhs.Model.load_weather_data">
+<span class="sig-name descname"><span class="pre">load_weather_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outlets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.hydrocnhs.Model.load_weather_data" title="Link to this definition"></a></dt>
+<dd><p>Load temperature, precipitation, and potential evapotranspiration data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>temp</strong> (<em>dict</em>) – [degC] Daily mean temperature time series data (value) for each
+subbasin named by its outlet. E.g., {“subbasin1”:[…],
+“subbasin2”:[…]}</p></li>
+<li><p><strong>prec</strong> (<em>dict</em>) – [cm] Daily precipitation time series data (value) for each
+subbasin named by its outlet. E.g., {“subbasin1”:[…],
+“subbasin2”:[…]}</p></li>
+<li><p><strong>pet</strong> (<em>dict</em><em>, </em><em>optional</em>) – [cm] Daily potential evapotranspiration time series data (value) for
+each subbasin named by its outlet, by default None. E.g.,
+{“subbasin1”:[…], “subbasin2”:[…]}</p></li>
+<li><p><strong>outlets</strong> (<em>list</em><em>, </em><em>optional</em>) – Outlets that need weather data for rainfall-runoff simulation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.hydrocnhs.Model.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigned_Q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigned_UH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.hydrocnhs.Model.run" title="Link to this definition"></a></dt>
+<dd><p>Run HydroCNHS simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>temp</strong> (<em>dict</em>) – [degC] Daily mean temperature.</p></li>
+<li><p><strong>prec</strong> (<em>dict</em>) – [cm] Daily precipitation.</p></li>
+<li><p><strong>pet</strong> (<em>dict</em><em>, </em><em>optional</em>) – [cm] Potential evapotranspiration, by default None. If None, pet is
+calculated by Hamon’s method.</p></li>
+<li><p><strong>assigned_Q</strong> (<em>dict</em><em>, </em><em>optional</em>) – [cms] If the user wants to manually assign Q for certain outlets
+{“outlet”: array}, by default {}.</p></li>
+<li><p><strong>assigned_UH</strong> (<em>dict</em><em>, </em><em>optional</em>) – If the user wants to manually assign UH (Lohmann) for certain outlets
+{“outlet”: array}, by default {}.</p></li>
+<li><p><strong>disable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Disable display progress bar, by default False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of flow time series.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.indicators">
+<span id="hydrocnhs-indicators-module"></span><h2>hydrocnhs.indicators module<a class="headerlink" href="#module-hydrocnhs.indicators" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.indicators.</span></span><span class="sig-name descname"><span class="pre">Indicator</span></span><a class="headerlink" href="#hydrocnhs.indicators.Indicator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class for calculating indicators.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.cal_indicator_df">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cal_indicator_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicators_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.cal_indicator_df" title="Link to this definition"></a></dt>
+<dd><p>Calculate indicators and return as a DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>index_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Index name, by default “value”.</p></li>
+<li><p><strong>indicators_list</strong> (<em>list</em><em>, </em><em>optional</em>) – List of indicators, by default None.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A DataFrame of indicators.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_cp">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_cp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_cp" title="Link to this definition"></a></dt>
+<dd><p>Correlation of persistence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Correlation of persistence.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_df_indicator">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_df_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicators_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_df_indicator" title="Link to this definition"></a></dt>
+<dd><p>Calculate indicators and return as a DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>indicators_list</strong> (<em>list</em><em>, </em><em>optional</em>) – List of indicators, by default None.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A DataFrame of indicators.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_ikge">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ikge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_ikge" title="Link to this definition"></a></dt>
+<dd><p>Inverse Kling-Gupta efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse Kling-Gupta efficiency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_inse">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_inse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_inse" title="Link to this definition"></a></dt>
+<dd><p>Inverse Nash-Sutcliffe efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Inverse Nash-Sutcliffe efficiency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_kge">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_kge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_kge" title="Link to this definition"></a></dt>
+<dd><p>Kling-Gupta efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Kling-Gupta efficiency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_nse">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_nse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_nse" title="Link to this definition"></a></dt>
+<dd><p>Nash-Sutcliffe efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nash-Sutcliffe efficiency.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_r">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_r</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_r" title="Link to this definition"></a></dt>
+<dd><p>Correlation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>r coefficient.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_r2">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_r2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_r2" title="Link to this definition"></a></dt>
+<dd><p>Coefficient of determination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>r2 coefficient.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_rmse">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_rmse" title="Link to this definition"></a></dt>
+<dd><p>Root mean square error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Root mean square error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.get_rsr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_rsr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_na</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.get_rsr" title="Link to this definition"></a></dt>
+<dd><p>RMSE-observations standard deviation ratio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>r_na</strong> (<em>bool</em><em>, </em><em>optional</em>) – Remove nan, by default True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>RMSE-observations standard deviation ratio.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.indicators.Indicator.remove_na">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.indicators.Indicator.remove_na" title="Link to this definition"></a></dt>
+<dd><p>Remove nan in x_obv and y_sim.</p>
+<p>This function makes sure there is no nan involves in the indicator
+calculation. If nan is detected, data points will be remove from x_obv
+and y_sim simultaneously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated (x_obv, y_sim)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.model_builder">
+<span id="hydrocnhs-model-builder-module"></span><h2>hydrocnhs.model_builder module<a class="headerlink" href="#module-hydrocnhs.model_builder" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.model_builder.</span></span><span class="sig-name descname"><span class="pre">ModelBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.add_agent">
+<span class="sig-name descname"><span class="pre">add_agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agt_type_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agt_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.add_agent" title="Link to this definition"></a></dt>
+<dd><p>Add agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agt_type_class</strong> (<em>str</em>) – Assigned agent type class.</p></li>
+<li><p><strong>agt_name</strong> (<em>str</em>) – Agent name.</p></li>
+<li><p><strong>api</strong> (<em>str</em>) – The API to integrate the agent to the HydroCNHS.
+e.g., mb.Dam.</p></li>
+<li><p><strong>priority</strong> (<em>int</em><em>, </em><em>optional</em>) – Priority of the agent if conflicts occur, by default 1.</p></li>
+<li><p><strong>link_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – Linkage dictionary, by default {}.</p></li>
+<li><p><strong>dm_class</strong> (<em>str</em><em>, </em><em>optional</em>) – Assigned decision-making class, by default None</p></li>
+<li><p><strong>par_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – Parameter dictionary, by default {}</p></li>
+<li><p><strong>attr_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – Attribution dictionary, by default {}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.add_institution">
+<span class="sig-name descname"><span class="pre">add_institution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">institution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instit_dm_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.add_institution" title="Link to this definition"></a></dt>
+<dd><p>Add a institution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>institution</strong> (<em>str</em>) – Institution name.</p></li>
+<li><p><strong>instit_dm_class</strong> (<em>str</em>) – Assigned institutional decision-making class.</p></li>
+<li><p><strong>agent_list</strong> (<em>list</em>) – Agent member list of the institute.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.add_sediment">
+<span class="sig-name descname"><span class="pre">add_sediment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subbasin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cool_months</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Aw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LS_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-99</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.add_sediment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.gen_ABM_module_template">
+<span class="sig-name descname"><span class="pre">gen_ABM_module_template</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.gen_ABM_module_template" title="Link to this definition"></a></dt>
+<dd><p>Generate ABM module template based on the ABM setting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.help">
+<span class="sig-name descname"><span class="pre">help</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.help" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.print_model">
+<span class="sig-name descname"><span class="pre">print_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indentor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'</span>&#160; <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.print_model" title="Link to this definition"></a></dt>
+<dd><p>Print model to the console</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indentor</strong> (<em>str</em><em>, </em><em>optional</em>) – Indentor, by default “  “.</p></li>
+<li><p><strong>level</strong> (<em>int</em><em>, </em><em>optional</em>) – Print out level of a nested dictionary, by default 1.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.set_ABM">
+<span class="sig-name descname"><span class="pre">set_ABM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abm_module_folder_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abm_module_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ABM_module.py'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.set_ABM" title="Link to this definition"></a></dt>
+<dd><p>Set up ABM</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>abm_module_folder_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Folder directory of ABM modules. It it is not given, working
+directory will be assigned, by default None.</p></li>
+<li><p><strong>abm_module_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The ABM module name, by default “ABM_module.py”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.set_rainfall_runoff">
+<span class="sig-name descname"><span class="pre">set_rainfall_runoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outlet_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runoff_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GWLF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.set_rainfall_runoff" title="Link to this definition"></a></dt>
+<dd><p>Set up RainfallRunoff.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outlet_list</strong> (<em>list</em>) – A list of subbasin outlet names.</p></li>
+<li><p><strong>area_list</strong> (<em>list</em><em>, </em><em>optional</em>) – Area [ha] list corresponding to outlet_list, by default None.</p></li>
+<li><p><strong>lat_list</strong> (<em>str</em><em>, </em><em>optional</em>) – Latitude [deg] list corresponding to outlet_list, by default None.</p></li>
+<li><p><strong>runoff_model</strong> (<em>str</em><em>, </em><em>optional</em>) – “GWLF” or “ABCD” or “Other”, by default None.</p></li>
+<li><p><strong>Note</strong> – If “Other” is selected for runoff_model, users must provide
+precalculated runoffs for each subbasin as an input to HydroCNHS.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.set_routing_outlet">
+<span class="sig-name descname"><span class="pre">set_routing_outlet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_outlet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream_outlet_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instream_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow_length_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Lohmann'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.set_routing_outlet" title="Link to this definition"></a></dt>
+<dd><p>Set up a routing outlet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_outlet</strong> (<em>str</em>) – Name of routing outlet. routing_outlet should be one of outlets in
+RainfallRunoff.</p></li>
+<li><p><strong>upstream_outlet_list</strong> (<em>list</em>) – A list of outlets or dam agents that contribute to the streamflow
+at routing_outlet.</p></li>
+<li><p><strong>instream_objects</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of instream objects’ names (i.e., dam agents), by default [].</p></li>
+<li><p><strong>flow_length_list</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of flow lengths. The order has to consist to the
+upstream_outlet_list.</p></li>
+<li><p><strong>routing_model</strong> (<em>list</em><em>, </em><em>optional</em>) – Routing model, by default “Lohmann”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.set_sediment">
+<span class="sig-name descname"><span class="pre">set_sediment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_month</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.set_sediment" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.set_water_system">
+<span class="sig-name descname"><span class="pre">set_water_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.set_water_system" title="Link to this definition"></a></dt>
+<dd><p>Set up WaterSystem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_date</strong> (<em>str</em>) – “yyyy/mm/dd”</p></li>
+<li><p><strong>end_date</strong> (<em>str</em>) – “yyyy/mm/dd”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.model_builder.ModelBuilder.write_model_to_yaml">
+<span class="sig-name descname"><span class="pre">write_model_to_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.model_builder.ModelBuilder.write_model_to_yaml" title="Link to this definition"></a></dt>
+<dd><p>Output model configuration file (.yaml)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.routing">
+<span id="hydrocnhs-routing-module"></span><h2>hydrocnhs.routing module<a class="headerlink" href="#module-hydrocnhs.routing" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.routing.form_UH_Lohmann">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.routing.</span></span><span class="sig-name descname"><span class="pre">form_UH_Lohmann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing_pars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_ingrid_off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.routing.form_UH_Lohmann" title="Link to this definition"></a></dt>
+<dd><p>Derive HRU’s UH at the (watershed) outlet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> (<em>dict</em>) – Inputs dictionary containing FlowLength [m] Travel distence of flow
+between two outlets [float] and InstreamControl [bool].</p></li>
+<li><p><strong>routing_pars</strong> (<em>dict</em>) – Four parameters for routing: GShape, GScale, Velo, Diff [float]</p></li>
+<li><p><strong>force_ingrid_off</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, then within subbasin routing will be forced to turn off, by default
+False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.routing.run_step_Lohmann">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.routing.</span></span><span class="sig-name descname"><span class="pre">run_step_Lohmann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_outlet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UH_Lohmann</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_runoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.routing.run_step_Lohmann" title="Link to this definition"></a></dt>
+<dd><p>Calculate a single time step routing for a given routing_outlet at time t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_outlet</strong> (<em>str</em>) – routing outlet.</p></li>
+<li><p><strong>routing</strong> (<em>dict</em>) – Routing setting dictionary from model.yaml file.</p></li>
+<li><p><strong>UH_Lohmann</strong> (<em>dict</em>) – A dictionary containing pre-formed UHs.</p></li>
+<li><p><strong>Q</strong> (<em>dict</em>) – A dictionary containing newest routed flows.</p></li>
+<li><p><strong>Q_runoff</strong> (<em>dict</em>) – A dictionary containing newest unrouted flows without.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – Index of current time step [day].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Routed flow of routing_outlet at time t.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.routing.run_step_Lohmann_convey">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.routing.</span></span><span class="sig-name descname"><span class="pre">run_step_Lohmann_convey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_outlet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UH_Lohmann_convey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_convey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.routing.run_step_Lohmann_convey" title="Link to this definition"></a></dt>
+<dd><p>Calculate a single time step conveying water routing for a given
+routing_outlet at time t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_outlet</strong> (<em>str</em>) – routing outlet.</p></li>
+<li><p><strong>routing</strong> (<em>dict</em>) – Routing setting dictionary from model.yaml file.</p></li>
+<li><p><strong>UH_Lohmann_convey</strong> (<em>dict</em>) – A dictionary containing pre-formed conveying UHs (i.e., no within
+subbasin routing).</p></li>
+<li><p><strong>Q_convey</strong> (<em>dict</em>) – A dictionary containing conveying water.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – Index of current time step [day].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Routed conveying flow of routing_outlet at time t.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.routing.run_step_Lohmann_convey_sed">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.routing.</span></span><span class="sig-name descname"><span class="pre">run_step_Lohmann_convey_sed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_outlet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UH_Lohmann_convey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_convey</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_frac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.routing.run_step_Lohmann_convey_sed" title="Link to this definition"></a></dt>
+<dd><p>Calculate a single time step conveying water routing for a given
+routing_outlet at time t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_outlet</strong> (<em>str</em>) – routing outlet.</p></li>
+<li><p><strong>routing</strong> (<em>dict</em>) – Routing setting dictionary from model.yaml file.</p></li>
+<li><p><strong>UH_Lohmann_convey</strong> (<em>dict</em>) – A dictionary containing pre-formed conveying UHs (i.e., no within
+subbasin routing).</p></li>
+<li><p><strong>Q_convey</strong> (<em>dict</em>) – A dictionary containing conveying water.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – Index of current time step [day].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Routed conveying flow of routing_outlet at time t.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.routing.run_step_Lohmann_sed">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.routing.</span></span><span class="sig-name descname"><span class="pre">run_step_Lohmann_sed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_outlet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UH_Lohmann</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_runoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_frac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.routing.run_step_Lohmann_sed" title="Link to this definition"></a></dt>
+<dd><p>Calculate a single time step routing for a given routing_outlet at time t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_outlet</strong> (<em>str</em>) – routing outlet.</p></li>
+<li><p><strong>routing</strong> (<em>dict</em>) – Routing setting dictionary from model.yaml file.</p></li>
+<li><p><strong>UH_Lohmann</strong> (<em>dict</em>) – A dictionary containing pre-formed UHs.</p></li>
+<li><p><strong>Q</strong> (<em>dict</em>) – A dictionary containing newest routed flows.</p></li>
+<li><p><strong>Q_runoff</strong> (<em>dict</em>) – A dictionary containing newest unrouted flows without.</p></li>
+<li><p><strong>t</strong> (<em>int</em>) – Index of current time step [day].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Routed flow of routing_outlet at time t.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.sediment">
+<span id="hydrocnhs-sediment-module"></span><h2>hydrocnhs.sediment module<a class="headerlink" href="#module-hydrocnhs.sediment" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.sediment.cal_LS">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.sediment.</span></span><span class="sig-name descname"><span class="pre">cal_LS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.sediment.cal_LS" title="Link to this definition"></a></dt>
+<dd><p>Calculate topographic factor, LS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>SL</strong> (<em>1darray</em>) – Slope length.</p></li>
+<li><p><strong>PS</strong> (<em>1darray</em>) – Percent slope.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>LS</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>1darray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.sediment.cal_SX">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.sediment.</span></span><span class="sig-name descname"><span class="pre">cal_SX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pd_date_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.sediment.cal_SX" title="Link to this definition"></a></dt>
+<dd><p>Calculate total sediment supply, SX, of subbasins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DR</strong> (<em>1darray</em>) – Delivery ratio.</p></li>
+<li><p><strong>X</strong> (<em>2darray</em>) – Sediment supply.</p></li>
+<li><p><strong>pd_date_index</strong> (<em>pd.Datetime</em>) – Pandas datetime index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SX</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>1darray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.sediment.cal_TR_B">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.sediment.</span></span><span class="sig-name descname"><span class="pre">cal_TR_B</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q_frac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pd_date_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ti</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.sediment.cal_TR_B" title="Link to this definition"></a></dt>
+<dd><p>Calculate monthly allocation propotions based on transportation capacity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Q_frac</strong> (<em>dict</em>) – A dictionary of streamflow portion of each subbasion that contributes
+their corresponding routing outlets.</p></li>
+<li><p><strong>pd_date_index</strong> (<em>pd.Datetime</em>) – Pandas datetime index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of monthly allocation ratios.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.sediment.cal_usle">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.sediment.</span></span><span class="sig-name descname"><span class="pre">cal_usle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Area</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.sediment.cal_usle" title="Link to this definition"></a></dt>
+<dd><p>Calculate the erosion using USLE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RE</strong> (<em>1darray</em>) – Rainfall erosivity.</p></li>
+<li><p><strong>K</strong> (<em>1darray</em>) – Soil erodibility factor.</p></li>
+<li><p><strong>CP</strong> (<em>1darray</em>) – Vegetation management factor = cover and management factor * support
+practice factor.</p></li>
+<li><p><strong>LS</strong> (<em>1darray</em>) – Topographic factor.</p></li>
+<li><p><strong>Area</strong> (<em>1darray</em>) – [ha] Area</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Mg] Sediment supply</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2darray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.sediment.run_TSS">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.sediment.</span></span><span class="sig-name descname"><span class="pre">run_TSS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RE_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sediment_setting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routing_setting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dam_agts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pd_date_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_frac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dc_TSS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ti</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.sediment.run_TSS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-hydrocnhs.util">
+<span id="hydrocnhs-util-module"></span><h2>hydrocnhs.util module<a class="headerlink" href="#module-hydrocnhs.util" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.check_RainfallRunoff">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">check_RainfallRunoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.check_RainfallRunoff" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.check_WS">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">check_WS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.check_WS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.check_agent_in_routing">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">check_agent_in_routing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.check_agent_in_routing" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.check_model">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">check_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.check_model" title="Link to this definition"></a></dt>
+<dd><p>Check the model dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if pass the check.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.create_rn_gen">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">create_rn_gen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.create_rn_gen" title="Link to this definition"></a></dt>
+<dd><p>Create random number generator based on numpy module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seed</strong> (<em>int</em>) – Random seed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random number generator.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.dict_to_string">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">dict_to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indentor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'</span>&#160; <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.dict_to_string" title="Link to this definition"></a></dt>
+<dd><p>Ture a dictionary into a printable string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dictionary</strong> (<em>dict</em>) – A dictionary.</p></li>
+<li><p><strong>indentor</strong> (<em>str</em><em>, </em><em>optional</em>) – Indentor, by default “  “</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>String.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.form_sim_seq">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">form_sim_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">back_tracking_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.form_sim_seq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.gen_default_bounds">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">gen_default_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Pars']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.gen_default_bounds" title="Link to this definition"></a></dt>
+<dd><p>Generate default parameter bounds in the format of a list of
+DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary.</p></li>
+<li><p><strong>key_option</strong> (<em>list</em><em>, </em><em>optional</em>) – Output sections (e.g., Pars, Inputs, Attributes), by default [“Pars”].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of parameter bound DataFrames, A list of DataFrame names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.list_callable_public_object">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">list_callable_public_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.list_callable_public_object" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.load_customized_module_to_class">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">load_customized_module_to_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.load_customized_module_to_class" title="Link to this definition"></a></dt>
+<dd><p>Load classes and functions in a user defined module (.py) into a given
+Class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Class</strong> (<em>class</em>) – A class to collect classes and functions in a given module.</p></li>
+<li><p><strong>module_name</strong> (<em>str</em>) – filename.py or filename.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Directory of filename.py.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.load_df_to_model_dict">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">load_df_to_model_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.load_df_to_model_dict" title="Link to this definition"></a></dt>
+<dd><p>Load dataframe to model dictionary.</p>
+<p>Note that the column and index names have to be identical as outputted from
+write_model_to_df() function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary.</p></li>
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Dataframe.</p></li>
+<li><p><strong>section</strong> (<em>str</em>) – RainfallRunoff or Routing or ABM.</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – nputs or Pars or Attributes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated model_dict.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.load_model">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checked</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parsed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.load_model" title="Link to this definition"></a></dt>
+<dd><p>Load model.yaml or model dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>str/dict</em>) – Filename (e.g., model.yaml) or model dictionary.</p></li>
+<li><p><strong>checked</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, no pre-check will be implemented, by default False.</p></li>
+<li><p><strong>parsed</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, model will not be re-parses, by default False.</p></li>
+<li><p><strong>print_summary</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print the summary of loaded model, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.parse_model">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">parse_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.parse_model" title="Link to this definition"></a></dt>
+<dd><p>Parse model dictionary. Populate SystemParsedData.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_dict</strong> (<em>dict</em>) – Load from model.yaml.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>model_dict</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.parse_sim_seq">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">parse_sim_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.parse_sim_seq" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.set_logging_config">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">set_logging_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'WARNING'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.set_logging_config" title="Link to this definition"></a></dt>
+<dd><p>Set up logging config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>log_filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Log filename, by default None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.update_sim_seq_with_group">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">update_sim_seq_with_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">back_tracking_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.update_sim_seq_with_group" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.write_model">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">write_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">org_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.write_model" title="Link to this definition"></a></dt>
+<dd><p>Write model dictionary to .yaml file</p>
+<p>If org_model is given, comments in the original file will be kept in the
+output model file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Model configuration filename (e.g. model.yaml).</p></li>
+<li><p><strong>org_model</strong> (<em>str</em><em>, </em><em>optional</em>) – Original model name (e.g. org_model.yaml), by default None.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Common error :</dt><dd><ol class="arabic simple">
+<li><p>value type is numpy.float64 =&gt; convert it to float.</p></li>
+</ol>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.write_model_to_csv">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">write_model_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Pars']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.write_model_to_csv" title="Link to this definition"></a></dt>
+<dd><p>Write model (dictionary) to csv files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_path</strong> (<em>str</em>) – Output folder directory.</p></li>
+<li><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary.</p></li>
+<li><p><strong>key_option</strong> (<em>list</em><em>, </em><em>optional</em>) – Output sections (e.g., Pars, Inputs, Attributes), by default [“Pars”].</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Prefix for the filenames, by default “”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of filenames.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydrocnhs.util.write_model_to_df">
+<span class="sig-prename descclassname"><span class="pre">hydrocnhs.util.</span></span><span class="sig-name descname"><span class="pre">write_model_to_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Pars']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.util.write_model_to_df" title="Link to this definition"></a></dt>
+<dd><p>Write model dictionary to dataframes given key options.</p>
+<p>This function will convert model dictionary to dataframes according to
+user’s specified sections (key_option).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_dict</strong> (<em>dict</em>) – Model dictionary.</p></li>
+<li><p><strong>key_option</strong> (<em>list</em><em>, </em><em>optional</em>) – Output sections (e.g., Pars, Inputs, Attributes), by default [“Pars”].</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Prefix for the filenames, by default “”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs.visual">
+<span id="hydrocnhs-visual-module"></span><h2>hydrocnhs.visual module<a class="headerlink" href="#module-hydrocnhs.visual" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydrocnhs.visual.Visual">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydrocnhs.visual.</span></span><span class="sig-name descname"><span class="pre">Visual</span></span><a class="headerlink" href="#hydrocnhs.visual.Visual" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Collection of some plotting functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.visual.Visual.plot_reg">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plot_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_labal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same_xy_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_reg_par</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.visual.Visual.plot_reg" title="Link to this definition"></a></dt>
+<dd><p>Plot regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array</em>) – Simulation data.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title, by default None.</p></li>
+<li><p><strong>xy_labal</strong> (<em>list</em><em>, </em><em>optional</em>) – List of x and y labels, by default None.</p></li>
+<li><p><strong>same_xy_limit</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True same limit will be applied to x and y axis, by default True.</p></li>
+<li><p><strong>return_reg_par</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, slope and interception will be return, by default False.</p></li>
+<li><p><strong>save_fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If given, plot will be save as .png, by default None.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the plot will be shown in the console, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>axis object or [slope, intercept].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ax or list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.visual.Visual.plot_simple_ts">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plot_simple_ts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_labal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.visual.Visual.plot_simple_ts" title="Link to this definition"></a></dt>
+<dd><p>Plot timeseries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Dataframe.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title, by default None.</p></li>
+<li><p><strong>xy_labal</strong> (<em>list</em><em>, </em><em>optional</em>) – List of x and y labels, by default None.</p></li>
+<li><p><strong>data_dots</strong> (<em>bool</em><em>, </em><em>optional</em>) – If Ture, show data marker, by default True.</p></li>
+<li><p><strong>save_fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If given, plot will be save as .png, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>axis object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydrocnhs.visual.Visual.plot_timeseries">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">plot_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_obv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_sim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_labal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_fig_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydrocnhs.visual.Visual.plot_timeseries" title="Link to this definition"></a></dt>
+<dd><p>Plot timeseries.</p>
+<p>This function can plot two DataFrames with same column names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_obv</strong> (<em>array/DataFrame</em>) – Observation data.</p></li>
+<li><p><strong>y_sim</strong> (<em>array/DataFrame</em>) – Simulation data.</p></li>
+<li><p><strong>xticks</strong> (<em>list</em><em>, </em><em>optional</em>) – Ticks for x-axis, by default None.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Title, by default None.</p></li>
+<li><p><strong>xy_labal</strong> (<em>list</em><em>, </em><em>optional</em>) – List of x and y labels, by default None.</p></li>
+<li><p><strong>save_fig_path</strong> (<em>str</em><em>, </em><em>optional</em>) – If given, plot will be save as .png, by default None.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, plot legend, by default None.</p></li>
+<li><p><strong>show</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the plot will be shown in the console, by default True.</p></li>
+<li><p><strong>kwargs</strong> (<em>optional</em>) – Other keywords for matplotlib.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>axis object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-hydrocnhs">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-hydrocnhs" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../files/9_advanced%20ABM%20coding%20tips.html" class="btn btn-neutral float-left" title="Advanced ABM coding tips" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hydrocnhs.calibration.html" class="btn btn-neutral float-right" title="hydrocnhs.calibration package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chung-Yi Lin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
