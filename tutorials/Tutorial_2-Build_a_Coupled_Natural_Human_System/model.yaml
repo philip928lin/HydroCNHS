@@ -10,9 +10,9 @@ WaterSystem:
   RainfallRunoff: GWLF
   Routing: Lohmann
   ABM:
-    Modules: [TRB_ABM_complete.py]
+    Modules: [TRB_ABM.py]
     InstitDMClasses: {}
-    DMClasses: [TransferDM, DivertDM, ReleaseDM]
+    DMClasses: [ReleaseDM, TransferDM, DivertDM]
     DamAPI: [Reservoir_AgtType]
     RiverDivAPI: [Diversion_AgType]
     InsituAPI: []

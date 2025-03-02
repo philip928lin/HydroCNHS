@@ -6,21 +6,21 @@ def cal_usle(RE, K, CP, LS, Area):
     Parameters
     ----------
     RE : 1darray
-        Rainfall erosivity.
+        Rainfall erosivity over time (t).
     K : 1darray
-        Soil erodibility factor.
+        Soil erodibility factor of each area segment (k).
     CP : 1darray
         Vegetation management factor = cover and management factor * support
-        practice factor.
+        practice factor of each area segment (k).
     LS : 1darray
-        Topographic factor.
+        Topographic factor of each area segment (k).
     Area : 1darray
-        [ha] Area
+        [ha] Area of each area segment (k).
 
     Returns
     -------
     2darray
-        [Mg] Sediment supply
+        [Mg] Daily sediment supply
     """
     RE = np.array(RE).reshape((-1,1))
     K = np.array(K).reshape((-1,1))
@@ -28,17 +28,69 @@ def cal_usle(RE, K, CP, LS, Area):
     LS = np.array(LS).reshape((-1,1))
     Area = np.array(Area).reshape((-1,1))
     X = 0.132 * np.dot(K*CP*LS*Area, RE.T)
-    return X    # k x t
+    return X    # area segement x time, k x t
+
+def cal_RE(prec, cool_months, ac, aw, sa, sb, pd_dates):
+    """
+    Calculate rainfall erosibility with Sa, Sb calibrated parameters for a subbasin.
+    
+    Parameters
+    ----------
+    prec : 1darray
+        Precipitation of a subbasin over time (t) [cm].
+    cool_months : list
+        List of cool months.
+    ac : float
+        Erosibility factor of cool months.
+    aw : float
+        Erosibility factor of warm months.
+    sa : float
+        Erosivity factor.
+    sb : float
+        Erodibility factor.
+    pd_dates : pd.Datetime
+        Pandas datetime list.
+    
+    Returns
+    -------
+    1darray
+        Daily rainfall erosibility over time (t).
+    """
+    cm = cool_months
+    ac_ab = np.array([ac if d.month in cm else aw for d in pd_dates])
+    RE = sa * np.array(prec)**sb * ac_ab
+    return RE
+    
+def cal_SX(DR, X, pd_date_index):
+    """Calculate total sediment supply, SX, of subbasins.
+
+    Parameters
+    ----------
+    DR : 1darray
+        Delivery ratio of each subbasin.
+    X : 2darray
+        Sediment supply.
+    pd_date_index : pd.Datetime
+        Pandas datetime index.
+
+    Returns
+    -------
+    1darray
+        [Mg] Monthly SX
+    """
+    DR = np.array(DR)
+    SX = DR * DataFrame(X.T, index=pd_date_index).sum(axis=1).resample("MS").sum()
+    return SX.to_numpy(), SX.index # 1 x t (monthly)
 
 def cal_LS(SL, PS):
-    """Calculate topographic factor, LS.
+    """Calculate topographic factor, LS, for all area segments in a subbasin.
 
     Parameters
     ----------
     SL : 1darray
-        Slope length.
+        Slope length of area segements (k).
     PS : 1darray
-        Percent slope.
+        Percent slope of area segements (k).
 
     Returns
     -------
@@ -59,26 +111,6 @@ def cal_LS(SL, PS):
     LS = (0.045*SL)**b * (65.41*np.sin(theta)**2 + 4.56*np.sin(theta) + 0.065)
     return LS   # k x 1
 
-def cal_SX(DR, X, pd_date_index):
-    """Calculate total sediment supply, SX, of subbasins.
-
-    Parameters
-    ----------
-    DR : 1darray
-        Delivery ratio.
-    X : 2darray
-        Sediment supply.
-    pd_date_index : pd.Datetime
-        Pandas datetime index.
-
-    Returns
-    -------
-    1darray
-        SX
-    """
-    DR = np.array(DR)
-    SX = DR * DataFrame(X.T, index=pd_date_index).sum(axis=1).resample("MS").sum()
-    return SX.to_numpy(), SX.index # 1 x t
 
 # calculate entire set for a routing node
 def cal_TR_B(Q_frac, pd_date_index, fi, ti):
@@ -110,7 +142,7 @@ def cal_TR_B(Q_frac, pd_date_index, fi, ti):
     
     ratio_dict = {m: TR.iloc[:m+1,:]/B.iloc[m,:] for m in range(12)}
     
-    return ratio_dict # {t x sb}
+    return ratio_dict # {t (monthly) x sb}
 
 def run_TSS(RE_dict, sediment_setting, routing_setting,
             dam_agts, pd_date_index, Q_frac, dc_TSS, yi, fi, ti): 

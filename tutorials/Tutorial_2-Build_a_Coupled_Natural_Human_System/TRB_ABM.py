@@ -133,6 +133,19 @@ class Pipe_AgType(Base):
 
 
 # DMClass
+class ReleaseDM(Base):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # The (Institutional) DMClass inherited attributes are applied.
+        # See the note at top.
+
+    def make_dm(self, your_arguments):
+        # Decision-making calculation.
+        decision = None
+        return decision
+
+
+# DMClass
 class TransferDM(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -147,19 +160,6 @@ class TransferDM(Base):
 
 # DMClass
 class DivertDM(Base):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # The (Institutional) DMClass inherited attributes are applied.
-        # See the note at top.
-
-    def make_dm(self, your_arguments):
-        # Decision-making calculation.
-        decision = None
-        return decision
-
-
-# DMClass
-class ReleaseDM(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # The (Institutional) DMClass inherited attributes are applied.

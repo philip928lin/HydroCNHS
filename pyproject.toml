@@ -1,6 +1,6 @@
 [project]
 name = "hydrocnhs"
-version = "1.2.0"
+version = "1.2.1"
 authors = [{name = "Chung-Yi Lin", email = "philip928lin@gmail.com"}]
 license = {file = "LICENSE"}
 description = "A Python Package of Hydrological Model for Coupled Natural–Human Systems"
