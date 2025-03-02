@@ -2,19 +2,37 @@ import numpy as np
 import pandas as pd
 
 class Sediment:
-    def __init__(self, prec, Q_frac, model_dict,
-                 sed_start_date=None, sed_end_date=None, dam_agts_TSS_dict=None):
+    def __init__(self, prec, Q_frac, model_dict, dam_agts_TSS_dict=None):
+        """
+        Parameters
+        ----------
+        prec : dict
+            Precipitation data of all subbasins over time (t) [cm].
+        Q_frac : dict
+            Fraction of flow of all outlets over time (t).
+        model_dict : dict
+            Model dictionary.
+        dam_agts_TSS_dict : dict, optional
+            . A dictionary contains dam agents' monthly TSS data in pd.DataFrame
+        """
         self.prec = prec
         model_dict = model_dict
         sediment_setting = model_dict["Sediment"]
-        routing_setting = model_dict["Routing"]
         dam_agts = model_dict["SystemParsedData"]["DamAgents"]
         sim_seq = model_dict["SystemParsedData"]["SimSeq"]
         
         self.sediment_setting = sediment_setting
-        self.routing_setting = routing_setting
         self.dam_agts = dam_agts
         self.sim_seq = sim_seq
+        # Annual cycle start month
+        # If the annual cycle start month is None, we use 12 month moving window to calculate the sediment transportation ratio.
+        # If it is given, e.g., =4, SX of April will be distrbited from April to March of the next year.
+        # SX of May will be distrbited from May to March of the next year.
+        # .....
+        # SX of March will be distrbited only to March. The month that accumulated sed being flushed out.
+        # This month is ususally identify by look into the observation data to find the month that has the highest sediment yield.
+        # Then, use the next month as the annual cycle start month.
+        self.annual_cycle_start_month = model_dict["WaterSystem"]["Sediment"].get("StartMonth")
         
         if dam_agts is not None:
             assert dam_agts_TSS_dict is not None, "Dam agents' monthly TSS data is required."
@@ -37,30 +55,48 @@ class Sediment:
             }
             
         # Transportation capacity (we precalculate this to save time)
-        sediment_setting[sb]["Pars"]["Sq"]
-        Q_frac_m_sq = {}
-        for ro, df in self.Q_frac_m.items():
-            for sb in df.columns:
-                df[sb] = df[sb]**sediment_setting[sb]["Pars"]["Sq"]
-            Q_frac_m_sq[ro] = df
-        self.Q_frac_m_sq = Q_frac_m_sq
+        self.Q_frac_m_sq = Sediment.cal_Q_frac_m_sq(self.Q_frac_m, self.sediment_setting)
         
         # Sediment yield record (monthly X subbasins)
         self.SX_record = pd.DataFrame(
-            0,  # Fill value
+            0.0,  # Fill value
             index=self.pd_hydro_dates, 
-            columns=list(sediment_setting.keys()) + list(dam_agts))
+            columns=list(sediment_setting.keys()) + list(self.dam_agts)
+            )
+        # SX is stored in monthly resolution but caluclated in daily resolution
+        self.SX_record = self.SX_record.resample("MS").sum() 
         
-        self.TSS_M = self.SX_record.resample("MS").sum()
+        self.simulated_start_date_tracker = None
+        self.simulated_end_date_tracker = self.hydro_start_date
+        self.TSS_M = self.SX_record.copy()
         self.TSS_Y = self.TSS_M.resample("YS").sum()
     
+    def get_monthly_TSS(self):
+        return self.TSS_M.loc[
+            self.simulated_start_date_tracker:self.simulated_end_date_tracker, 
+            self.sim_seq
+            ]
+    
+    def get_yearly_TSS(self):
+        return self.TSS_Y.loc[
+            self.simulated_start_date_tracker:self.simulated_end_date_tracker, 
+            self.sim_seq
+            ]
+    
     def set_sed_dates(self, sed_start_date, sed_end_date):
+        """Set sediment simulation dates."""
         if sed_start_date is None:
-            self.sed_start_date = self.hydro_start_date
+            if self.simulated_end_date_tracker == self.hydro_start_date:
+                self.sed_start_date = self.hydro_start_date
+            else:
+                sed_start_date=self.simulated_end_date_tracker + pd.DateOffset(months=1)
         else:
             self.sed_start_date = pd.to_datetime(sed_start_date, format="%Y/%m/%d")
             assert self.sed_start_date >= self.hydro_start_date, \
             "Sediment simulation start date must be after hydrological simulation start date."
+        
+        if self.simulated_start_date_tracker is None:
+            self.simulated_start_date_tracker = self.sed_start_date
         
         if sed_end_date is None:
             self.sed_end_date = self.max_sed_end_date
@@ -81,12 +117,27 @@ class Sediment:
             freq="MS"
         )    
         
-        self.from_index = self.pd_hydro_dates.get_loc(sed_start_date)
-        self.to_index = self.pd_hydro_dates.get_loc(sed_start_date)
-        
+        self.from_index = self.pd_hydro_dates.get_loc(self.sed_start_date)
+        self.to_index = self.pd_hydro_dates.get_loc(self.sed_end_date)     
     
-    def run_TSS(self, dc_TSS, yi, sed_start_date, sed_end_date):
-        """Run sediment transport simulation."""
+    def run_TSS(self, sed_start_date=None, sed_end_date=None):
+        """
+        Run sediment transport simulation.
+        
+        Parameters
+        ----------
+        sed_start_date : str, optional
+            Start date of sediment simulation. The default is None.
+        sed_end_date : str, optional
+            End date of sediment simulation. The default is None.
+            
+        Returns
+        -------
+        SX_routed_M : pd.DataFrame
+            Monthly sediment yield of all outlets.
+        SX_routed_Y : pd.DataFrame
+            Yearly sediment yield of all outlets.
+        """
         self.set_sed_dates(sed_start_date, sed_end_date)
         from_index = self.from_index
         to_index = self.to_index
@@ -95,16 +146,15 @@ class Sediment:
         prec_sed = {sb: v[from_index:to_index+1] for sb, v in self.prec.items()}
         
         sediment_setting = self.sediment_setting
-        routing_setting = self.routing_setting
-
         
         # Calculate rainfall erosivity for each subbasin
         RE_dict = {}
         for sb, v in sediment_setting.items():
             pars = v["Pars"]
+            inputs = v["Inputs"]
             RE_dict[sb] = Sediment.cal_RE(
-                prec=prec_sed[sb],
-                cool_months=pars["CoolMonths"], 
+                prec_sb=prec_sed[sb],
+                cool_months=inputs["CoolMonths"], 
                 ac=pars["Ac"], 
                 aw=pars["Aw"], 
                 sa=pars["Sa"],
@@ -125,7 +175,7 @@ class Sediment:
             if isinstance(CP, (np.ndarray, np.generic, list)) is False:
                 CP = [CP]*len(LS)
             K = pars["K"]
-            Areas = inputs["Area"]
+            Areas = inputs["Areas"]
             X = Sediment.cal_usle(RE, K, CP, LS, Areas)
             DR = pars["DR"]
             SX_sb = Sediment.cal_SX(
@@ -148,33 +198,73 @@ class Sediment:
         
         # Retrive the SX records since the past 11 months SX will contribute to the current month
         # sediment yield.
-        
+        annual_cycle_start_month = self.annual_cycle_start_month
         Q_frac_m_sq = self.Q_frac_m_sq
-        SX_routed_M = self.SX_record.iloc[max(self.SX_record.index.get_loc(SX.index[0]) - 11, 0), :].copy()
+        ind = self.SX_record.index.get_loc(SX.index[0])
+        num_of_back_track_months = ind - max(ind-11, 0)
+        SX_routed_M = self.SX_record.iloc[ind-num_of_back_track_months:ind+SX.shape[0], :].copy()
         for ro in self.sim_seq:
             l = SX_routed_M.shape[0]
             Q_frac_m_sq_ro = Q_frac_m_sq[ro] # a df of monthly Q_frac_sq
             ind = Q_frac_m_sq_ro.index.get_loc(SX_routed_M.index[0])
             for sb in Q_frac_m_sq_ro.columns:
-                ratios = np.zeros(l, l+11)
+                ratios = np.zeros((l, l+11))
                 for i, v in enumerate(list(SX_routed_M.index)):
-                    Q = Q_frac_m_sq_ro[sb][ind:ind+12].values
-                    Q = Q/np.sum(Q)
-                    ratios[i, i:i+12] = Q
-                sb_sed_routed = np.multiply(SX_routed_M[sb], ratios).sum(axis=0)
-                SX_routed_M[sb] = sb_sed_routed
+                    
+                    Q = Q_frac_m_sq_ro[sb][ind:ind+12]
+                    if annual_cycle_start_month is not None:
+                        acm = annual_cycle_start_month
+                        if acm != Q.index[0].month:
+                            annual_cycle_mask_i = [i.month for i in Q.index].index(acm)
+                            Q = Q.iloc[:annual_cycle_mask_i]
+    
+                    Q = Q.values/np.sum(Q)
+                    ratios[i, i:i+len(Q)] = Q
+                SX_routed_M_array = SX_routed_M[sb].values.reshape(-1,1)
+                sb_sed_routed = np.multiply(SX_routed_M_array, ratios).sum(axis=0)
+                # The last 11 months extend to the future, which will be descarded
+                # in this calculation. They will be re-routed when moving into 
+                # the next sediment simulation period.
+                SX_routed_M[sb] = sb_sed_routed[:-11] 
                 
             # Sum the subbasin sediment yield to get the routing outlet's sediment yield
-            SX_routed_M[ro] = SX_routed_M[Q_frac_m_sq_ro.columns].sum(axis=1)
-        SX_routed_M = SX_routed_M.loc[pd_sed_dates_m, :]    
+            SX_routed_M[ro] = SX_routed_M[Q_frac_m_sq_ro.columns].sum(axis=1) 
+        
+        # Collect the routed dates within pd_sed_dates_m
+        SX_routed_M = SX_routed_M.loc[pd_sed_dates_m, :]
         
         # Update the records
         self.TSS_M.loc[SX_routed_M.index, SX_routed_M.columns] = SX_routed_M
         SX_routed_Y = SX_routed_M.resample("YS").sum()
         self.TSS_Y.loc[SX_routed_Y.index, SX_routed_Y.columns] = SX_routed_Y
 
+        # Update the simulated date tracker
+        self.simulated_end_date_tracker = pd_sed_dates[-1]
+        
         return SX_routed_M, SX_routed_Y
     
+    def run_next_year_TSS(self):
+        """Run sediment transport simulation for the next year."""
+        if self.simulated_end_date_tracker == self.hydro_start_date:
+            SX_routed_M, SX_routed_Y = self.run_TSS(
+                sed_start_date=self.simulated_end_date_tracker,
+                sed_end_date=self.simulated_end_date_tracker + pd.DateOffset(months=11)
+            )
+        else:
+            SX_routed_M, SX_routed_Y = self.run_TSS(
+                sed_start_date=self.simulated_end_date_tracker + pd.DateOffset(months=1),
+                sed_end_date=self.simulated_end_date_tracker + pd.DateOffset(months=12)
+            )
+        return SX_routed_M, SX_routed_Y
+    
+    @staticmethod
+    def cal_Q_frac_m_sq(Q_frac_m, sediment_setting):
+        Q_frac_m_sq = {}
+        for ro, df in Q_frac_m.items():
+            for sb in df.columns:
+                df[sb] = df[sb]**sediment_setting[sb]["Pars"]["Sq"]
+            Q_frac_m_sq[ro] = df
+        return Q_frac_m_sq
     
     @staticmethod
     def cal_usle(RE, K, CP, LS, Areas):

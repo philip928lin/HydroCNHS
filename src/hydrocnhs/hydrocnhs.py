@@ -23,7 +23,7 @@ from .routing import (
     run_step_Lohmann_sed,
     run_step_Lohmann_convey_sed,
 )
-from .sediment import run_TSS
+from .water_quality_model.sediment import Sediment
 from .util import (
     set_logging_config,
     load_model,
@@ -98,8 +98,9 @@ class Model(object):
         # Parallelization setting
         self.paral_setting = paral_setting
         # Load model.yaml
-        model = load_model(model, checked=checked, parsed=parsed)
-
+        model_dict = load_model(model, checked=checked, parsed=parsed)
+        self.model_dict = model_dict
+        
         # Create random number generator for ABM.
         if rn_gen is None:
             # Assign a random seed.
@@ -114,13 +115,13 @@ class Model(object):
 
         # Verify model contain all following keys.
         try:
-            self.path = model["Path"]
-            self.ws = model["WaterSystem"]  # ws: Water system
-            self.runoff = model["RainfallRunoff"]  # runoff: rainfall-runoff model
-            self.routing = model["Routing"]  # routing: Routing
-            self.sediment = model.get("Sediment")
-            self.abm = model.get("ABM")  # abm can be none (decoupled model)
-            self.sys_parsed_data = model["SystemParsedData"]
+            self.path = model_dict["Path"]
+            self.ws = model_dict["WaterSystem"]  # ws: Water system
+            self.runoff = model_dict["RainfallRunoff"]  # runoff: rainfall-runoff model
+            self.routing = model_dict["Routing"]  # routing: Routing
+            self.sediment = model_dict.get("Sediment")
+            self.abm = model_dict.get("ABM")  # abm can be none (decoupled model)
+            self.sys_parsed_data = model_dict["SystemParsedData"]
         except:
             logger.error("The model file/dictionary is incomplete or contains errors.")
 
@@ -134,7 +135,6 @@ class Model(object):
         self.pd_date_index = date_range(start=start_date, periods=data_length, freq="D")
         pd_date_index = self.pd_date_index
         self.sim_sediment = False
-        self.run_sed = [False] * data_length
 
         # Initialize data_collector
         self.dc = Data_collector()  # For collecting ABM's data.
@@ -159,34 +159,16 @@ class Model(object):
 
         if ws.get("Sediment") is not None:
             self.sim_sediment = True
-            # Create index for monthly sediment simulation.
-            start_month = ws["Sediment"]["StartMonth"]
-            end_month = (start_month + 10) % 12 + 1
-            sed_from_index = [
-                i
-                for i, d in enumerate(pd_date_index)
-                if d.month == start_month and d.is_month_start
-            ]
-            sed_to_index = [
-                i
-                for i, d in enumerate(pd_date_index)
-                if d.month == end_month and d.is_month_end
-            ]
-            if sed_to_index[0] < sed_from_index[0]:
-                sed_to_index = sed_to_index[1:]
-            if sed_from_index[-1] > sed_to_index[-1]:
-                sed_from_index = sed_from_index[:-1]
-            self.sed_from_index = sed_from_index
-            self.sed_to_index = sed_to_index
-            n_sed_month = len(sed_to_index) * 12
 
-            dc.add_field(
-                "TSS",
-                {sb: np.zeros(n_sed_month) for sb in ws["Outlets"]},
-                desc="Total suspended sediment.",
-                unit="Mg",
-            )
-            dc.TSS.update({isag: np.zeros(n_sed_month) for isag in instream_agents})
+            # Future integration
+            # Now Sediment is a separate class. We will integrate it into HydroCNHS.
+            #dc.add_field(
+            #    "TSS",
+            #    {sb: np.zeros(n_sed_month) for sb in ws["Outlets"]},
+            #    desc="Total suspended sediment.",
+            #    unit="Mg",
+            #)
+            #dc.TSS.update({isag: np.zeros(n_sed_month) for isag in instream_agents})
 
             routing = self.routing
             Q_frac = {
@@ -680,27 +662,15 @@ class Model(object):
 
         # Sediment
         if sim_sediment:
-            sed_from_index = self.sed_from_index
-            sed_to_index = self.sed_to_index
+            #sed_from_index = self.sed_from_index
+            #sed_to_index = self.sed_to_index
             Q_frac = dc.Q_frac
             routing_func = run_step_Lohmann_sed
             routing_convey_func = run_step_Lohmann_convey_sed
-            instream_agents = sys_parsed_data["DamAgents"]
-            if instream_agents is None:
-                instream_agents = []
-            # RE_dict = {}
-            # for sb, v in sediment.items():
-            #    cm = v["Inputs"]["CoolMonths"]
-            #    ac = v["Pars"]["Ac"]
-            #    aw = v["Pars"]["Aw"]
-            #    RE_dict[sb] = 64.6 * np.array(prec[sb])**1.81 \
-            #        * np.array([ac if d.month in cm else aw for d in pd_date_index])
-            run_sed = [True if i in sed_to_index else False for i in range(data_length)]
         else:
             Q_frac = None
             routing_func = run_step_Lohmann
             routing_convey_func = run_step_Lohmann_convey
-            run_sed = [False] * data_length
 
         # ----- Time step simulation (Coupling hydrological model and ABM) ----
         # Load system-parsed data ---------------------------------------------
@@ -708,15 +678,12 @@ class Model(object):
         ag_sim_seq = sys_parsed_data["AgSimSeq"]
 
         ##### Only a semi-distributed hydrological model ######################
-        yi = 0  # for sediment simulation
 
         if ws["ABM"] is None:
             logger.info("Start a pure hydrological simulation (no human component).")
             run_rainfall_runoff(s=0, l=data_length)
             # Run step-wise routing to update Q_routed ------------------------
-            for t, sed_TF in tqdm(
-                zip(range(data_length), run_sed), desc=name, disable=disable
-            ):
+            for t in tqdm(range(data_length), desc=name, disable=disable):
                 current_date = pd_date_index[t]
                 for node in sim_seq:
                     if node in routing_outlets:
@@ -727,13 +694,6 @@ class Model(object):
                         )
                         # ----- Store Qt to final output.
                         Q_routed[node][t] = Qt
-                if sed_TF and sim_sediment:
-                    fi = sed_from_index[yi]
-                    ti = sed_to_index[yi]
-                    # run_TSS(RE_dict, sediment, routing, instream_agents,
-                    #        pd_date_index, Q_frac, dc.TSS,
-                    #        yi, fi, ti)
-                    yi += 1
 
         ##### HydroCNHS model (Coupled model) #################################
         # We create four interfaces for "two-way coupling" between natural
@@ -747,9 +707,7 @@ class Model(object):
             for c_node in conveyed_nodes:
                 Q_convey[c_node] = np.zeros(data_length)
 
-            for t, sed_TF in tqdm(
-                zip(range(data_length), run_sed), desc=name, disable=disable
-            ):
+            for t in tqdm(range(data_length), desc=name, disable=disable):
                 current_date = pd_date_index[t]
                 # Simulate rainfall runoffs
                 # can be modified to update rr pars. e.g., land use changes.
@@ -870,15 +828,35 @@ class Model(object):
                             delta = agents[ag].act(outlet=o)
                             Q_routed[o][t] += delta
 
-                if sed_TF and sim_sediment:
-                    fi = sed_from_index[yi]
-                    ti = sed_to_index[yi]
+                #if sed_TF and sim_sediment:
+                #    fi = sed_from_index[yi]
+                #    ti = sed_to_index[yi]
                     # run_TSS(RE_dict, sediment, routing, instream_agents,
                     #        pd_date_index, Q_frac, dc.TSS,
                     #        yi, fi, ti)
-                    yi += 1
+                #    yi += 1
         # ---------------------------------------------------------------------
         print("")  # Force the logger to start a new line after tqdm.
+        
+        if sim_sediment:
+            logger.info("Start sediment simulation!")
+            sed = Sediment(prec, Q_frac, self.model_dict)
+            sed.run_TSS()
+            sed_sim_m = sed.get_monthly_TSS()
+            sed_sim_y = sed.get_yearly_TSS()
+            dc.add_field(
+                "TSS_monthly",
+                sed_sim_m,
+                desc="Monthly total suspended sediment.",
+                unit="Mg",
+            )
+            dc.add_field(
+                "TSS_annually",
+                sed_sim_y,
+                desc="Monthly total suspended sediment.",
+                unit="Mg",
+            )
+
         logger.info("Completed HydroCNHS simulation! [{}]\n".format(get_elapsed_time()))
         # [cms] Streamflow for routing outlets (Gauged outlets and inflow
         # outlets of instream agents). For other variables users need to

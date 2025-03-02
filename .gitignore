@@ -11,6 +11,7 @@ __pycache__/
 
 # outputs
 #outputs/
+temp_file/
 
 # Archive folders
 **/Archive/*
