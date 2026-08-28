@@ -1,9 +1,9 @@
-[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://philip928lin.github.io/HydroCNHS/)
+[![Docs](https://github.com/cylin928/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://cylin928.github.io/HydroCNHS/)
 
 # HydroCNHS
 A Python Package of Hydrological Model for Coupled Natural–Human Systems
 
-<img src="https://github.com/philip928lin/HydroCNHS/blob/main/docs/source/figs/fig3_hydrocnhs.png" alt="Complex Adaptive Water System" width="500"/>
+<img src="https://github.com/cylin928/HydroCNHS/blob/main/docs/source/figs/fig3_hydrocnhs.png" alt="Complex Adaptive Water System" width="500"/>
 
 Modeling Coupled Natural–Human Systems (CNHS) to inform comprehensive water resources management policies or describe hydrological cycles in the Anthropocene has become popular in recent years. To fulfill this need, we developed a semi-distributed Hydrological model for Coupled Natural–Human Systems, HydroCNHS. HydroCNHS is an open-source Python package supporting four Application Programming Interfaces (APIs) that enable users to integrate their human decision models, which can be programmed with the agent-based modeling concept, into HydroCNHS. Specifically, we designed the Dam API, RiverDiv API, Conveying API, and InSitu API to integrate, respectively, customized man-made infrastructures such as reservoirs, off-stream diversions, trans-basin aqueducts, and drainage systems that abstract human behaviors (e.g., operator and farmers’ water use decisions). Each of the HydroCNHS APIs has a unique plug-in structure that respects within-subbasin and inter-subbasin (i.e., river) routing logic for maintaining the water balance. In addition, HydroCNHS uses a single model configuration file to organize input features for the hydrological model and case-specific human systems models. Also, HydroCNHS enables model calibration using parallel computing power. We demonstrate the functionalities of the HydroCNHS package through a case study in the Northwest United States. Given the integrity of the modeling framework, HydroCNHS can benefit water resources planning and management in various aspects, including uncertainty analysis in CNHS modeling and more complex agent design.
 
@@ -15,7 +15,7 @@ pip install hydrocnhs
 ```
 To install the latest version (recommended) of HydroCNHS, users can (1) install HydroCNHS using *git*:
 ```
-pip install git+https://github.com/philip928lin/HydroCNHS.git
+pip install git+https://github.com/cylin928/HydroCNHS.git
 ```
 Or, (2) download the HydroCNHS package directly from the HydroCNHS GitHub repository. 
 ```
@@ -25,7 +25,7 @@ pip install -e .
 ```
 
 ## User Manual & Example
-[![Docs](https://github.com/philip928lin/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://philip928lin.github.io/HydroCNHS/)
+[![Docs](https://github.com/cylin928/PathNavigator/actions/workflows/docs.yml/badge.svg)](https://cylin928.github.io/HydroCNHS/)
 
 ## When should you use HydroCNHS?
 1. Want to build a hydrological model with auto-parameter-tuning (calibration) features.
